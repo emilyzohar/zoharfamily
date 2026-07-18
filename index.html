@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zohar Family</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <main>
+    <section class="landing-screen light-section">
+
+  <header class="top-nav">
+  <nav class="top-nav-inner" aria-label="Main navigation">
+    <a class="top-nav-link active" href="index.html">Home</a>
+    <a class="top-nav-link" href="recipes.html">Recipes</a>
+    <a class="top-nav-link" href="merch.html">Merch</a>
+    <a class="top-nav-link" href="travel.html">Travel</a>
+    <a class="top-nav-link" href="memories.html">Memories</a>
+  </nav>
+</header>
+
+  <img
+    id="landing-photo"
+    class="landing-photo"
+    src=""
+    alt="Zohar family photograph"
+  />
+
+</section>
+
+    <section class="paper-section light-section">
+
+  
+
+  <!-- your family tree here -->
+
+      <div class="manual-tree-wrap">
+        <div class="family-tree-manual" aria-label="Zohar family tree">
+
+          <!-- Clickable names -->
+          <a class="tree-person aliza">Aliza</a>
+          <a class="tree-person has-page amnon" href="person.html?person=amnon">Amnon</a>
+
+          <a class="tree-person eyal">Eyal</a>
+          <a class="tree-person mitzi" >Mitzi</a>
+
+          <a class="tree-person alon" >Alon</a>
+          <a class="tree-person tracey">Tracey</a>
+
+          <a class="tree-person sharon" >Sharon</a>
+          <a class="tree-person mark" >Mark</a>
+
+          <a class="tree-person emily" href="person.html?person=emily">Emily</a>
+          <a class="tree-person zach" >Zach</a>
+
+          <a class="tree-person erin" >Erin</a>
+          <a class="tree-person ethan">Ethan</a>
+          <a class="tree-person jacklyn" >Jacklyn</a>
+
+          <a class="tree-person jaime">Jaime</a>
+          <a class="tree-person alex">Alex</a>
+
+          <!-- All connector lines live in one SVG so joints stay crisp -->
+          <svg
+            class="tree-lines"
+            viewBox="0 0 2000 650"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <!-- Aliza — Amnon -->
+            <line x1="300" y1="122" x2="400" y2="122" />
+
+            <!-- Grandparents down to generation line -->
+            <line x1="350" y1="122" x2="350" y2="222" />
+
+            <!-- Main horizontal generation line -->
+            <line x1="200" y1="222" x2="1540" y2="222" />
+
+            <!-- Drops to the three family branches -->
+            <line x1="200" y1="222" x2="200" y2="302" />
+            <line x1="925" y1="222" x2="925" y2="302" />
+            <line x1="1540" y1="222" x2="1540" y2="302" />
+
+            <!-- Eyal — Mitzi -->
+            <line x1="270" y1="322" x2="370" y2="322" />
+            <line x1="320" y1="322" x2="320" y2="422" />
+
+            <!-- Eyal / Mitzi children -->
+            <line x1="210" y1="422" x2="430" y2="422" />
+            <line x1="210" y1="422" x2="210" y2="550" />
+            <line x1="430" y1="422" x2="430" y2="550" />
+
+            <!-- Alon — Tracey -->
+            <line x1="975" y1="322" x2="1075" y2="322" />
+            <line x1="1025" y1="322" x2="1025" y2="422" />
+
+            <!-- Alon / Tracey children -->
+            <line x1="850" y1="422" x2="1210" y2="422" />
+            <line x1="850" y1="422" x2="850" y2="500" />
+            <line x1="1025" y1="422" x2="1025" y2="525" />
+            <line x1="1210" y1="422" x2="1210" y2="580" />
+
+            <!-- Sharon — Mark -->
+            <line x1="1625" y1="322" x2="1725" y2="322" />
+            <line x1="1675" y1="322" x2="1675" y2="422" />
+
+            <!-- Sharon / Mark children -->
+            <line x1="1575" y1="422" x2="1800" y2="422" />
+            <line x1="1575" y1="422" x2="1575" y2="615" />
+            <line x1="1800" y1="422" x2="1800" y2="645" />
+          </svg>
+
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script>
+    const landingPhoto = document.getElementById("landing-photo");
+    if (landingPhoto) landingPhoto.src = LANDING_PHOTO;
+  </script>
+  <script>
+  const menuToggle = document.querySelector(".menu-toggle");
+  const mobileMenu = document.querySelector(".mobile-menu");
+  const paperSection = document.querySelector(".paper-section");
+
+  // Open and close menu
+  menuToggle.addEventListener("click", () => {
+    const isOpen = mobileMenu.classList.toggle("open");
+
+    menuToggle.setAttribute(
+      "aria-expanded",
+      isOpen
+    );
+  });
+
+  // Change hamburger colour depending on background
+  function updateMenuColor() {
+    const menuRect = menuToggle.getBoundingClientRect();
+    const paperRect = paperSection.getBoundingClientRect();
+
+    const menuCenter =
+      menuRect.top + menuRect.height / 2;
+
+    // Has the paper section moved behind the hamburger?
+    if (paperRect.top <= menuCenter) {
+      menuToggle.classList.add("menu-dark");
+      menuToggle.classList.remove("menu-light");
+    } else {
+      menuToggle.classList.add("menu-light");
+      menuToggle.classList.remove("menu-dark");
+    }
+  }
+
+  window.addEventListener("scroll", updateMenuColor);
+  window.addEventListener("resize", updateMenuColor);
+
+  updateMenuColor();
+</script>
+<footer class="bottom-nav">
+  <nav class="bottom-nav-inner" aria-label="Footer navigation">
+    <a class="active" href="index.html">Home</a>
+    <a href="recipes.html">Recipes</a>
+    <a href="merch.html">Merch</a>
+    <a href="travel.html">Travel</a>
+    <a href="memories.html">Memories</a>
+  </nav>
+</footer>
+</body>
+</html>

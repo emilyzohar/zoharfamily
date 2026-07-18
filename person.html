@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Member | Zohar Family</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="person-page">
+  <header class="site-header">
+    <nav id="main-nav" class="nav" aria-label="Main navigation"></nav>
+  </header>
+
+  <main class="person-main">
+    <a class="back-link" href="index.html">← Back to family tree</a>
+
+    <article class="person-card">
+      <div class="person-profile">
+        <img id="person-photo" class="person-photo" alt="" />
+        <div>
+          <h1 id="person-name"></h1>
+          <p id="person-summary" class="person-summary"></p>
+        </div>
+      </div>
+
+      <section>
+        <h2>Story</h2>
+        <div id="person-story"></div>
+      </section>
+
+      <section>
+        <h2>Photos</h2>
+        <div id="photo-gallery" class="media-grid"></div>
+      </section>
+
+      <section>
+        <h2>Videos</h2>
+        <div id="video-gallery" class="video-grid"></div>
+      </section>
+    </article>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="person.js"></script>
+</body>
+</html>

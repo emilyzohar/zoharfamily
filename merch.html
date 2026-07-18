@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Merch | Zohar Family</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- TOP NAV -->
+  <header class="merch-header">
+  <nav class="top-nav-inner" aria-label="Main navigation">
+    <a class="top-nav-link" href="index.html">Home</a>
+    <a class="top-nav-link" href="recipes.html">Recipes</a>
+    <a class="top-nav-link active" href="merch.html">Merch</a>
+    <a class="top-nav-link" href="travel.html">Travel</a>
+    <a class="top-nav-link" href="memories.html">Memories</a>
+  </nav>
+</header>
+
+  <!-- INVENTORY -->
+  <main class="merch-main">
+    <div id="merch-grid" class="merch-grid"></div>
+  </main>
+
+  <!-- QUICK VIEW -->
+  <div id="quick-view" class="quick-view" aria-hidden="true">
+
+    <div class="quick-view-backdrop"></div>
+
+    <div class="quick-view-card">
+
+      <button
+        id="quick-view-close"
+        class="quick-view-close"
+        aria-label="Close quick view"
+      >
+        ×
+      </button>
+
+      <div class="quick-view-layout">
+
+        <div class="quick-view-gallery">
+          <img
+            id="quick-view-image"
+            class="quick-view-image"
+            src=""
+            alt=""
+          />
+
+          <div
+            id="quick-view-dots"
+            class="merch-dots"
+          ></div>
+        </div>
+
+        <div class="quick-view-info">
+          <h2 id="quick-view-name"></h2>
+
+          <p
+            id="quick-view-description"
+            class="quick-view-description"
+          ></p>
+
+          <dl class="quick-view-details">
+
+            <div id="created-row">
+              <dt>Created</dt>
+              <dd id="quick-view-created"></dd>
+            </div>
+
+            <div id="creator-row">
+              <dt>Created by</dt>
+              <dd id="quick-view-creator"></dd>
+            </div>
+
+            <div id="owner-row">
+              <dt>Currently with</dt>
+              <dd id="quick-view-owner"></dd>
+            </div>
+
+          </dl>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <footer class="bottom-nav">
+    <nav class="bottom-nav-inner">
+      <a href="index.html">Home</a>
+      <a href="recipes.html">Recipes</a>
+      <a class="active" href="merch.html">Merch</a>
+      <a href="travel.html">Travel</a>
+      <a href="memories.html">Memories</a>
+    </nav>
+  </footer>
+
+  <script src="merch-data.js"></script>
+  <script src="merch.js"></script>
+
+</body>
+</html>

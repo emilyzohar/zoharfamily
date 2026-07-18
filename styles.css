@@ -1,0 +1,883 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Italianno&display=swap');
+
+:root {
+  --paper: #f5f0e7;
+  --ink: #5e0b11;
+  --line: rgba(94, 11, 17, 0.62);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   LANDING SCREEN
+   ========================================================= */
+
+.landing-screen {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 78px);
+  min-height: 0;
+
+  background-image: url("assets/landing-background.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+}
+
+.landing-photo {
+  position: absolute;
+  left: 50.1%;
+  top: 30%;
+  width: 12.2%;
+  aspect-ratio: 1 / 1;
+  transform: translateX(-50%);
+  object-fit: cover;
+  display: block;
+}
+
+.landing-photo {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  cursor: pointer;
+}
+
+.landing-photo:hover {
+  transform: translateX(-50%) scale(1.04);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+.top-nav {
+  position: flex;
+  top: 0;
+  right: 0;
+  z-index: 100;
+}
+
+.hamburger-nav {
+  position: relative;
+  z-index: 2000;
+}
+
+.menu-toggle {
+  position: fixed;
+  top: 24px;
+  right: 32px;
+  z-index: 9999;
+
+  width: 42px;
+  height: 42px;
+  padding: 8px;
+
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 26px;
+  height: 2px;
+  background: #5e0b11;
+}
+
+.menu-toggle.menu-light span {
+  background: #fffaf2;
+}
+
+.menu-toggle.menu-dark span {
+  background: #5e0b11;
+}
+
+.mobile-menu {
+  position: fixed;
+  top: 78px;
+  right: 24px;
+
+  min-width: 190px;
+  padding: 18px 22px;
+
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+
+  background: rgba(111, 145, 171, 0.94);
+  backdrop-filter: blur(6px);
+
+  border-radius: 6px;
+}
+
+.mobile-menu.open {
+  display: flex;
+}
+
+.mobile-menu a {
+  color: #fffaf2;
+  text-decoration: none;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.5rem;
+}
+
+.mobile-menu a:hover {
+  opacity: 0.7;
+}
+
+.bottom-nav {
+  width: 100%;
+  background: #6f0010;
+}
+
+.bottom-nav-inner {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 52px;
+  padding: 0 72px;
+}
+
+.bottom-nav a {
+  color: #fffaf2;
+  text-decoration: none;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
+  font-weight: 200;
+  transition: opacity 160ms ease;
+}
+
+.bottom-nav a:hover,
+.bottom-nav a:focus-visible {
+  opacity: 0.7;
+}
+
+.bottom-nav a.active {
+  font-style: italic;
+}
+
+@media (max-width: 700px) {
+  .bottom-nav-inner {
+    gap: 28px;
+    padding: 20px 24px;
+    overflow-x: auto;
+  }
+
+  .bottom-nav a {
+    font-size: 1.4rem;
+    white-space: nowrap;
+  }
+}
+
+.top-nav-inner {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 52px;
+  padding: 0 72px;
+}
+
+.top-nav-link {
+  color: #fffaf2;
+  text-decoration: none;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.5rem;
+  font-weight: 400;
+  padding: 0;
+  transition: opacity 160ms ease;
+}
+
+.top-nav-link:hover,
+.top-nav-link:focus-visible {
+  opacity: 0.7;
+}
+
+.top-nav-link.active {
+  font-style: italic;
+}
+
+/* =========================================================
+   MANUAL FAMILY TREE
+   The layout below is intentionally hand-positioned.
+   This gives exact control over names, staggering, and lines.
+   ========================================================= */
+
+.paper-section {
+  min-height: 85vh;
+  background-image: url("assets/paper-background.png");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: repeat-y;
+}
+
+.manual-tree-wrap {
+  width: 100%;
+  padding: 0;
+}
+
+.family-tree-manual {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2000 / 650;
+  min-height: 520px;
+}
+
+/* SVG connector layer */
+.tree-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.tree-lines line {
+  stroke: var(--line);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  shape-rendering: geometricPrecision;
+}
+/* All names */
+.tree-person {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  color: var(--ink);
+  text-decoration: none;
+  font-size: clamp(2rem, 3.2vw, 4rem);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Only names with an associated page */
+.tree-person.has-page {
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+}
+
+.tree-person.has-page:hover,
+.tree-person.has-page:focus-visible {
+  background: rgba(94, 11, 17, 0.10);
+  transform: translate(-50%, -52%);
+}
+
+
+
+/*
+  To move a person:
+  - change left: ...%  to move horizontally
+  - change top: ...%   to move vertically
+*/
+
+/* Top generation */
+.aliza   { left: 10%;  top: 18.0%; }
+.amnon   { left: 26%; top: 18.0%; }
+
+/* Second generation */
+.eyal    { left: 10%;  top: 49.8%; }
+.mitzi   { left: 22.5%; top: 49.8%; }
+
+.alon    { left: 45.0%; top: 49.8%; }
+.tracey  { left: 58%; top: 49.8%; }
+
+.sharon  { left: 76.5%; top: 49.8%; }
+.mark    { left: 90.0%; top: 49.8%; }
+
+/* Children — deliberately staggered */
+.emily   { left: 10%;  top: 91.6%; }
+.zach    { left: 22.0%; top: 91.6%; }
+
+.erin    { left: 42.5%; top: 81.6%; }
+.ethan   { left: 51.2%; top: 86.6%; }
+.jacklyn { left: 60.8%; top: 96.6%; }
+
+.jaime   { left: 79%; top: 101.6%; }
+.alex    { left: 90.0%; top: 106.6%; }
+
+/* ========================================
+   MERCH PAGE
+======================================== */
+
+.merch-header {
+  min-height: 575px;
+
+  background:
+    linear-gradient(
+      rgba(80, 0, 12, 0.1),
+      rgba(80, 0, 12, 0.1)
+    ),
+    url("assets/merch-background.jpg");
+
+  background-size: cover;
+  background-position: center;
+
+  position: relative;
+}
+
+
+.merch-title {
+  position: absolute;
+
+  left: 5.5%;
+  bottom: 60px;
+
+  margin: 0;
+
+  font-family: Arial, sans-serif;
+
+  font-size: clamp(
+    4rem,
+    9vw,
+    9rem
+  );
+
+  font-weight: 700;
+
+  color: rgba(
+    80,
+    0,
+    10,
+    0.52
+  );
+
+  text-shadow:
+    0 3px 3px
+    rgba(0, 0, 0, 0.35);
+}
+
+
+/* Inventory */
+
+.merch-main {
+  background: #f5f0e7;
+
+  padding:
+    55px
+    2.5%
+    100px;
+}
+
+
+.merch-grid {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(300px, 1fr)
+    );
+
+  gap: 60px;
+
+  max-width: 1500px;
+
+  margin: 0;
+}
+
+
+.merch-card {
+
+  max-width: 330px;
+
+  background: #f6f3e8;
+
+  cursor: pointer;
+
+  box-shadow:
+    -10px 0 8px
+    rgba(0,0,0,0.15);
+
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+
+.merch-card:hover {
+
+  transform:
+    translateY(-5px);
+
+  box-shadow:
+    -10px 8px 14px
+    rgba(0,0,0,0.18);
+
+}
+
+
+.merch-image-wrap {
+
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  padding: 24px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+.merch-image {
+
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: contain;
+
+}
+
+
+.merch-card h2 {
+
+  margin:
+    8px
+    20px
+    28px;
+
+  text-align: center;
+
+  font-size: 1.6rem;
+
+  font-style: italic;
+
+  font-weight: 400;
+
+  color: #700010;
+
+}
+
+
+/* Dots */
+
+.merch-card-dots,
+.merch-dots {
+
+  display: flex;
+
+  justify-content: center;
+
+  gap: 8px;
+
+}
+
+
+.merch-dot {
+
+  width: 12px;
+
+  height: 12px;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  border: 0;
+
+  background: #fffaf2;
+
+  cursor: pointer;
+
+}
+
+
+.merch-dot.active {
+
+  background: #700010;
+
+}
+
+
+/* ========================================
+   QUICK VIEW
+======================================== */
+
+.quick-view {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 5000;
+
+  display: none;
+
+  align-items: center;
+
+  justify-content: center;
+
+}
+
+
+.quick-view.open {
+
+  display: flex;
+
+}
+
+
+.quick-view-backdrop {
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    rgba(
+      20,
+      5,
+      5,
+      0.55
+    );
+
+  backdrop-filter:
+    blur(4px);
+
+}
+
+
+.quick-view-card {
+
+  position: relative;
+
+  z-index: 1;
+
+  width:
+    min(
+      1000px,
+      90vw
+    );
+
+  max-height: 88vh;
+
+  overflow-y: auto;
+
+  background:
+    #f5f0e7;
+
+  padding: 50px;
+
+  box-shadow:
+    0 25px 70px
+    rgba(0,0,0,0.3);
+
+}
+
+
+.quick-view-close {
+
+  position: absolute;
+
+  top: 15px;
+
+  right: 20px;
+
+  background: none;
+
+  border: 0;
+
+  font-size: 2.5rem;
+
+  color: #700010;
+
+  cursor: pointer;
+
+}
+
+
+.quick-view-layout {
+
+  display: grid;
+
+  grid-template-columns:
+    1.2fr
+    1fr;
+
+  gap: 55px;
+
+  align-items: center;
+
+}
+
+
+.quick-view-image {
+
+  width: 100%;
+
+  aspect-ratio: 1 / 1;
+
+  object-fit: contain;
+
+}
+
+
+.quick-view-info h2 {
+
+  margin-top: 0;
+
+  font-size: 3rem;
+
+  font-weight: 400;
+
+  color: #700010;
+
+}
+
+
+.quick-view-description {
+
+  font-size: 1.25rem;
+
+  line-height: 1.6;
+
+}
+
+
+.quick-view-details {
+
+  margin-top: 35px;
+
+}
+
+
+.quick-view-details div {
+
+  margin-bottom: 22px;
+
+}
+
+
+.quick-view-details dt {
+
+  font-size: 0.95rem;
+
+  text-transform: uppercase;
+
+  letter-spacing: 0.1em;
+
+  opacity: 0.6;
+
+}
+
+.merch-header {
+  position: relative;
+  width: 100%;
+  height: 490px;
+
+  background-image: url("assets/merch-background.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+
+.quick-view-details dd {
+
+  margin: 5px 0 0;
+
+  font-size: 1.3rem;
+
+}
+
+
+body.modal-open {
+
+  overflow: hidden;
+
+}
+
+
+@media (max-width: 700px) {
+
+  .quick-view-layout {
+
+    grid-template-columns: 1fr;
+
+  }
+
+
+  .quick-view-card {
+
+    padding:
+      50px
+      25px;
+
+  }
+
+}
+/* =========================================================
+   PERSON PAGE
+   ========================================================= */
+
+.site-header {
+  min-height: 64px;
+  background: #88a9c2;
+}
+
+.nav {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: clamp(28px, 5vw, 74px);
+  padding: 0 6vw;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.nav a {
+  color: #fffaf2;
+  text-decoration: none;
+  font-size: clamp(1.35rem, 2.25vw, 2rem);
+}
+
+.person-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #88a9c2 0 64px, var(--paper) 64px);
+}
+
+.person-main {
+  width: min(1000px, 92vw);
+  margin: 0 auto;
+  padding: 46px 0 90px;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+
+.person-card {
+  background: rgba(255,255,255,.38);
+  border: 1px solid rgba(94,11,17,.15);
+  padding: clamp(24px, 4vw, 52px);
+}
+
+.person-profile {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 42px;
+}
+
+.person-photo {
+  width: 190px;
+  height: 190px;
+  object-fit: cover;
+}
+
+.person-card h1 {
+  margin: 0 0 8px;
+  font-size: clamp(2.5rem, 6vw, 4.8rem);
+  font-weight: 500;
+}
+
+.person-card h2 {
+  margin-top: 40px;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.person-summary,
+.person-card p {
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.media-grid img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.video-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.video-grid video {
+  width: 100%;
+  max-width: 720px;
+}
+
+.empty-state {
+  opacity: .7;
+  font-style: italic;
+}
+
+/* On narrow screens, preserve the composition rather than reflowing it.
+   The tree scales as one unit so names and SVG lines stay aligned. */
+@media (max-width: 900px) {
+  .family-tree-manual {
+    min-height: 360px;
+  }
+
+  .tree-person {
+    font-size: clamp(1rem, 3vw, 2rem);
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-screen {
+    min-height: auto;
+  }
+
+  .family-tree-manual {
+    min-height: 260px;
+  }
+
+  .tree-person {
+    font-size: clamp(.82rem, 2.9vw, 1.3rem);
+  }
+
+  .person-profile {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .top-nav-inner {
+    min-height: 62px;
+    gap: 22px;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .top-nav-link {
+    font-size: 1.05rem;
+    white-space: nowrap;
+  }
+}
