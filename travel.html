@@ -1,0 +1,319 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Travel | Zohar Family</title>
+
+
+  <!-- Shared site styles -->
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  />
+
+
+  <!-- Travel-only styles -->
+
+  <link
+    rel="stylesheet"
+    href="travel.css"
+  />
+
+</head>
+
+
+<body class="travel-page">
+
+
+  <!-- =========================================
+       TOP NAVIGATION
+  ========================================== -->
+
+  <header class="travel-header">
+
+    <nav
+      class="top-nav-inner"
+      aria-label="Main navigation"
+    >
+
+      <a
+        class="top-nav-link"
+        href="index.html"
+      >
+        Home
+      </a>
+
+
+      <a
+        class="top-nav-link"
+        href="recipes.html"
+      >
+        Recipes
+      </a>
+
+
+      <a
+        class="top-nav-link"
+        href="merch.html"
+      >
+        Merch
+      </a>
+
+
+      <a
+        class="top-nav-link active"
+        href="travel.html"
+      >
+        Travel
+      </a>
+
+
+      <a
+        class="top-nav-link"
+        href="memories.html"
+      >
+        Memories
+      </a>
+
+    </nav>
+
+  </header>
+
+
+
+  <!-- =========================================
+       MAP
+  ========================================== -->
+
+  <main class="travel-main">
+
+
+    <div class="travel-map-wrap">
+
+
+      <!-- WORLD MAP -->
+
+      <img
+        id="travel-map"
+        class="travel-map"
+        src="assets/travel/world.svg"
+        alt="World map showing family travels"
+      />
+
+
+      <!--
+        Travel pins are created here
+        automatically by travel.js
+      -->
+
+      <div
+        id="travel-pins"
+        class="travel-pins"
+      ></div>
+
+
+      <!-- Coordinate helper -->
+
+      <div
+        id="coordinate-helper"
+        class="coordinate-helper"
+        hidden
+      ></div>
+
+
+    </div>
+
+
+    <p class="travel-map-note">
+      Select a year to view the trip.
+    </p>
+
+
+  </main>
+
+
+
+  <!-- =========================================
+       PDF MODAL
+  ========================================== -->
+
+  <div
+    id="travel-modal"
+    class="travel-modal"
+    aria-hidden="true"
+  >
+
+
+    <!-- BACKDROP -->
+
+    <div
+      id="travel-modal-backdrop"
+      class="travel-modal-backdrop"
+    ></div>
+
+
+
+    <!-- CLOSE -->
+
+    <button
+      id="travel-modal-close"
+      class="travel-modal-close"
+      type="button"
+      aria-label="Close travel document"
+    >
+      ×
+    </button>
+
+
+
+    <!-- PREVIOUS PDF -->
+
+    <button
+      id="travel-modal-prev"
+      class="travel-modal-arrow travel-modal-arrow-left"
+      type="button"
+      aria-label="Previous document"
+    >
+    </button>
+
+
+
+    <!-- MODAL CONTENT -->
+
+    <section class="travel-modal-panel">
+
+
+      <header class="travel-modal-header">
+
+        <div>
+
+          <h1
+            id="travel-modal-title"
+            class="travel-modal-title"
+          >
+          </h1>
+
+
+          <p
+            id="travel-modal-year"
+            class="travel-modal-year"
+          >
+          </p>
+
+        </div>
+
+
+        <div
+          id="travel-modal-counter"
+          class="travel-modal-counter"
+        >
+        </div>
+
+      </header>
+
+
+
+      <!-- PDF VIEWER -->
+
+      <div class="travel-pdf-wrap">
+
+        <iframe
+          id="travel-pdf"
+          class="travel-pdf"
+          title="Travel document"
+        ></iframe>
+
+      </div>
+
+
+
+      <!-- CAROUSEL DOTS -->
+
+      <div
+        id="travel-modal-dots"
+        class="travel-modal-dots"
+      ></div>
+
+
+    </section>
+
+
+
+    <!-- NEXT PDF -->
+
+    <button
+      id="travel-modal-next"
+      class="travel-modal-arrow travel-modal-arrow-right"
+      type="button"
+      aria-label="Next document"
+    >
+    </button>
+
+
+  </div>
+
+
+
+  <!-- =========================================
+       FOOTER
+  ========================================== -->
+
+  <footer class="bottom-nav">
+
+    <nav
+      class="bottom-nav-inner"
+      aria-label="Footer navigation"
+    >
+
+      <a href="index.html">
+        Home
+      </a>
+
+      <a href="recipes.html">
+        Recipes
+      </a>
+
+      <a href="merch.html">
+        Merch
+      </a>
+
+      <a
+        class="active"
+        href="travel.html"
+      >
+        Travel
+      </a>
+
+      <a href="memories.html">
+        Memories
+      </a>
+
+    </nav>
+
+  </footer>
+
+
+
+  <!-- DATA -->
+
+  <script src="travel-data.js"></script>
+
+
+  <!-- PAGE LOGIC -->
+
+  <script src="travel.js"></script>
+
+
+</body>
+
+</html>

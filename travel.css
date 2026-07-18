@@ -1,0 +1,1153 @@
+/* =========================================================
+   TRAVEL PAGE
+========================================================= */
+
+
+:root {
+
+  --travel-blue:
+    #90a9c4;
+
+  --travel-ink:
+    #5e0b11;
+
+  --travel-paper:
+    #f5f0e7;
+
+  --travel-pin:
+    #8b0014;
+
+}
+
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+
+.travel-page {
+
+  margin: 0;
+
+  background:
+    var(
+      --travel-blue
+    );
+
+}
+
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+
+.travel-header {
+
+  position: relative;
+
+  z-index: 100;
+
+  background:
+    var(
+      --travel-blue
+    );
+
+}
+
+
+.travel-header
+.top-nav-link {
+
+  color:
+    var(
+      --travel-ink
+    );
+
+}
+
+
+
+/* =========================================================
+   MAP SECTION
+========================================================= */
+
+
+.travel-main {
+
+  min-height:
+    calc(
+      100vh - 65px
+    );
+
+  padding:
+
+    40px
+
+    clamp(
+      25px,
+      5vw,
+      90px
+    )
+
+    80px;
+
+
+  background:
+    var(
+      --travel-blue
+    );
+
+}
+
+
+
+/* =========================================================
+   MAP CONTAINER
+========================================================= */
+
+
+.travel-map-wrap {
+
+  position: relative;
+
+  width:
+    min(
+      1450px,
+      100%
+    );
+
+  margin:
+    0
+    auto;
+
+}
+
+
+
+/* =========================================================
+   WORLD MAP
+========================================================= */
+
+
+.travel-map {
+
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    auto;
+
+  /*
+    Gives the map the slightly faded
+    archival appearance.
+  */
+
+  opacity:
+    0.82;
+
+  mix-blend-mode:
+    multiply;
+
+  user-select:
+    none;
+
+}
+
+
+
+/* =========================================================
+   PIN LAYER
+========================================================= */
+
+
+.travel-pins {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  pointer-events:
+    none;
+
+}
+
+
+
+/* =========================================================
+   TRAVEL PIN
+========================================================= */
+
+
+.travel-pin {
+
+  position:
+    absolute;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+
+  padding:
+    0;
+
+
+  border:
+    0;
+
+
+  background:
+    transparent;
+
+
+  color:
+    var(
+      --travel-pin
+    );
+
+
+  font-family:
+
+    "Cormorant Garamond",
+
+    Georgia,
+
+    serif;
+
+
+  cursor:
+    pointer;
+
+
+  pointer-events:
+    auto;
+
+
+  transition:
+
+    transform
+    160ms
+    ease;
+
+}
+
+
+.travel-pin:hover {
+
+  transform:
+
+    translate(
+      -50%,
+      -50%
+    )
+
+    scale(
+      1.12
+    );
+
+}
+
+
+
+/* Red pin dot */
+
+
+.travel-pin-dot {
+
+  width:
+    14px;
+
+  height:
+    14px;
+
+
+  border-radius:
+    50%;
+
+
+  background:
+    var(
+      --travel-pin
+    );
+
+
+  border:
+
+    2px
+
+    solid
+
+    var(
+      --travel-paper
+    );
+
+
+  box-shadow:
+
+    0
+
+    2px
+
+    5px
+
+    rgba(
+      0,
+      0,
+      0,
+      0.22
+    );
+
+}
+
+
+
+/* Year below pin */
+
+
+.travel-pin-year {
+
+  margin-top:
+    3px;
+
+
+  padding:
+
+    2px
+
+    7px;
+
+
+  border-radius:
+    999px;
+
+
+  background:
+    var(
+      --travel-paper
+    );
+
+
+  color:
+    var(
+      --travel-pin
+    );
+
+
+  font-size:
+    1rem;
+
+
+  font-weight:
+    600;
+
+
+  line-height:
+    1;
+
+}
+
+
+
+/* =========================================================
+   MAP NOTE
+========================================================= */
+
+
+.travel-map-note {
+
+  margin:
+
+    18px
+
+    0
+
+    0;
+
+
+  text-align:
+    center;
+
+
+  color:
+    var(
+      --travel-ink
+    );
+
+
+  font-size:
+    1.2rem;
+
+
+  font-style:
+    italic;
+
+}
+
+
+
+/* =========================================================
+   COORDINATE HELPER
+========================================================= */
+
+
+.coordinate-helper {
+
+  position:
+    absolute;
+
+  z-index:
+    500;
+
+
+  transform:
+
+    translate(
+      12px,
+      -110%
+    );
+
+
+  padding:
+
+    7px
+
+    11px;
+
+
+  border-radius:
+    4px;
+
+
+  background:
+    var(
+      --travel-ink
+    );
+
+
+  color:
+    #fffaf2;
+
+
+  font-size:
+    0.9rem;
+
+
+  pointer-events:
+    none;
+
+
+  white-space:
+    nowrap;
+
+}
+
+
+
+/* =========================================================
+   TRAVEL MODAL
+========================================================= */
+
+
+.travel-modal {
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+
+  z-index:
+    5000;
+
+
+  display:
+    none;
+
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+
+  padding:
+
+    24px
+
+    70px;
+
+}
+
+
+.travel-modal.open {
+
+  display:
+    flex;
+
+}
+
+
+
+/* =========================================================
+   BACKDROP
+========================================================= */
+
+
+.travel-modal-backdrop {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+
+  background:
+
+    rgba(
+      20,
+      10,
+      10,
+      0.25
+    );
+
+
+  backdrop-filter:
+    blur(
+      2px
+    );
+
+}
+
+
+
+/* =========================================================
+   MODAL PANEL
+========================================================= */
+
+
+.travel-modal-panel {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+
+  width:
+
+    min(
+      1300px,
+      calc(
+        100vw - 160px
+      )
+    );
+
+
+  height:
+
+    min(
+      900px,
+      calc(
+        100vh - 60px
+      )
+    );
+
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+
+  padding:
+
+    28px
+
+    34px;
+
+
+  background:
+    var(
+      --travel-paper
+    );
+
+
+  color:
+    var(
+      --travel-ink
+    );
+
+
+  box-shadow:
+
+    0
+
+    18px
+
+    35px
+
+    rgba(
+      0,
+      0,
+      0,
+      0.18
+    );
+
+}
+
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+
+.travel-modal-header {
+
+  display:
+    flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    flex-start;
+
+
+  gap:
+    30px;
+
+
+  margin-bottom:
+    18px;
+
+}
+
+
+.travel-modal-title {
+
+  margin:
+    0;
+
+
+  font-size:
+
+    clamp(
+      2.8rem,
+      5vw,
+      5rem
+    );
+
+
+  font-weight:
+    400;
+
+
+  font-style:
+    italic;
+
+
+  line-height:
+    0.95;
+
+}
+
+
+.travel-modal-year {
+
+  margin:
+
+    7px
+
+    0
+
+    0;
+
+
+  font-size:
+    1.3rem;
+
+}
+
+
+.travel-modal-counter {
+
+  padding-top:
+    10px;
+
+
+  font-size:
+    1rem;
+
+
+  opacity:
+    0.65;
+
+}
+
+
+
+/* =========================================================
+   PDF
+========================================================= */
+
+
+.travel-pdf-wrap {
+
+  flex:
+    1;
+
+
+  min-height:
+    0;
+
+
+  background:
+    #ddd;
+
+
+  overflow:
+    hidden;
+
+}
+
+
+.travel-pdf {
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+
+  border:
+    0;
+
+}
+
+
+
+/* =========================================================
+   PDF DOTS
+========================================================= */
+
+
+.travel-modal-dots {
+
+  min-height:
+    28px;
+
+
+  display:
+    flex;
+
+
+  align-items:
+    flex-end;
+
+
+  justify-content:
+    center;
+
+
+  gap:
+    8px;
+
+}
+
+
+.travel-modal-dot {
+
+  width:
+    10px;
+
+  height:
+    10px;
+
+
+  padding:
+    0;
+
+
+  border:
+
+    1px
+
+    solid
+
+    var(
+      --travel-ink
+    );
+
+
+  border-radius:
+    50%;
+
+
+  background:
+    transparent;
+
+
+  cursor:
+    pointer;
+
+}
+
+
+.travel-modal-dot.active {
+
+  background:
+    var(
+      --travel-ink
+    );
+
+}
+
+
+
+/* =========================================================
+   CLOSE
+========================================================= */
+
+
+.travel-modal-close {
+
+  position:
+    fixed;
+
+  z-index:
+    5100;
+
+
+  top:
+    14px;
+
+  right:
+    24px;
+
+
+  width:
+    44px;
+
+  height:
+    44px;
+
+
+  border:
+    0;
+
+
+  background:
+    transparent;
+
+
+  color:
+    #fffaf2;
+
+
+  font-size:
+    2.8rem;
+
+
+  cursor:
+    pointer;
+
+}
+
+
+
+/* =========================================================
+   CAROUSEL CHEVRONS
+========================================================= */
+
+
+.travel-modal-arrow {
+
+  position:
+    fixed;
+
+  z-index:
+    5100;
+
+
+  top:
+    50%;
+
+
+  transform:
+
+    translateY(
+      -50%
+    );
+
+
+  width:
+    50px;
+
+  height:
+    60px;
+
+
+  padding:
+    0;
+
+
+  border:
+    0;
+
+
+  background:
+    transparent;
+
+
+  cursor:
+    pointer;
+
+
+  opacity:
+    0.8;
+
+}
+
+
+.travel-modal-arrow::before {
+
+  content:
+    "";
+
+
+  position:
+    absolute;
+
+
+  top:
+    50%;
+
+  left:
+    50%;
+
+
+  width:
+    18px;
+
+  height:
+    18px;
+
+
+  border-right:
+
+    3px
+
+    solid
+
+    #fffaf2;
+
+
+  border-bottom:
+
+    3px
+
+    solid
+
+    #fffaf2;
+
+}
+
+
+.travel-modal-arrow-left {
+
+  left:
+    10px;
+
+}
+
+
+.travel-modal-arrow-left::before {
+
+  transform:
+
+    translate(
+      -40%,
+      -50%
+    )
+
+    rotate(
+      135deg
+    );
+
+}
+
+
+.travel-modal-arrow-right {
+
+  right:
+    10px;
+
+}
+
+
+.travel-modal-arrow-right::before {
+
+  transform:
+
+    translate(
+      -60%,
+      -50%
+    )
+
+    rotate(
+      -45deg
+    );
+
+}
+
+
+
+/* =========================================================
+   MODAL OPEN
+========================================================= */
+
+
+body.travel-modal-open {
+
+  overflow:
+    hidden;
+
+}
+
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+
+@media (
+  max-width:
+    700px
+) {
+
+
+  .travel-main {
+
+    padding:
+
+      25px
+
+      12px
+
+      60px;
+
+  }
+
+
+  .travel-pin-dot {
+
+    width:
+      11px;
+
+    height:
+      11px;
+
+  }
+
+
+  .travel-pin-year {
+
+    font-size:
+      0.75rem;
+
+  }
+
+
+  .travel-modal {
+
+    padding:
+      10px;
+
+  }
+
+
+  .travel-modal-panel {
+
+    width:
+
+      calc(
+        100vw - 20px
+      );
+
+
+    height:
+
+      calc(
+        100vh - 20px
+      );
+
+
+    padding:
+
+      20px
+
+      16px;
+
+  }
+
+
+  .travel-modal-title {
+
+    font-size:
+      2.6rem;
+
+  }
+
+
+  .travel-modal-arrow {
+
+    width:
+      36px;
+
+  }
+
+
+  .travel-modal-arrow-left {
+
+    left:
+      0;
+
+  }
+
+
+  .travel-modal-arrow-right {
+
+    right:
+      0;
+
+  }
+
+}

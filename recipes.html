@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Recipes | Zohar Family</title>
+
+  <!-- Existing site styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Recipes-only styles -->
+  <link rel="stylesheet" href="recipes.css" />
+</head>
+
+<body class="recipes-page">
+<header class="recipes-header">
+      <nav class="top-nav-inner" aria-label="Main navigation">
+        <a class="top-nav-link" href="index.html">Home</a>
+        <a class="top-nav-link active" href="recipes.html">Recipes</a>
+        <a class="top-nav-link" href="merch.html">Merch</a>
+        <a class="top-nav-link" href="travel.html">Travel</a>
+        <a class="top-nav-link" href="memories.html">Memories</a>
+      </nav>
+    </header>
+  <!-- =====================================================
+       LANDING / HERO
+       ===================================================== -->
+  
+
+
+  <!-- =====================================================
+       RECIPE INDEX
+       ===================================================== -->
+  <main class="recipes-main" id="recipes">
+
+    <div class="recipes-toolbar">
+
+      <div class="recipes-filter-wrap">
+        <label class="sr-only" for="recipe-filter">
+          Filter recipes by category
+        </label>
+
+        <select id="recipe-filter" class="recipes-filter">
+          <option value="all">filter</option>
+        </select>
+      </div>
+
+      <div class="recipes-search-wrap">
+        <label class="sr-only" for="recipe-search">
+          Search recipes
+        </label>
+
+        <input
+          id="recipe-search"
+          class="recipes-search"
+          type="search"
+          placeholder="search"
+          autocomplete="off"
+        />
+      </div>
+
+    </div>
+
+
+    <!--
+      Cards are created by recipes.js.
+      They begin as a loose pile and animate into this grid.
+    -->
+    <section
+      id="recipes-grid"
+      class="recipes-grid is-piled"
+      aria-live="polite"
+    ></section>
+
+
+    <p
+      id="recipes-empty"
+      class="recipes-empty"
+      hidden
+    >
+      No recipes found.
+    </p>
+
+  </main>
+
+
+  <!-- =====================================================
+       BOTTOM NAV
+       ===================================================== -->
+  <footer class="bottom-nav">
+    <nav class="bottom-nav-inner" aria-label="Footer navigation">
+      <a href="index.html">Home</a>
+      <a class="active" href="recipes.html">Recipes</a>
+      <a href="merch.html">Merch</a>
+      <a href="travel.html">Travel</a>
+      <a href="memories.html">Memories</a>
+    </nav>
+  </footer>
+<!-- =========================================
+     RECIPE POPUP
+========================================= -->
+
+<div
+  id="recipe-modal"
+  class="recipe-modal"
+  aria-hidden="true"
+>
+  <div
+    id="recipe-modal-backdrop"
+    class="recipe-modal-backdrop"
+  ></div>
+
+  <button
+    id="recipe-modal-close"
+    class="recipe-modal-close"
+    type="button"
+    aria-label="Close recipe"
+  >
+    ×
+  </button>
+
+  <button
+    id="recipe-modal-prev"
+    class="recipe-modal-arrow recipe-modal-arrow-left"
+    type="button"
+    aria-label="Previous recipe"
+  >
+    ‹
+  </button>
+
+  <article class="recipe-modal-card">
+
+    <div class="recipe-modal-top">
+      <h1 id="recipe-modal-title"></h1>
+
+      <div
+        id="recipe-modal-category"
+        class="recipe-modal-category"
+      ></div>
+    </div>
+
+    <div class="recipe-modal-content">
+
+      <div class="recipe-modal-left">
+
+        <section class="recipe-modal-block">
+          <h2>Ingredients</h2>
+
+          <div
+            id="recipe-modal-ingredients"
+            class="recipe-modal-text"
+          ></div>
+        </section>
+
+        <section
+          id="recipe-modal-secrets-section"
+          class="recipe-modal-block recipe-modal-secrets"
+        >
+          <h2>Safta’s Secrets</h2>
+
+          <div
+            id="recipe-modal-secrets"
+            class="recipe-modal-text"
+          ></div>
+        </section>
+
+      </div>
+
+      <section class="recipe-modal-block recipe-modal-procedure">
+        <h2>Procedure</h2>
+
+        <div
+          id="recipe-modal-preparation"
+          class="recipe-modal-text"
+        ></div>
+      </section>
+
+    </div>
+
+  </article>
+
+  <button
+    id="recipe-modal-next"
+    class="recipe-modal-arrow recipe-modal-arrow-right"
+    type="button"
+    aria-label="Next recipe"
+  >
+    ›
+  </button>
+</div>
+
+  <script src="recipes-data.js"></script>
+  <script src="recipes.js"></script>
+
+</body>
+</html>
