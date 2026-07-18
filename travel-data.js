@@ -8,6 +8,7 @@ const TRAVELS = [
     year: "2016",
 
     travelers: "Sabba & Safta",
+    generation: "first",
 
     blurb: "",
 
@@ -55,6 +56,7 @@ const TRAVELS = [
     year: "",
 
     travelers: "Sabba & Safta",
+    generation: "first",
 
     blurb: "",
 
@@ -89,6 +91,7 @@ const TRAVELS = [
     year: "2013",
 
     travelers: "Sabba & Safta",
+    generation: "first",
 
     blurb: "33 days in the Far East: China, Tibet, Nepal, Bhutan, Thailand, Japan",
 
@@ -156,6 +159,7 @@ const TRAVELS = [
     year: "",
 
     travelers: "Sabba & Safta",
+    generation: "first",
 
     x: 58.1,
     y: 72.7,
@@ -193,7 +197,8 @@ const TRAVELS = [
 
     year: "2011",
 
-    travelers: "Sabba & Safta",
+    travelers: "Sharon & Safta",
+    generation: "next",
 
     x: 40.9,
     y: 100,
@@ -212,7 +217,8 @@ const TRAVELS = [
     id: "canada-2015",
     title: "Canada",
     year: "2015",
-    travelers: "Sharon & Safta",
+    travelers: "Sabba & Safta",
+    generation: "first",
     x: 32.7,
     y: 22.8,
     images: [
@@ -255,6 +261,7 @@ const TRAVELS = [
     title: "Costa Rica",
     year: "2015",
     travelers: "Zohar Family",
+    generation: "family",
     x: 25.5,
     y: 51.3,
     images: [
@@ -274,6 +281,7 @@ const TRAVELS = [
     title: "Rio de Janeiro",
     year: "2014",
     travelers: "Sabba, Yal, Zach, & Jaime",
+    generation: "next",
     blurb: "2014 World Cup in Rio de Janeiro, Brazil",
     x: 36.8,
     y: 77.6,
@@ -301,6 +309,7 @@ const TRAVELS = [
     title: "St. Petersburg",
     year: "2016",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 56,
     y: 15.4,
     images: [
@@ -352,6 +361,7 @@ const TRAVELS = [
     title: "Switzerland & Greece",
     year: "1985",
     travelers: "Sabba & Safta",
+    generation: "first",
     blurb: "Setting up the ISM Sales Excelence Club",
     x: 55.1,
     y: 29.3,
@@ -371,6 +381,7 @@ const TRAVELS = [
     title: "Italy - Greece - Bulgaria - Israel",
     year: "1985",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 52.8,
     y: 28.5,
     images: [
@@ -401,6 +412,7 @@ const TRAVELS = [
     title: "Vietnam",
     year: "2018",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 79.8,
     y: 49.6,
     images: [
@@ -441,6 +453,7 @@ const TRAVELS = [
     title: "Turkey",
     year: "2019",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 58.2,
     y: 30.3
 },
@@ -449,6 +462,7 @@ const TRAVELS = [
     year: "2020",
     blurb: "Mexico City - San Miguel de Allende, Guanajuato, Agangueo, Cholula, Puebla",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 21.5,
     y: 45.5,
     images: [
@@ -500,6 +514,7 @@ const TRAVELS = [
     title: "Newfoundland",
     year: "2022",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 35,
     y: 18.5,
     pdfs: [
@@ -514,6 +529,7 @@ const TRAVELS = [
     title: "Brugge - Paris - Lyon - Annecy - Chamonix",
     year: "2022",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 50.2,
     y: 20.6,
     
@@ -523,6 +539,7 @@ const TRAVELS = [
     title: "Germany",
     year: "2024",
     travelers: "Sabba & Safta",
+    generation: "first",
     blurb: "Christmas in Germany - Leipzig, Munich, Dresden, Berlin ",
     x: 52.3,
     y: 20,
@@ -566,6 +583,7 @@ const TRAVELS = [
     title: "Western Canada",
     year: "2024",
     travelers: "Sabba & Safta",
+    generation: "first",
     blurb: "Nahanni-Northern BC, Glacier National Park Montana, Colombia Icefields",
     x: 20.9,
     y: 18.7,
@@ -592,6 +610,7 @@ const TRAVELS = [
     title: "Kyoto",
     year: "2023",
     travelers: "Sabba & Safta",
+    generation: "first",
     blurb: "Kyoto - Malaysia Borneo - Singapore",
     x: 85.9,
     y: 31.7,
@@ -612,6 +631,7 @@ const TRAVELS = [
     title: "Bolivia - Chile - Argentina",
     year: "2023",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 30.9,
     y: 70.8,
     images: [
@@ -766,6 +786,7 @@ const TRAVELS = [
     title: "India",
     year: "2026",
     travelers: "Sabba & Safta",
+    generation: "first",
     x: 70.1,
     y: 38.4,
 pdfs: [

@@ -17,6 +17,11 @@ const coordinateHelper =
     "coordinate-helper"
   );
 
+  const travelModalGeneration =
+  document.getElementById(
+    "travel-modal-generation"
+  );
+
 
 /* ============================================
    TRAVEL MODAL ELEMENTS
@@ -102,6 +107,7 @@ let currentImageIndex = 0;
 ============================================ */
 
 function renderTravelPins() {
+    
 
   travelPins.innerHTML =
     "";
@@ -127,6 +133,9 @@ function renderTravelPins() {
 
       pin.className =
         "travel-pin";
+        pin.classList.add(
+  `generation-${travel.generation}`
+);
 
 
       pin.style.left =

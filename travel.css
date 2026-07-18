@@ -93,7 +93,103 @@
   pointer-events: none;
 }
 
+/* =========================================================
+   GENERATION COLORS
+========================================================= */
 
+.travel-pin.generation-first {
+  --pin-color: #790111;
+}
+
+.travel-pin.generation-next {
+  --pin-color: #13518c;
+}
+
+.travel-pin.generation-family {
+  --pin-color: #ffffff;
+}
+
+
+/* Pin dot */
+
+.travel-pin .travel-pin-dot {
+  background: var(
+    --pin-color,
+    #790111
+  );
+}
+
+
+/* Pin year */
+
+.travel-pin .travel-pin-year {
+  color: var(
+    --pin-color,
+    #790111
+  );
+}
+
+
+/* Whole family needs dark text so it remains readable */
+
+.travel-pin.generation-family .travel-pin-year {
+  color: dark-gray;
+  background: rgba(193, 189, 190, 0.259);
+}
+
+.travel-pin.generation-next .travel-pin-year {
+  color: var(--pin-color, #13518c);
+  background: rgba(30, 36, 93, 0.155);
+}
+
+
+/* =========================================================
+   GENERATION TAG
+========================================================= */
+
+.travel-generation-tag {
+  display: inline-block;
+
+  margin-top: 14px;
+
+  padding:
+    5px
+    12px;
+
+  border-radius: 999px;
+
+  font-size: 0.9rem;
+
+  line-height: 1;
+
+  border:
+    1px
+    solid
+    rgba(
+      121,
+      1,
+      17,
+      0.2
+    );
+}
+
+
+.travel-generation-tag.generation-first {
+  background: #790111;
+  color: #ffffff;
+}
+
+
+.travel-generation-tag.generation-next {
+  background: #53718e;
+  color: #ffffff;
+}
+
+
+.travel-generation-tag.generation-family {
+  background: #ffffff;
+  color: #790111;
+}
 /* =========================================================
    TRAVEL PIN
 ========================================================= */
