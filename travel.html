@@ -73,6 +73,7 @@
       <a
         class="top-nav-link active"
         href="travel.html"
+        aria-current="page"
       >
         Travel
       </a>
@@ -112,17 +113,22 @@
 
 
       <!--
-        Travel pins are created here
-        automatically by travel.js
+        Travel pins are created automatically
+        by travel.js from travel-data.js
       -->
 
       <div
         id="travel-pins"
         class="travel-pins"
+        aria-label="Travel locations"
       ></div>
 
 
-      <!-- Coordinate helper -->
+      <!--
+        Development helper:
+        Alt / Option + click on the map
+        to reveal x/y percentage coordinates.
+      -->
 
       <div
         id="coordinate-helper"
@@ -144,7 +150,7 @@
 
 
   <!-- =========================================
-       PDF MODAL
+       TRAVEL MODAL
   ========================================== -->
 
   <div
@@ -163,101 +169,157 @@
 
 
 
-    <!-- CLOSE -->
+    <!-- CLOSE BUTTON -->
 
     <button
       id="travel-modal-close"
       class="travel-modal-close"
       type="button"
-      aria-label="Close travel document"
+      aria-label="Close trip"
     >
       ×
     </button>
 
 
 
-    <!-- PREVIOUS PDF -->
+    <!-- TRIP CONTENT -->
 
-    <button
-      id="travel-modal-prev"
-      class="travel-modal-arrow travel-modal-arrow-left"
-      type="button"
-      aria-label="Previous document"
+    <section
+      class="travel-modal-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="travel-modal-title"
     >
-    </button>
 
 
-
-    <!-- MODAL CONTENT -->
-
-    <section class="travel-modal-panel">
-
+      <!-- =====================================
+           TOP INFORMATION
+      ====================================== -->
 
       <header class="travel-modal-header">
 
-        <div>
+  <div class="travel-modal-info">
 
-          <h1
-            id="travel-modal-title"
-            class="travel-modal-title"
-          >
-          </h1>
+    <div class="travel-modal-title-row">
+
+      <h1
+        id="travel-modal-title"
+        class="travel-modal-title"
+      ></h1>
+
+      <span
+        id="travel-modal-year"
+        class="travel-modal-year"
+      ></span>
+
+    </div>
+
+    <p
+      id="travel-modal-travelers"
+      class="travel-modal-travelers"
+    ></p>
+
+    <p
+      id="travel-modal-blurb"
+      class="travel-modal-blurb"
+      hidden
+    ></p>
+
+  </div>
 
 
-          <p
-            id="travel-modal-year"
-            class="travel-modal-year"
-          >
-          </p>
+  <div class="travel-pdf-links-wrap">
+
+    <h2>
+      Trip Documents
+    </h2>
+
+    <div
+      id="travel-pdf-links"
+      class="travel-pdf-links"
+    ></div>
+
+  </div>
+
+</header>
+
+
+
+      <!-- =====================================
+           IMAGE CAROUSEL
+      ====================================== -->
+
+      <div class="travel-carousel">
+
+
+        <!-- Previous image -->
+
+        <button
+          id="travel-image-prev"
+          class="travel-carousel-arrow travel-carousel-arrow-left"
+          type="button"
+          aria-label="Previous image"
+        ></button>
+
+
+
+        <!-- Current image -->
+
+        <div class="travel-carousel-stage">
+
+
+          <img
+            id="travel-carousel-image"
+            class="travel-carousel-image"
+            src=""
+            alt=""
+          />
+
 
         </div>
 
 
-        <div
-          id="travel-modal-counter"
-          class="travel-modal-counter"
-        >
-        </div>
 
-      </header>
+        <!-- Next image -->
 
+        <button
+          id="travel-image-next"
+          class="travel-carousel-arrow travel-carousel-arrow-right"
+          type="button"
+          aria-label="Next image"
+        ></button>
 
-
-      <!-- PDF VIEWER -->
-
-      <div class="travel-pdf-wrap">
-
-        <iframe
-          id="travel-pdf"
-          class="travel-pdf"
-          title="Travel document"
-        ></iframe>
 
       </div>
 
 
 
-      <!-- CAROUSEL DOTS -->
+      <!-- =====================================
+           IMAGE COUNTER
+      ====================================== -->
 
       <div
-        id="travel-modal-dots"
-        class="travel-modal-dots"
+        id="travel-image-counter"
+        class="travel-image-counter"
+        aria-live="polite"
       ></div>
 
 
+
+      <!-- =====================================
+           IMAGE CAROUSEL DOTS
+      ====================================== -->
+
+      <div
+        id="travel-image-dots"
+        class="travel-image-dots"
+        aria-label="Choose travel image"
+      ></div>
+
+
+
+
     </section>
-
-
-
-    <!-- NEXT PDF -->
-
-    <button
-      id="travel-modal-next"
-      class="travel-modal-arrow travel-modal-arrow-right"
-      type="button"
-      aria-label="Next document"
-    >
-    </button>
 
 
   </div>
@@ -279,20 +341,25 @@
         Home
       </a>
 
+
       <a href="recipes.html">
         Recipes
       </a>
+
 
       <a href="merch.html">
         Merch
       </a>
 
+
       <a
         class="active"
         href="travel.html"
+        aria-current="page"
       >
         Travel
       </a>
+
 
       <a href="memories.html">
         Memories
@@ -304,12 +371,18 @@
 
 
 
-  <!-- DATA -->
+  <!-- =========================================
+       DATA
+       Must load before travel.js
+  ========================================== -->
 
   <script src="travel-data.js"></script>
 
 
-  <!-- PAGE LOGIC -->
+
+  <!-- =========================================
+       PAGE LOGIC
+  ========================================== -->
 
   <script src="travel.js"></script>
 

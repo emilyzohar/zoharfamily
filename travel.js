@@ -2,18 +2,15 @@
    ELEMENTS
 ============================================ */
 
-
 const travelMap =
   document.getElementById(
     "travel-map"
   );
 
-
 const travelPins =
   document.getElementById(
     "travel-pins"
   );
-
 
 const coordinateHelper =
   document.getElementById(
@@ -21,88 +18,90 @@ const coordinateHelper =
   );
 
 
+/* ============================================
+   TRAVEL MODAL ELEMENTS
+============================================ */
+
 const travelModal =
   document.getElementById(
     "travel-modal"
   );
-
 
 const travelModalBackdrop =
   document.getElementById(
     "travel-modal-backdrop"
   );
 
-
 const travelModalClose =
   document.getElementById(
     "travel-modal-close"
   );
-
-
-const travelModalPrev =
-  document.getElementById(
-    "travel-modal-prev"
-  );
-
-
-const travelModalNext =
-  document.getElementById(
-    "travel-modal-next"
-  );
-
 
 const travelModalTitle =
   document.getElementById(
     "travel-modal-title"
   );
 
-
 const travelModalYear =
   document.getElementById(
     "travel-modal-year"
   );
 
-
-const travelModalCounter =
+const travelModalTravelers =
   document.getElementById(
-    "travel-modal-counter"
+    "travel-modal-travelers"
   );
 
-
-const travelModalDots =
+const travelModalBlurb =
   document.getElementById(
-    "travel-modal-dots"
+    "travel-modal-blurb"
   );
 
-
-const travelPdf =
+const travelCarouselImage =
   document.getElementById(
-    "travel-pdf"
+    "travel-carousel-image"
   );
 
+const travelImagePrev =
+  document.getElementById(
+    "travel-image-prev"
+  );
+
+const travelImageNext =
+  document.getElementById(
+    "travel-image-next"
+  );
+
+const travelImageCounter =
+  document.getElementById(
+    "travel-image-counter"
+  );
+
+const travelImageDots =
+  document.getElementById(
+    "travel-image-dots"
+  );
+
+const travelPdfLinks =
+  document.getElementById(
+    "travel-pdf-links"
+  );
 
 
 /* ============================================
    STATE
 ============================================ */
 
+let currentTravelIndex = 0;
 
-let currentTravelIndex =
-  0;
-
-
-let currentPdfIndex =
-  0;
-
+let currentImageIndex = 0;
 
 
 /* ============================================
    BUILD MAP PINS
 ============================================ */
 
-
 function renderTravelPins() {
-
 
   travelPins.innerHTML =
     "";
@@ -139,8 +138,11 @@ function renderTravelPins() {
 
 
       pin.setAttribute(
+
         "aria-label",
+
         `${travel.title}, ${travel.year}`
+
       );
 
 
@@ -148,8 +150,7 @@ function renderTravelPins() {
 
         <span
           class="travel-pin-dot"
-        >
-        </span>
+        ></span>
 
         <span
           class="travel-pin-year"
@@ -179,7 +180,6 @@ function renderTravelPins() {
         pin
       );
 
-
     }
 
   );
@@ -187,22 +187,19 @@ function renderTravelPins() {
 }
 
 
-
 /* ============================================
-   OPEN TRAVEL
+   OPEN TRIP
 ============================================ */
 
-
 function openTravelModal(
-  travelIndex
+  index
 ) {
 
-
   currentTravelIndex =
-    travelIndex;
+    index;
 
 
-  currentPdfIndex =
+  currentImageIndex =
     0;
 
 
@@ -232,14 +229,11 @@ function openTravelModal(
 }
 
 
-
 /* ============================================
-   RENDER MODAL
+   RENDER TRIP
 ============================================ */
 
-
 function renderTravelModal() {
-
 
   const travel =
     TRAVELS[
@@ -247,124 +241,70 @@ function renderTravelModal() {
     ];
 
 
-  const pdfs =
-    travel.pdfs || [];
-
-
   travelModalTitle.textContent =
-    travel.title;
+    travel.title || "";
 
 
   travelModalYear.textContent =
-    travel.year;
+    travel.year || "";
 
 
-
-  /* No PDF */
-
-  if (
-    pdfs.length === 0
-  ) {
+  travelModalTravelers.textContent =
+    travel.travelers || "";
 
 
-    travelPdf.removeAttribute(
-      "src"
-    );
+  /* ========================================
+     OPTIONAL BLURB
+  ======================================== */
 
+  const hasBlurb =
 
-    travelModalCounter.textContent =
-      "No documents";
+    typeof travel.blurb ===
+      "string"
 
+    &&
 
-    travelModalPrev.style.display =
-      "none";
-
-
-    travelModalNext.style.display =
-      "none";
-
-
-    travelModalDots.innerHTML =
+    travel.blurb.trim() !==
       "";
 
 
-    return;
-
-  }
-
-
-
-  /* Display current PDF */
-
-  travelPdf.src =
-    pdfs[
-      currentPdfIndex
-    ];
-
-
-
-  /* Counter */
-
   if (
-    pdfs.length > 1
+    hasBlurb
   ) {
 
+    travelModalBlurb.textContent =
+      travel.blurb;
 
-    travelModalCounter.textContent =
 
-      `${currentPdfIndex + 1} / ${pdfs.length}`;
-
+    travelModalBlurb.hidden =
+      false;
 
   } else {
 
-
-    travelModalCounter.textContent =
+    travelModalBlurb.textContent =
       "";
 
+
+    travelModalBlurb.hidden =
+      true;
 
   }
 
 
+  renderTravelImage();
 
-  /* Show arrows only for multiple PDFs */
+  renderTravelImageDots();
 
-  const hasMultiplePdfs =
-
-    pdfs.length > 1;
-
-
-  travelModalPrev.style.display =
-
-    hasMultiplePdfs
-
-      ? ""
-
-      : "none";
-
-
-  travelModalNext.style.display =
-
-    hasMultiplePdfs
-
-      ? ""
-
-      : "none";
-
-
-
-  renderPdfDots();
+  renderTravelPdfLinks();
 
 }
 
 
-
 /* ============================================
-   PDF DOTS
+   RENDER CURRENT IMAGE
 ============================================ */
 
-
-function renderPdfDots() {
-
+function renderTravelImage() {
 
   const travel =
     TRAVELS[
@@ -372,16 +312,150 @@ function renderPdfDots() {
     ];
 
 
-  const pdfs =
-    travel.pdfs || [];
+  const images =
+    travel.images || [];
 
 
-  travelModalDots.innerHTML =
+  /*
+    No images
+  */
+
+  if (
+    images.length === 0
+  ) {
+
+    travelCarouselImage
+      .removeAttribute(
+        "src"
+      );
+
+
+    travelCarouselImage.alt =
+      "";
+
+
+    travelCarouselImage.style.display =
+      "none";
+
+
+    travelImagePrev.style.display =
+      "none";
+
+
+    travelImageNext.style.display =
+      "none";
+
+
+    travelImageCounter.textContent =
+      "";
+
+
+    return;
+
+  }
+
+
+  /*
+    Safety check in case the current
+    index is larger than the image list.
+  */
+
+  if (
+    currentImageIndex >=
+    images.length
+  ) {
+
+    currentImageIndex =
+      0;
+
+  }
+
+
+  travelCarouselImage.style.display =
+    "block";
+
+
+  travelCarouselImage.src =
+    images[
+      currentImageIndex
+    ];
+
+
+  travelCarouselImage.alt =
+
+    `${travel.title} travel photo ${currentImageIndex + 1}`;
+
+
+  /*
+    Counter
+  */
+
+  travelImageCounter.textContent =
+
+    images.length > 1
+
+      ? `${currentImageIndex + 1} / ${images.length}`
+
+      : "";
+
+
+  /*
+    Only show arrows when
+    there is more than one image.
+  */
+
+  const hasMultipleImages =
+
+    images.length > 1;
+
+
+  travelImagePrev.style.display =
+
+    hasMultipleImages
+
+      ? ""
+
+      : "none";
+
+
+  travelImageNext.style.display =
+
+    hasMultipleImages
+
+      ? ""
+
+      : "none";
+
+}
+
+
+/* ============================================
+   IMAGE DOTS
+============================================ */
+
+function renderTravelImageDots() {
+
+  const travel =
+    TRAVELS[
+      currentTravelIndex
+    ];
+
+
+  const images =
+    travel.images || [];
+
+
+  travelImageDots.innerHTML =
     "";
 
 
+  /*
+    No dots needed for zero
+    or one image.
+  */
+
   if (
-    pdfs.length <= 1
+    images.length <= 1
   ) {
 
     return;
@@ -389,10 +463,10 @@ function renderPdfDots() {
   }
 
 
-  pdfs.forEach(
+  images.forEach(
 
     (
-      pdf,
+      image,
       index
     ) => {
 
@@ -409,18 +483,19 @@ function renderPdfDots() {
 
       dot.className =
 
-        index === currentPdfIndex
+        index ===
+          currentImageIndex
 
-          ? "travel-modal-dot active"
+          ? "travel-image-dot active"
 
-          : "travel-modal-dot";
+          : "travel-image-dot";
 
 
       dot.setAttribute(
 
         "aria-label",
 
-        `View document ${index + 1}`
+        `View image ${index + 1}`
 
       );
 
@@ -432,23 +507,24 @@ function renderPdfDots() {
         () => {
 
 
-          currentPdfIndex =
+          currentImageIndex =
             index;
 
 
-          renderTravelModal();
+          renderTravelImage();
 
+
+          renderTravelImageDots();
 
         }
 
       );
 
 
-      travelModalDots
+      travelImageDots
         .appendChild(
           dot
         );
-
 
     }
 
@@ -457,24 +533,21 @@ function renderPdfDots() {
 }
 
 
-
 /* ============================================
-   PREVIOUS PDF
+   PREVIOUS IMAGE
 ============================================ */
 
+function showPreviousTravelImage() {
 
-function showPreviousPdf() {
-
-
-  const pdfs =
+  const images =
 
     TRAVELS[
       currentTravelIndex
-    ].pdfs;
+    ].images || [];
 
 
   if (
-    pdfs.length <= 1
+    images.length <= 1
   ) {
 
     return;
@@ -482,44 +555,44 @@ function showPreviousPdf() {
   }
 
 
-  currentPdfIndex =
+  currentImageIndex =
 
     (
-      currentPdfIndex
+      currentImageIndex
       -
       1
       +
-      pdfs.length
+      images.length
     )
 
     %
 
-    pdfs.length;
+    images.length;
 
 
-  renderTravelModal();
+  renderTravelImage();
+
+
+  renderTravelImageDots();
 
 }
 
 
-
 /* ============================================
-   NEXT PDF
+   NEXT IMAGE
 ============================================ */
 
+function showNextTravelImage() {
 
-function showNextPdf() {
-
-
-  const pdfs =
+  const images =
 
     TRAVELS[
       currentTravelIndex
-    ].pdfs;
+    ].images || [];
 
 
   if (
-    pdfs.length <= 1
+    images.length <= 1
   ) {
 
     return;
@@ -527,32 +600,175 @@ function showNextPdf() {
   }
 
 
-  currentPdfIndex =
+  currentImageIndex =
 
     (
-      currentPdfIndex
+      currentImageIndex
       +
       1
     )
 
     %
 
-    pdfs.length;
+    images.length;
 
 
-  renderTravelModal();
+  renderTravelImage();
+
+
+  renderTravelImageDots();
 
 }
 
+
+/* ============================================
+   PDF LINKS
+============================================ */
+
+function renderTravelPdfLinks() {
+
+  const travel =
+    TRAVELS[
+      currentTravelIndex
+    ];
+
+
+  const pdfs =
+    travel.pdfs || [];
+
+
+  travelPdfLinks.innerHTML =
+    "";
+
+
+  /*
+    Hide entire Trip Documents
+    section when there are no PDFs.
+  */
+
+  if (
+    pdfs.length === 0
+  ) {
+
+    travelPdfLinks
+      .parentElement
+      .style
+      .display =
+      "none";
+
+
+    return;
+
+  }
+
+
+  travelPdfLinks
+    .parentElement
+    .style
+    .display =
+    "";
+
+
+  pdfs.forEach(
+
+    (
+      pdf,
+      index
+    ) => {
+
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+
+      /*
+        Supports plain strings:
+
+        "assets/travel/trip/file.pdf"
+
+        OR objects:
+
+        {
+          label: "Malaga",
+          file: "assets/travel/trip/malaga.pdf"
+        }
+      */
+
+
+      if (
+        typeof pdf ===
+        "string"
+      ) {
+
+
+        link.href =
+          pdf;
+
+
+        const fileName =
+
+          pdf
+            .split("/")
+            .pop()
+            .replace(
+              /\.pdf$/i,
+              ""
+            );
+
+
+        link.textContent =
+          fileName;
+
+
+      } else {
+
+
+        link.href =
+          pdf.file;
+
+
+        link.textContent =
+
+          pdf.label
+
+          ||
+
+          `Document ${index + 1}`;
+
+      }
+
+
+      link.target =
+        "_blank";
+
+
+      link.rel =
+        "noopener";
+
+
+      link.className =
+        "travel-pdf-link";
+
+
+      travelPdfLinks
+        .appendChild(
+          link
+        );
+
+    }
+
+  );
+
+}
 
 
 /* ============================================
    CLOSE MODAL
 ============================================ */
 
-
 function closeTravelModal() {
-
 
   travelModal
     .classList
@@ -574,42 +790,29 @@ function closeTravelModal() {
       "travel-modal-open"
     );
 
-
-  /*
-    Clear PDF so it does not
-    continue using resources
-    after modal closes.
-  */
-
-  travelPdf.removeAttribute(
-    "src"
-  );
-
 }
-
 
 
 /* ============================================
    MODAL EVENTS
 ============================================ */
 
-
-travelModalPrev
+travelImagePrev
   .addEventListener(
 
     "click",
 
-    showPreviousPdf
+    showPreviousTravelImage
 
   );
 
 
-travelModalNext
+travelImageNext
   .addEventListener(
 
     "click",
 
-    showNextPdf
+    showNextTravelImage
 
   );
 
@@ -634,11 +837,9 @@ travelModalBackdrop
   );
 
 
-
 /* ============================================
-   KEYBOARD
+   KEYBOARD CONTROLS
 ============================================ */
-
 
 document.addEventListener(
 
@@ -648,6 +849,11 @@ document.addEventListener(
     event
   ) => {
 
+
+    /*
+      Do nothing unless
+      the modal is open.
+    */
 
     if (
 
@@ -664,6 +870,10 @@ document.addEventListener(
     }
 
 
+    /*
+      Escape closes trip.
+    */
+
     if (
       event.key ===
       "Escape"
@@ -671,15 +881,22 @@ document.addEventListener(
 
       closeTravelModal();
 
+      return;
+
     }
 
+
+    /*
+      Arrow keys control
+      the image carousel.
+    */
 
     if (
       event.key ===
       "ArrowLeft"
     ) {
 
-      showPreviousPdf();
+      showPreviousTravelImage();
 
     }
 
@@ -689,26 +906,23 @@ document.addEventListener(
       "ArrowRight"
     ) {
 
-      showNextPdf();
+      showNextTravelImage();
 
     }
-
 
   }
 
 );
 
 
-
 /* ============================================
    COORDINATE HELPER
 
-   ALT / OPTION + CLICK on map.
+   Hold ALT / OPTION and click on map.
 
-   Shows x/y percentages that can be
-   copied directly into travel-data.js.
+   Shows x/y percentage coordinates that
+   can be copied directly into travel-data.js.
 ============================================ */
-
 
 travelMap
   .parentElement
@@ -722,8 +936,8 @@ travelMap
 
 
       /*
-        Only activate when holding
-        Alt / Option.
+        Only activate while
+        Alt / Option is held.
       */
 
       if (
@@ -742,8 +956,8 @@ travelMap
 
 
       /*
-        Make sure click occurred
-        within actual map image.
+        Ensure click occurred
+        inside actual map image.
       */
 
       if (
@@ -773,6 +987,11 @@ travelMap
       }
 
 
+      /*
+        Convert mouse coordinates
+        to percentages of map size.
+      */
+
       const x =
 
         (
@@ -785,7 +1004,6 @@ travelMap
           /
 
           mapRect.width
-
         )
 
         *
@@ -805,7 +1023,6 @@ travelMap
           /
 
           mapRect.height
-
         )
 
         *
@@ -813,21 +1030,21 @@ travelMap
         100;
 
 
-
       const roundedX =
-
         x.toFixed(
           1
         );
 
 
       const roundedY =
-
         y.toFixed(
           1
         );
 
 
+      /*
+        Display helper label.
+      */
 
       coordinateHelper.hidden =
         false;
@@ -838,17 +1055,17 @@ travelMap
         `x: ${roundedX}, y: ${roundedY}`;
 
 
-
       coordinateHelper.style.left =
-
         `${x}%`;
 
 
       coordinateHelper.style.top =
-
         `${y}%`;
 
 
+      /*
+        Also log values in browser console.
+      */
 
       console.log(
 
@@ -857,6 +1074,9 @@ travelMap
       );
 
 
+      /*
+        Hide helper after 3.5 seconds.
+      */
 
       window.setTimeout(
 
@@ -871,16 +1091,13 @@ travelMap
 
       );
 
-
     }
 
   );
 
 
-
 /* ============================================
    INITIALISE
 ============================================ */
-
 
 renderTravelPins();
