@@ -44,6 +44,10 @@ const TRAVELS = [
       {
         label: "Cordoba",
         file: "assets/travel/spain-2016/cordoba.pdf"
+      },
+      {
+        label: "Malaga Video",
+        file: "https://www.youtube.com/watch?v=F1l7kJql_5g"
       }
     ]
   },
@@ -53,7 +57,7 @@ const TRAVELS = [
 
     title: "Morocco",
 
-    year: "",
+    year: "2016",
 
     travelers: "Sabba & Safta",
     generation: "first",
@@ -146,6 +150,18 @@ const TRAVELS = [
       {
         label: "Japan",
         file: "assets/travel/fareast-2013/Japan.pdf"
+      },
+      {
+        label: "Far East Video",
+        file: "https://www.youtube.com/watch?v=cGJ6CrMfpNY"
+      },
+      {
+        label: "Landscape Video",
+        file: "https://www.youtube.com/watch?v=amGNIcDhMn0"
+      },
+      {
+        label: "Traditional Dance Video",
+        file: "https://www.youtube.com/watch?v=fvQl3B7sar8"
       }
     ]
   }, 
@@ -156,7 +172,7 @@ const TRAVELS = [
 
     title: "Africa",
 
-    year: "",
+    year: "2011",
 
     travelers: "Sabba & Safta",
     generation: "first",
@@ -185,6 +201,18 @@ const TRAVELS = [
       {
         label: "Africa",
         file: "assets/travel/africa-/africa.pdf"
+      },
+      {
+        label: "Lion in a tree",
+        file: "https://www.youtube.com/watch?v=-GIBQQuFuj4"
+      },
+      {
+        label: "Gorillas in the mist",
+        file: "https://www.youtube.com/watch?v=Q44_PHoZnIA"
+      },
+      {
+        label: "Fountain",
+        file: "https://www.youtube.com/watch?v=ACiwQ0vyl8Y"
       }
     ]
   },
@@ -200,7 +228,7 @@ const TRAVELS = [
     travelers: "Sharon & Safta",
     generation: "next",
 
-    x: 40.9,
+    x: 37,
     y: 100,
 
     images: [
@@ -265,15 +293,25 @@ const TRAVELS = [
     x: 25.5,
     y: 51.3,
     images: [
-      "assets/travel/costa-rica-2015/costa-rica1.avif",
-      "assets/travel/costa-rica-2015/costa-rica2.avif",
-      "assets/travel/costa-rica-2015/costa-rica3.avif",
-      "assets/travel/costa-rica-2015/costa-rica4.avif",
-      "assets/travel/costa-rica-2015/costa-rica5.avif",
-      "assets/travel/costa-rica-2015/costa-rica6.avif",
-      "assets/travel/costa-rica-2015/costa-rica7.avif",
-      "assets/travel/costa-rica-2015/costa-rica8.avif",
-      "assets/travel/costa-rica-2015/costa-rica9.avif"
+      "assets/travel/costa-rica-2015/cr1.avif",
+      "assets/travel/costa-rica-2015/cr2.avif",
+      "assets/travel/costa-rica-2015/cr3.avif",
+      "assets/travel/costa-rica-2015/cr4.avif",
+      "assets/travel/costa-rica-2015/cr5.avif",
+      "assets/travel/costa-rica-2015/cr6.avif",
+      "assets/travel/costa-rica-2015/cr7.avif",
+      "assets/travel/costa-rica-2015/cr8.avif",
+      "assets/travel/costa-rica-2015/cr9.avif"
+    ],
+    pdfs: [ 
+        {
+            label: "Yal and the boys in the pool",
+            file: "https://www.youtube.com/watch?v=BE4N3VI0ZSY"
+        },
+        {
+            label: "Dancing Yal",
+            file: "https://www.youtube.com/watch?v=NjjZfjIDTQU"
+        }
     ]
   },
   {
@@ -301,7 +339,13 @@ const TRAVELS = [
       {
         label: "World Cup 2014",
         file: "assets/travel/rio-2014/rio.pdf"
+      },
+      {
+        label: "Rio de Janeiro",
+        file: "https://www.youtube.com/watch?v=bhF4OC6gk14"
       }
+
+      
     ]
   },
   {
@@ -797,6 +841,125 @@ pdfs: [
         {
             label: "India",
             file: "assets/travel/india.pdf"
+        }
+    ]
+},
+{
+    id: "hawaii-2013",
+    title: "Hawaii",
+    year: "2013",
+    travelers: "Zohar Family",
+    generation: "family",
+    x: 5.9,
+    y: 43.8,
+    images: [
+        "assets/travel/hawaii-2013/images/hawaii1.jpg",
+        "assets/travel/hawaii-2013/images/hawaii2.jpg",
+        "assets/travel/hawaii-2013/images/hawaii3.jpg",
+        "assets/travel/hawaii-2013/images/hawaii4.jpg",
+        "assets/travel/hawaii-2013/images/hawaii5.jpg",
+        "assets/travel/hawaii-2013/images/hawaii6.jpg",
+        "assets/travel/hawaii-2013/images/hawaii7.jpg",
+        "assets/travel/hawaii-2013/images/hawaii8.jpg",
+        "assets/travel/hawaii-2013/images/hawaii9.jpg",
+        "assets/travel/hawaii-2013/images/hawaii10.jpg",
+        "assets/travel/hawaii-2013/images/hawaii11.jpg",
+        "assets/travel/hawaii-2013/images/hawaii12.jpg",
+        "assets/travel/hawaii-2013/images/hawaii13.jpg",
+        "assets/travel/hawaii-2013/images/hawaii14.jpg",
+        "assets/travel/hawaii-2013/images/hawaii15.jpg",
+        "assets/travel/hawaii-2013/images/hawaii16.jpg",
+        "assets/travel/hawaii-2013/images/hawaii17.jpg",
+        "assets/travel/hawaii-2013/images/hawaii18.jpg",
+        "assets/travel/hawaii-2013/images/hawaii19.jpg",
+        "assets/travel/hawaii-2013/images/hawaii20.jpg",
+        "assets/travel/hawaii-2013/images/hawaii21.jpg",
+        "assets/travel/hawaii-2013/images/hawaii22.jpg",
+        "assets/travel/hawaii-2013/images/hawaii23.jpg",
+        "assets/travel/hawaii-2013/images/hawaii24.jpg"
+
+    ],
+    pdfs: [
+        {
+            label: "Hawaii 5.0",
+            file: "https://www.youtube.com/watch?v=oaKsmWnCchE"
+        },
+    ]
+},
+
+{
+    id: "greece-2017",
+    title: "Greece",
+    year: "2017",
+    travelers: "Zohar Family",
+    generation: "family",
+    x: 55.1,
+    y: 30.7,
+    images: [
+        "assets/travel/greece-2017/images/greece1.jpg",
+        "assets/travel/greece-2017/images/greece2.jpg",
+        "assets/travel/greece-2017/images/greece3.jpg",
+        "assets/travel/greece-2017/images/greece4.jpg",
+        "assets/travel/greece-2017/images/greece5.jpg",
+        "assets/travel/greece-2017/images/greece6.jpg",
+        "assets/travel/greece-2017/images/greece7.jpg",
+        "assets/travel/greece-2017/images/greece8.jpg",
+        "assets/travel/greece-2017/images/greece9.jpg",
+        "assets/travel/greece-2017/images/greece10.jpg",
+        "assets/travel/greece-2017/images/greece11.jpg",
+        "assets/travel/greece-2017/images/greece12.jpg",
+        "assets/travel/greece-2017/images/greece13.jpg",
+        "assets/travel/greece-2017/images/greece14.jpg",
+        "assets/travel/greece-2017/images/greece15.jpg",
+        "assets/travel/greece-2017/images/greece16.jpg",
+        "assets/travel/greece-2017/images/greece17.jpg",
+        "assets/travel/greece-2017/images/greece18.jpg",
+        "assets/travel/greece-2017/images/greece19.jpg"
+
+    ],
+    pdfs: [
+        {
+            label: "Sabba Selfie",
+            file: "assets/travel/greece-2017/greece2.mov"
+        },
+        {
+            label: "Sabba & Safta Song",
+            file: "assets/travel/greece-2017/greece1.mov"
+        }
+    ]
+
+},
+{
+    id: "belize-2019",
+    title: "Belize",
+    year: "2019",
+    travelers: "Zohar Family",
+    generation: "family",
+    x: 24.5,
+    y: 45.5,
+    images: [
+        "assets/travel/belize-2019/images/belize1.png",
+        "assets/travel/belize-2019/images/belize2.png",
+        "assets/travel/belize-2019/images/belize3.png",
+        "assets/travel/belize-2019/images/belize4.png",
+        "assets/travel/belize-2019/images/belize5.png",
+        "assets/travel/belize-2019/images/belize6.png",
+        "assets/travel/belize-2019/images/belize7.png",
+        "assets/travel/belize-2019/images/belize8.png",
+        "assets/travel/belize-2019/images/belize9.png",
+        "assets/travel/belize-2019/images/belize10.png",
+        "assets/travel/belize-2019/images/belize11.png",
+        "assets/travel/belize-2019/images/belize12.png",
+        "assets/travel/belize-2019/images/belize13.png",
+        "assets/travel/belize-2019/images/belize14.png",
+        "assets/travel/belize-2019/images/belize15.png",
+        "assets/travel/belize-2019/images/belize16.png",
+        "assets/travel/belize-2019/images/belize17.png"
+    ],
+    pdfs: [
+        {
+            label: "Sabba & Safta Song",
+            file: "assets/travel/belize-2019/belize.mov"
         }
     ]
 }
