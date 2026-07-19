@@ -29,7 +29,7 @@ body {
 .landing-screen {
   position: relative;
   width: 100%;
-  height: calc(100vh - 78px);
+  height: calc(110vh - 78px);
   min-height: 0;
 
   background-image: url("assets/landing-background.png");

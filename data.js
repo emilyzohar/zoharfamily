@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { label: "Home Videos", href: "#" }
 ];
 
-const LANDING_PHOTO = "assets/family-photo.png";
+const LANDING_PHOTO = "";
 
 const HERO_CAPTION =
   "Zohar family — our heirloom for Zohar heirs and successors";

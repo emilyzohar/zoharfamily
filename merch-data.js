@@ -6,7 +6,7 @@ const MERCH_ITEMS = [
     name: "Who loves baby?",
 
     images: [
-      "assets/merch/who-loves-baby-mug.jpg"
+      "assets/merch/wholoves.png"
     ],
 
     description:
