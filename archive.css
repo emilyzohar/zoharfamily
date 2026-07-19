@@ -1,0 +1,1901 @@
+/* ========================================
+   ROOT
+======================================== */
+
+:root {
+
+  --background:
+    #f3f3f2;
+
+  --paper:
+    #fffefa;
+
+  --paper-border:
+    #dedbd3;
+
+  --text:
+    #301112;
+
+  --muted:
+    #756c69;
+
+  --accent:
+    #681116;
+
+  --accent-dark:
+    #470b0e;
+
+  --blue:
+    #245c99;
+
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+body {
+  margin: 0;
+
+  background-color: #f3f3f2;
+
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% auto;
+
+  color: var(--text);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  overflow: hidden;
+}
+
+
+
+/* ========================================
+   SITE NAVIGATION
+======================================== */
+
+
+
+
+.top-nav {
+
+  position:
+    relative;
+
+  z-index:
+    100;
+
+}
+
+
+.top-nav-inner {
+
+  min-height:
+    65px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    52px;
+
+  padding:
+    0
+    72px;
+
+}
+
+
+.top-nav-link {
+
+  color:
+    white;
+
+  text-decoration:
+    none;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    1.5rem;
+
+  font-weight:
+    400;
+
+}
+
+
+.top-nav-link:hover {
+
+  opacity:
+    0.65;
+
+}
+
+
+.top-nav-link.active {
+
+  font-style:
+    italic;
+
+}
+
+
+
+/* ========================================
+   ARCHIVE PAGE
+======================================== */
+
+/* ========================================
+   ARCHIVE PAGE
+======================================== */
+
+.archive-main {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 65px);
+
+  padding: 0;
+
+  overflow: hidden;
+
+  background: transparent;
+}
+
+
+/* ========================================
+   FIXED FOLDER BACKGROUND
+======================================== */
+
+.archive-stage {
+  position: relative;
+
+  width: 100%;
+  height: calc(100vh - 65px);
+
+  margin: 0;
+
+  overflow: hidden;
+
+  background: transparent;
+}
+
+
+/* ========================================
+   SCROLLING CONTENT INSIDE FOLDER
+======================================== */
+
+.archive-stage-content {
+  position: absolute;
+
+  /*
+     THIS CONTROLS WHERE THE CONTENT
+     STARTS INSIDE THE FOLDER.
+  */
+  top: 140px;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 2;
+
+  padding:
+    40px
+    80px
+    100px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /*
+     Smooth scrolling on mobile.
+  */
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: none;
+}
+
+
+.archive-stage-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* ========================================
+   CATEGORY NAVIGATION
+
+   These are simple controls.
+   The PNG itself supplies the folder design.
+======================================== */
+
+.archive-category-nav {
+  position: absolute;
+
+  top: 60px;   /* overall tab row height */
+  left: 0;
+
+  width: 100%;
+  height: 100px;
+
+  z-index: 20;
+}
+
+
+.archive-category-tab {
+  position: absolute;
+
+  padding: 0;
+
+  background: transparent;
+  border: none;
+
+  color: var(--accent);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 27px;
+  font-style: italic;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  opacity: 0.55;
+}
+
+
+.archive-category-tab.active {
+  opacity: 1;
+}
+
+.archive-category-tab:nth-child(1) {
+  left: 12%;
+  top: 2px;
+}
+
+.archive-category-tab:nth-child(2) {
+  left: 30%;
+  top: 2px;
+}
+
+.archive-category-tab:nth-child(3) {
+  left: 47%;
+  top: 2px;
+}
+
+.archive-category-tab:nth-child(4) {
+  left: 64%;
+  top: 2px;
+}
+
+.archive-category-tab:nth-child(5) {
+  left: 83%;
+  top: 2px;
+}
+
+
+.archive-category-tab:hover {
+
+  opacity:
+    0.8;
+
+}
+
+
+.archive-category-tab.active {
+
+  opacity:
+    1;
+
+  transform:
+    translateY(
+      -1px
+    );
+
+}
+
+
+
+/* ========================================
+   CATEGORY BACKGROUND
+
+   NO FOLDER IS CREATED WITH CSS.
+
+   The PNG itself is the visual background.
+======================================== */
+
+
+
+
+
+
+
+/* ========================================
+   GROUPS
+
+   Used for Articles and Lectures.
+======================================== */
+
+.archive-group {
+
+  margin-bottom:
+    52px;
+
+}
+
+
+.archive-group:last-child {
+
+  margin-bottom:
+    0;
+
+}
+
+
+.archive-group-title {
+  margin:
+    0
+    0
+    15px;
+
+  margin-left:
+    70px;
+
+  color:
+    var(--accent);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    34px;
+
+  font-style:
+    italic;
+
+  font-weight:
+    600;
+}
+
+
+
+/* ========================================
+   CAROUSEL
+======================================== */
+
+.carousel-wrapper {
+
+  position:
+    relative;
+
+  width:
+    100%;
+
+}
+
+
+.archive-carousel {
+  display: flex;
+
+  gap: 25px;
+
+  /* LEFT starting point */
+  margin-left: 25px;
+
+  /* 100% minus left space minus right space */
+  width: calc(100% - 20px - 50px);
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding:
+    10px
+    5px
+    24px;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.archive-carousel::-webkit-scrollbar {
+
+  display:
+    none;
+
+}
+
+
+.archive-carousel
+.archive-card {
+
+  flex:
+    0
+    0
+    min(
+      350px,
+      calc(
+        100vw
+        -
+        80px
+      )
+    );
+
+  scroll-snap-align:
+    start;
+
+}
+
+
+
+/* ========================================
+   CAROUSEL ARROWS
+======================================== */
+
+.carousel-button {
+
+  position:
+    absolute;
+
+  top:
+    50%;
+
+  z-index:
+    30;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    52px;
+
+  height:
+    52px;
+
+  padding:
+    0;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.88
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      70,
+      55,
+      55,
+      0.18
+    );
+
+  border-radius:
+    50%;
+
+  box-shadow:
+    0
+    8px
+    20px
+    rgba(
+      0,
+      0,
+      0,
+      0.1
+    );
+
+  color:
+    var(--accent);
+
+  font-size:
+    25px;
+
+  cursor:
+    pointer;
+
+  transform:
+    translateY(
+      -50%
+    );
+
+}
+
+
+.carousel-button:hover {
+
+  background:
+    white;
+
+}
+
+
+.carousel-button-left {
+
+  left:
+    -5px;
+
+}
+
+
+.carousel-button-right {
+  right: 15px;
+}
+
+
+
+/* ========================================
+   PAPER CARDS
+======================================== */
+
+.archive-card {
+
+  position:
+    relative;
+
+  display:
+    flex;
+
+  min-height:
+    300px;
+
+  padding:
+    34px
+    32px
+    27px;
+
+  overflow:
+    hidden;
+
+  background:
+    var(--paper);
+
+  border:
+    1px
+    solid
+    var(--paper-border);
+
+  box-shadow:
+    5px
+    10px
+    20px
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+
+  cursor:
+    pointer;
+
+  transform:
+    rotate(
+      -0.2deg
+    );
+
+  transition:
+    transform
+    170ms
+    ease,
+    box-shadow
+    170ms
+    ease;
+
+}
+
+
+.archive-card:nth-child(
+  even
+) {
+
+  transform:
+    rotate(
+      0.25deg
+    );
+
+}
+
+
+.archive-card:hover {
+
+  transform:
+    translateY(
+      -5px
+    )
+    rotate(
+      0
+    );
+
+  box-shadow:
+    7px
+    17px
+    27px
+    rgba(
+      0,
+      0,
+      0,
+      0.16
+    );
+
+}
+
+
+
+/* ========================================
+   PAPER CONTENT
+======================================== */
+
+.archive-card-content {
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+}
+
+
+.item-type {
+
+  align-self:
+    flex-start;
+
+  margin-bottom:
+    22px;
+
+  color:
+    var(--accent);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+
+}
+
+
+.item-main-row {
+
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+
+  flex:
+    1;
+
+}
+
+
+.item-main-text {
+
+  flex:
+    1;
+
+  min-width:
+    0;
+
+  align-self:
+    flex-start;
+
+}
+
+
+.item-title {
+
+  margin:
+    0
+    0
+    15px;
+
+  color:
+    var(--text);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    31px;
+
+  font-weight:
+    600;
+
+  line-height:
+    1;
+
+}
+
+
+.item-author {
+
+  margin:
+    0;
+
+  color:
+    var(--muted);
+
+}
+
+
+.item-footer {
+
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap:
+    15px;
+
+  width:
+    100%;
+
+  margin-top:
+    25px;
+
+}
+
+
+.item-meta {
+
+  color:
+    var(--muted);
+
+  font-size:
+    12px;
+
+}
+
+
+.item-action {
+
+  margin-left:
+    auto;
+
+  color:
+    var(--accent);
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+}
+
+
+
+/* ========================================
+   CARD THUMBNAILS
+======================================== */
+
+.card-thumbnail-wrap {
+
+  display:
+    flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    flex-end;
+
+  height:
+    115px;
+
+}
+
+
+.card-thumbnail {
+
+  display:
+    block;
+
+  width:
+    auto;
+
+  height:
+    115px;
+
+  max-width:
+    105px;
+
+  object-fit:
+    contain;
+
+  box-shadow:
+    3px
+    7px
+    13px
+    rgba(
+      0,
+      0,
+      0,
+      0.18
+    );
+
+}
+
+
+
+/* ========================================
+   BLURB CARD
+======================================== */
+
+.blurb-carousel-card {
+
+  flex-direction:
+    column;
+
+  background:
+    #f8f7f3;
+
+  cursor:
+    default;
+
+}
+
+
+.blurb-carousel-card:hover {
+
+  transform:
+    rotate(
+      0
+    );
+
+}
+
+
+.blurb-carousel-text {
+
+  display:
+    -webkit-box;
+
+  overflow:
+    hidden;
+
+  color:
+    #504848;
+
+  font-size:
+    16px;
+
+  line-height:
+    1.65;
+
+  -webkit-box-orient:
+    vertical;
+
+  -webkit-line-clamp:
+    8;
+
+}
+
+
+.blurb-read-more {
+
+  align-self:
+    flex-end;
+
+  margin-top:
+    auto;
+
+  padding:
+    24px
+    0
+    0;
+
+  background:
+    transparent;
+
+  border:
+    none;
+
+  color:
+    var(--accent);
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+}
+
+
+
+/* ========================================
+   MODALS
+======================================== */
+
+.modal {
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    1000;
+
+  display:
+    none;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    30px;
+
+}
+
+
+.modal.is-open {
+
+  display:
+    flex;
+
+}
+
+
+.modal-backdrop {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  background:
+    rgba(
+      20,
+      18,
+      15,
+      0.58
+    );
+
+  backdrop-filter:
+    blur(
+      5px
+    );
+
+}
+
+
+.dark-backdrop {
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.88
+    );
+
+}
+
+
+.modal-window {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  width:
+    min(
+      1100px,
+      95vw
+    );
+
+  max-height:
+    92vh;
+
+  overflow:
+    auto;
+
+  background:
+    var(--paper);
+
+  box-shadow:
+    0
+    40px
+    100px
+    rgba(
+      0,
+      0,
+      0,
+      0.3
+    );
+
+}
+
+
+.modal-close {
+
+  position:
+    absolute;
+
+  top:
+    20px;
+
+  right:
+    24px;
+
+  z-index:
+    30;
+
+  padding:
+    0;
+
+  background:
+    transparent;
+
+  border:
+    none;
+
+  color:
+    var(--text);
+
+  font-size:
+    38px;
+
+  cursor:
+    pointer;
+
+}
+
+
+
+/* ========================================
+   QUICK VIEW
+======================================== */
+
+.quick-view-window {
+
+  padding:
+    60px;
+
+}
+
+
+.quick-view-layout {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      0,
+      0.75fr
+    )
+    minmax(
+      0,
+      1.25fr
+    );
+
+  gap:
+    55px;
+
+}
+
+
+.quick-view-image-container {
+
+  display:
+    none;
+
+}
+
+
+.quick-view-image-container.visible {
+
+  display:
+    block;
+
+}
+
+
+.quick-view-image {
+
+  width:
+    100%;
+
+  max-height:
+    600px;
+
+  object-fit:
+    contain;
+
+}
+
+
+.quick-view-category {
+
+  margin:
+    0
+    0
+    18px;
+
+  color:
+    var(--accent);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.1em;
+
+  text-transform:
+    uppercase;
+
+}
+
+
+.quick-view-content h2 {
+
+  margin:
+    0
+    0
+    25px;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    clamp(
+      42px,
+      5vw,
+      70px
+    );
+
+  line-height:
+    0.95;
+
+}
+
+
+.quick-view-description {
+
+  color:
+    #514a43;
+
+  font-size:
+    18px;
+
+  line-height:
+    1.65;
+
+}
+
+
+.quick-view-actions {
+
+  margin-top:
+    35px;
+
+}
+
+
+.quick-view-window.blurb-view {
+
+  width:
+    min(
+      1200px,
+      95vw
+    );
+
+}
+
+
+.quick-view-window.blurb-view
+.quick-view-layout {
+
+  display:
+    block;
+
+}
+
+
+.quick-view-window.blurb-view
+.quick-view-description p {
+
+  font-size:
+    20px;
+
+  line-height:
+    1.65;
+
+}
+
+
+
+/* ========================================
+   COLLECTION LIST
+======================================== */
+
+.article-list {
+
+  border-top:
+    1px
+    solid
+    var(--paper-border);
+
+}
+
+
+.article-list-item {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    30px;
+
+  padding:
+    22px
+    0;
+
+  border-bottom:
+    1px
+    solid
+    var(--paper-border);
+
+  cursor:
+    pointer;
+
+}
+
+
+.article-list-text h3 {
+
+  margin:
+    0
+    0
+    5px;
+
+  font-size:
+    23px;
+
+  font-weight:
+    500;
+
+}
+
+
+.article-list-arrow {
+
+  color:
+    var(--accent);
+
+  font-size:
+    13px;
+
+  font-weight:
+    700;
+
+}
+
+
+
+/* ========================================
+   BUTTONS
+======================================== */
+
+.primary-button,
+.secondary-button {
+
+  display:
+    inline-block;
+
+  padding:
+    13px
+    18px;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size:
+    14px;
+
+  font-weight:
+    700;
+
+  text-decoration:
+    none;
+
+}
+
+
+.primary-button {
+
+  background:
+    var(--accent);
+
+  color:
+    white;
+
+}
+
+
+.secondary-button {
+
+  border:
+    1px
+    solid
+    var(--paper-border);
+
+  color:
+    var(--accent);
+
+}
+
+
+
+/* ========================================
+   PDF
+======================================== */
+
+.pdf-window {
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  width:
+    min(
+      1400px,
+      96vw
+    );
+
+  height:
+    94vh;
+
+  overflow:
+    hidden;
+
+}
+
+
+.pdf-toolbar {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+
+  padding:
+    18px
+    25px;
+
+  background:
+    white;
+
+}
+
+
+.pdf-label {
+
+  margin:
+    0;
+
+  color:
+    var(--accent);
+
+  font-size:
+    11px;
+
+  font-weight:
+    700;
+
+}
+
+
+.pdf-toolbar h2 {
+
+  margin:
+    3px
+    0
+    0;
+
+}
+
+
+.pdf-toolbar-actions {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    15px;
+
+}
+
+
+.pdf-close {
+
+  position:
+    static;
+
+}
+
+
+.pdf-frame-container {
+
+  flex:
+    1;
+
+  min-height:
+    0;
+
+  background:
+    #444;
+
+}
+
+
+.pdf-frame {
+
+  width:
+    100%;
+
+  height:
+    100%;
+
+  border:
+    none;
+
+}
+
+
+
+/* ========================================
+   IMAGE LIGHTBOX
+======================================== */
+
+.image-modal-window {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  max-width:
+    98vw;
+
+  max-height:
+    96vh;
+
+}
+
+
+.lightbox-image {
+
+  max-width:
+    96vw;
+
+  max-height:
+    88vh;
+
+  object-fit:
+    contain;
+
+}
+
+
+.image-close {
+
+  position:
+    fixed;
+
+  top:
+    24px;
+
+  right:
+    34px;
+
+  color:
+    white;
+
+}
+
+
+.image-caption {
+
+  padding:
+    15px;
+
+  color:
+    white;
+
+  text-align:
+    center;
+
+}
+
+
+.image-caption h2 {
+
+  margin:
+    0
+    0
+    5px;
+
+}
+
+
+.image-caption p {
+
+  margin:
+    0;
+
+}
+
+
+
+/* ========================================
+   IMAGE GALLERY ARROWS
+======================================== */
+
+.image-gallery-arrow {
+
+  position:
+    fixed;
+
+  top:
+    50%;
+
+  z-index:
+    25;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    58px;
+
+  height:
+    58px;
+
+  padding:
+    0;
+
+  transform:
+    translateY(
+      -50%
+    );
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.15
+    );
+
+  border:
+    1px
+    solid
+    rgba(
+      255,
+      255,
+      255,
+      0.4
+    );
+
+  border-radius:
+    50%;
+
+  color:
+    white;
+
+  font-size:
+    44px;
+
+  cursor:
+    pointer;
+
+}
+
+
+.image-gallery-arrow-left {
+
+  left:
+    30px;
+
+}
+
+
+.image-gallery-arrow-right {
+
+  right:
+    30px;
+
+}
+
+
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (
+  max-width:
+    850px
+) {
+
+  .top-nav-inner {
+
+    gap:
+      22px;
+
+    padding:
+      0
+      22px;
+
+    overflow-x:
+      auto;
+
+  }
+
+
+  .top-nav-link {
+
+    font-size:
+      1.2rem;
+
+    white-space:
+      nowrap;
+
+  }
+
+
+  .archive-main {
+
+    padding:
+      35px
+      15px
+      70px;
+
+  }
+
+
+  .archive-category-nav {
+
+    justify-content:
+      flex-start;
+
+    flex-wrap:
+      nowrap;
+
+    overflow-x:
+      auto;
+
+  }
+
+
+  .archive-category-tab {
+
+    flex:
+      0
+      0
+      auto;
+
+    font-size:
+      23px;
+
+  }
+
+
+ .archive-stage {
+  position: relative;
+
+  width: 100%;
+  min-height: calc(100vh - 65px);
+
+  margin: 0;
+
+  padding:
+    150px
+    80px
+    80px;
+
+  background-position:
+    center top;
+
+  background-repeat:
+    no-repeat;
+
+  /* Keeps the image at its original dimensions */
+  background-size:
+    auto;
+
+  /* Positions background relative to browser viewport */
+  background-attachment:
+    fixed;
+}
+
+
+  .archive-carousel
+  .archive-card {
+
+    flex:
+      0
+      0
+      calc(
+        100vw
+        -
+        85px
+      );
+
+  }
+
+
+  .carousel-button {
+
+    display:
+      none;
+
+  }
+
+
+  .quick-view-layout {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+
+  .quick-view-window {
+
+    padding:
+      55px
+      25px
+      30px;
+
+  }
+
+
+  .image-gallery-arrow-left {
+
+    left:
+      8px;
+
+  }
+
+
+  .image-gallery-arrow-right {
+
+    right:
+      8px;
+
+  }
+
+}

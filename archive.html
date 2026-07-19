@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Sabba's Works</title>
+
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap"
+    rel="stylesheet"
+  >
+
+
+  <link
+    rel="stylesheet"
+    href="archive.css"
+  >
+
+</head>
+
+
+<body>
+
+
+  <!-- =====================================
+       MAIN NAVIGATION
+  ====================================== -->
+
+  <header class="site-header">
+
+    <nav
+      class="top-nav"
+      aria-label="Main navigation"
+    >
+
+      <div class="top-nav-inner">
+
+        <a
+          class="top-nav-link"
+          href="index.html"
+        >
+          Home
+        </a>
+
+        <a
+          class="top-nav-link"
+          href="recipes.html"
+        >
+          Recipes
+        </a>
+
+        <a
+          class="top-nav-link"
+          href="merch.html"
+        >
+          Merch
+        </a>
+
+        <a
+          class="top-nav-link"
+          href="travel.html"
+        >
+          Travel
+        </a>
+
+        <a
+          class="top-nav-link"
+          href="memories.html"
+        >
+          Memories
+        </a>
+
+        <a
+          class="top-nav-link active"
+          href="archive.html"
+        >
+          Sabba's Works
+        </a>
+
+      </div>
+
+    </nav>
+
+  </header>
+
+
+
+  <!-- =====================================
+       ARCHIVE
+  ====================================== -->
+
+  <main class="archive-main">
+
+
+    <!-- Category tabs -->
+
+    <nav
+      class="archive-category-nav"
+      id="archiveTabs"
+      aria-label="Archive categories"
+    ></nav>
+
+
+
+    <!--
+      The category PNG is used as the
+      background of this entire area.
+    -->
+
+    <section
+      class="archive-stage"
+      id="archiveStage"
+    >
+
+      <div
+        class="archive-stage-content"
+        id="archiveStageContent"
+      ></div>
+
+    </section>
+
+
+  </main>
+
+
+
+  <!-- =====================================
+       QUICK VIEW MODAL
+  ====================================== -->
+
+  <div
+    class="modal"
+    id="quickViewModal"
+    aria-hidden="true"
+  >
+
+    <div
+      class="modal-backdrop"
+      data-close-modal
+    ></div>
+
+
+    <div class="modal-window quick-view-window">
+
+
+      <button
+        class="modal-close"
+        data-close-modal
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+
+      <div class="quick-view-layout">
+
+
+        <div
+          class="quick-view-image-container"
+          id="quickViewImageContainer"
+        >
+
+          <img
+            id="quickViewImage"
+            class="quick-view-image"
+            src=""
+            alt=""
+          >
+
+        </div>
+
+
+        <div class="quick-view-content">
+
+          <p
+            class="quick-view-category"
+            id="quickViewCategory"
+          ></p>
+
+
+          <h2 id="quickViewTitle"></h2>
+
+
+          <p
+            class="quick-view-author"
+            id="quickViewAuthor"
+          ></p>
+
+
+          <p
+            class="quick-view-year"
+            id="quickViewYear"
+          ></p>
+
+
+          <div
+            class="quick-view-description"
+            id="quickViewDescription"
+          ></div>
+
+
+          <div
+            class="quick-view-actions"
+            id="quickViewActions"
+          ></div>
+
+        </div>
+
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================
+       PDF MODAL
+  ====================================== -->
+
+  <div
+    class="modal"
+    id="pdfModal"
+    aria-hidden="true"
+  >
+
+    <div
+      class="modal-backdrop"
+      data-close-modal
+    ></div>
+
+
+    <div class="modal-window pdf-window">
+
+
+      <div class="pdf-toolbar">
+
+        <div>
+
+          <p class="pdf-label">
+            DOCUMENT PREVIEW
+          </p>
+
+          <h2 id="pdfTitle">
+            Document
+          </h2>
+
+        </div>
+
+
+        <div class="pdf-toolbar-actions">
+
+          <a
+            id="pdfNewTab"
+            class="secondary-button"
+            href="#"
+            target="_blank"
+            rel="noopener"
+          >
+            Open Full Size ↗
+          </a>
+
+
+          <button
+            class="modal-close pdf-close"
+            data-close-modal
+            aria-label="Close"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="pdf-frame-container">
+
+        <iframe
+          id="pdfFrame"
+          class="pdf-frame"
+          src=""
+          title="PDF preview"
+        ></iframe>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <!-- =====================================
+       IMAGE LIGHTBOX
+  ====================================== -->
+
+  <div
+    class="modal"
+    id="imageModal"
+    aria-hidden="true"
+  >
+
+    <div
+      class="modal-backdrop dark-backdrop"
+      data-close-modal
+    ></div>
+
+
+    <div class="image-modal-window">
+
+      <button
+        class="modal-close image-close"
+        data-close-modal
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+
+      <img
+        id="lightboxImage"
+        class="lightbox-image"
+        src=""
+        alt=""
+      >
+
+
+      <div class="image-caption">
+
+        <h2 id="lightboxTitle"></h2>
+
+        <p id="lightboxDescription"></p>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+
+  <script src="archive.js"></script>
+
+</body>
+
+</html>
