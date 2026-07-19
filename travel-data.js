@@ -660,7 +660,7 @@ const TRAVELS = [
     y: 31.7,
     pdfs: [
         {
-            label: "Kyoto",
+            label: "Kyoto Video",
             file: "https://youtu.be/tnDErXm1zhI"
         },
         {
