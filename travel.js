@@ -5,17 +5,22 @@
 const PHOTO_API =
   "https://family-photo-api.emilyzohar.workers.dev";
 
-
 const TRAVEL_ROOT =
   "/Travel";
-
 
 const TRIP_METADATA_FILE =
   "trip.txt";
 
-
 const TRIP_IMAGES_FOLDER =
   "images";
+
+/*
+  Number of trips whose first images can be
+  prefetched simultaneously.
+*/
+
+const PREFETCH_CONCURRENCY =
+  4;
 
 
 /* ============================================
@@ -23,21 +28,13 @@ const TRIP_IMAGES_FOLDER =
 ============================================ */
 
 const travelMap =
-  document.getElementById(
-    "travel-map"
-  );
-
+  document.getElementById("travel-map");
 
 const travelPins =
-  document.getElementById(
-    "travel-pins"
-  );
-
+  document.getElementById("travel-pins");
 
 const coordinateHelper =
-  document.getElementById(
-    "coordinate-helper"
-  );
+  document.getElementById("coordinate-helper");
 
 
 /* ============================================
@@ -45,168 +42,83 @@ const coordinateHelper =
 ============================================ */
 
 const travelModal =
-  document.getElementById(
-    "travel-modal"
-  );
-
+  document.getElementById("travel-modal");
 
 const travelModalBackdrop =
-  document.getElementById(
-    "travel-modal-backdrop"
-  );
-
+  document.getElementById("travel-modal-backdrop");
 
 const travelModalClose =
-  document.getElementById(
-    "travel-modal-close"
-  );
-
+  document.getElementById("travel-modal-close");
 
 const travelModalTitle =
-  document.getElementById(
-    "travel-modal-title"
-  );
-
+  document.getElementById("travel-modal-title");
 
 const travelModalYear =
-  document.getElementById(
-    "travel-modal-year"
-  );
-
+  document.getElementById("travel-modal-year");
 
 const travelModalTravelers =
-  document.getElementById(
-    "travel-modal-travelers"
-  );
-
+  document.getElementById("travel-modal-travelers");
 
 const travelModalGeneration =
-  document.getElementById(
-    "travel-modal-generation"
-  );
-
+  document.getElementById("travel-modal-generation");
 
 const travelModalBlurb =
-  document.getElementById(
-    "travel-modal-blurb"
-  );
-
+  document.getElementById("travel-modal-blurb");
 
 const travelCarouselImage =
-  document.getElementById(
-    "travel-carousel-image"
-  );
-
+  document.getElementById("travel-carousel-image");
 
 const travelImagePrev =
-  document.getElementById(
-    "travel-image-prev"
-  );
-
+  document.getElementById("travel-image-prev");
 
 const travelImageNext =
-  document.getElementById(
-    "travel-image-next"
-  );
-
+  document.getElementById("travel-image-next");
 
 const travelImageCounter =
-  document.getElementById(
-    "travel-image-counter"
-  );
-
+  document.getElementById("travel-image-counter");
 
 const travelImageDots =
-  document.getElementById(
-    "travel-image-dots"
-  );
-
+  document.getElementById("travel-image-dots");
 
 const travelPdfLinks =
-  document.getElementById(
-    "travel-pdf-links"
-  );
+  document.getElementById("travel-pdf-links");
 
 
 /* ============================================
    IMAGE SECTION
-
-   Best option:
-   Give the complete carousel container:
-
-   id="travel-image-section"
-
-   This fallback uses the image's parent
-   if that ID does not exist.
 ============================================ */
 
 const travelImageSection =
-
-  document.getElementById(
-    "travel-image-section"
-  )
-
-  ||
-
-  travelCarouselImage?.closest(
-    ".travel-image-section"
-  )
-
-  ||
-
-  travelCarouselImage?.parentElement
-
-  ||
-
+  document.getElementById("travel-image-section") ||
+  travelCarouselImage?.closest(".travel-image-section") ||
+  travelCarouselImage?.parentElement ||
   null;
 
 
 /* ============================================
    FULL-SCREEN LIGHTBOX ELEMENTS
-
-   These should exist in travel.html.
 ============================================ */
 
 const travelLightbox =
-  document.getElementById(
-    "travel-lightbox"
-  );
-
+  document.getElementById("travel-lightbox");
 
 const travelLightboxBackdrop =
-  document.getElementById(
-    "travel-lightbox-backdrop"
-  );
-
+  document.getElementById("travel-lightbox-backdrop");
 
 const travelLightboxClose =
-  document.getElementById(
-    "travel-lightbox-close"
-  );
-
+  document.getElementById("travel-lightbox-close");
 
 const travelLightboxImage =
-  document.getElementById(
-    "travel-lightbox-image"
-  );
-
+  document.getElementById("travel-lightbox-image");
 
 const travelLightboxPrev =
-  document.getElementById(
-    "travel-lightbox-prev"
-  );
-
+  document.getElementById("travel-lightbox-prev");
 
 const travelLightboxNext =
-  document.getElementById(
-    "travel-lightbox-next"
-  );
-
+  document.getElementById("travel-lightbox-next");
 
 const travelLightboxCounter =
-  document.getElementById(
-    "travel-lightbox-counter"
-  );
+  document.getElementById("travel-lightbox-counter");
 
 
 /* ============================================
@@ -216,17 +128,88 @@ const travelLightboxCounter =
 let TRAVELS =
   [];
 
-
 let currentTravelIndex =
   0;
-
 
 let currentImageIndex =
   0;
 
 
 /* ============================================
+   FILTER STATE
+
+   first + next = Sabba & Safta
+   family = Family
+
+   Only these two grouped categories are
+   selected and visible by default.
+
+   Any future Generation value is:
+   - automatically added to the menu
+   - unchecked by default
+   - hidden on initial load
+   - styled like generation-next
+============================================ */
+
+const TRAVEL_GENERATION_GROUPS = {
+
+  first:
+    "Sabba & Safta",
+
+  next:
+    "Sabba & Safta",
+
+  family:
+    "Family"
+
+};
+
+
+const DEFAULT_SELECTED_TRAVEL_CATEGORIES =
+  new Set([
+    "Sabba & Safta",
+    "Family"
+  ]);
+
+
+const selectedTravelCategories =
+  new Set(
+    DEFAULT_SELECTED_TRAVEL_CATEGORIES
+  );
+
+
+const availableTravelCategories =
+  new Set();
+
+
+/* ============================================
+   DROPDOWN ELEMENT STATE
+============================================ */
+
+let travelControls =
+  null;
+
+let travelFilterButton =
+  null;
+
+let travelFilterMenu =
+  null;
+
+let travelTripsButton =
+  null;
+
+let travelTripsMenu =
+  null;
+
+
+/* ============================================
    LOAD ALL TRAVEL DATA
+
+   1. Load /Travel folder listing.
+   2. Load every trip.txt in parallel.
+   3. Render each pin when its metadata arrives.
+   4. Build generation + trip menus dynamically.
+   5. Quietly preload first images afterward.
 ============================================ */
 
 async function loadTravelData() {
@@ -239,56 +222,149 @@ async function loadTravelData() {
       );
 
 
-    /* ========================================
-       EVERY FOLDER DIRECTLY UNDER /Travel
-       IS CONSIDERED A POSSIBLE TRIP.
-    ======================================== */
-
     const tripFolders =
-
       rootEntries.filter(
-
         entry =>
-
-          entry.type ===
-          "folder"
-
+          entry.type === "folder"
       );
 
-
-    /* ========================================
-       LOAD ALL TRIPS
-    ======================================== */
-
-    const results =
-
-      await Promise.all(
-
-        tripFolders.map(
-
-          folder =>
-
-            loadTripFromDropbox(
-              folder
-            )
-
-        )
-
-      );
-
-
-    /* ========================================
-       REMOVE INVALID / NON-TRIP FOLDERS
-    ======================================== */
 
     TRAVELS =
+      [];
 
-      results.filter(
-        Boolean
+
+    availableTravelCategories.clear();
+
+
+    selectedTravelCategories.clear();
+
+
+    DEFAULT_SELECTED_TRAVEL_CATEGORIES.forEach(
+
+      category => {
+
+        selectedTravelCategories.add(
+          category
+        );
+
+      }
+
+    );
+
+
+    if (
+      travelPins
+    ) {
+
+      travelPins.innerHTML =
+        "";
+
+    }
+
+
+    createTravelControls();
+
+
+    renderTravelFilterOptions();
+
+
+    renderTravelTripOptions();
+
+
+    /*
+      Load all small trip.txt files in parallel.
+
+      Each pin appears as soon as its own metadata
+      request finishes.
+    */
+
+    const metadataPromises =
+
+      tripFolders.map(
+
+        async folder => {
+
+          try {
+
+            const travel =
+
+              await loadTripMetadata(
+                folder
+              );
+
+
+            if (
+              !travel
+            ) {
+
+              return null;
+
+            }
+
+
+            const travelIndex =
+
+              TRAVELS.push(
+                travel
+              ) - 1;
+
+
+            registerTravelCategory(
+              travel
+            );
+
+
+            renderTravelPin(
+
+              travel,
+
+              travelIndex
+
+            );
+
+
+            return travel;
+
+          } catch (
+            error
+          ) {
+
+            console.error(
+
+              `Could not load trip metadata for ${folder.name}:`,
+
+              error
+
+            );
+
+
+            return null;
+
+          }
+
+        }
+
       );
 
 
-    renderTravelPins();
+    /*
+      Once metadata has finished loading,
+      quietly preload trip content and first images.
+    */
+
+    Promise
+      .allSettled(
+        metadataPromises
+      )
+      .then(
+        () => {
+
+          renderTravelTripOptions();
+
+          scheduleTravelContentPrefetch();
+
+        }
+      );
 
 
   } catch (
@@ -319,10 +395,10 @@ async function loadTravelData() {
 
 
 /* ============================================
-   LOAD ONE TRIP FROM DROPBOX
+   LOAD ONLY trip.txt
 ============================================ */
 
-async function loadTripFromDropbox(
+async function loadTripMetadata(
   folder
 ) {
 
@@ -331,15 +407,8 @@ async function loadTripFromDropbox(
 
 
   const tripTextPath =
-
     `${tripFolderPath}/${TRIP_METADATA_FILE}`;
 
-
-  /* ========================================
-     READ trip.txt
-
-     NO trip.txt = IGNORE THIS FOLDER
-  ======================================== */
 
   let tripText;
 
@@ -373,10 +442,6 @@ async function loadTripFromDropbox(
     );
 
 
-  /* ========================================
-     REQUIRE TITLE + COORDINATES
-  ======================================== */
-
   if (
 
     !metadata.title
@@ -407,16 +472,131 @@ async function loadTripFromDropbox(
   }
 
 
-  /* ========================================
-     READ DIRECT CONTENTS OF TRIP FOLDER
+  return {
 
-     Example:
+    id:
+      folder.name,
 
-     trip.txt
-     document.pdf
-     video.mov
-     images/
-  ======================================== */
+    folderPath:
+      tripFolderPath,
+
+    title:
+      metadata.title,
+
+    year:
+      metadata.year,
+
+    travelers:
+      metadata.travelers,
+
+    generation:
+      metadata.generation,
+
+    blurb:
+      metadata.blurb,
+
+    x:
+      metadata.x,
+
+    y:
+      metadata.y,
+
+    metadataLinks:
+      metadata.links,
+
+    filterCategory:
+      "",
+
+    images:
+      [],
+
+    links:
+      [],
+
+    contentLoaded:
+      false,
+
+    contentPromise:
+      null,
+
+    firstImageReady:
+      false,
+
+    firstImagePromise:
+      null,
+
+    preloadedFirstImage:
+      null
+
+  };
+
+}
+
+
+/* ============================================
+   LOAD TRIP CONTENT
+
+   Shared promise prevents duplicate requests.
+============================================ */
+
+function loadTripContent(
+  travel
+) {
+
+  if (
+    travel.contentLoaded
+  ) {
+
+    return Promise.resolve(
+      travel
+    );
+
+  }
+
+
+  if (
+    travel.contentPromise
+  ) {
+
+    return travel.contentPromise;
+
+  }
+
+
+  travel.contentPromise =
+
+    performTripContentLoad(
+      travel
+    )
+
+      .finally(
+
+        () => {
+
+          travel.contentPromise =
+            null;
+
+        }
+
+      );
+
+
+  return travel.contentPromise;
+
+}
+
+
+/* ============================================
+   ACTUAL TRIP CONTENT LOADER
+============================================ */
+
+async function performTripContentLoad(
+  travel
+) {
+
+  const tripFolderPath =
+    travel.folderPath;
+
 
   let tripFolderEntries =
     [];
@@ -425,6 +605,7 @@ async function loadTripFromDropbox(
   try {
 
     tripFolderEntries =
+
       await getDropboxFolder(
         tripFolderPath
       );
@@ -442,21 +623,13 @@ async function loadTripFromDropbox(
     );
 
 
-    return null;
+    return travel;
 
   }
 
 
   /* ========================================
-     AUTOMATIC TRIP DOCUMENTS
-
-     EVERY FILE DIRECTLY INSIDE THE TRIP
-     FOLDER APPEARS AS A TRIP DOCUMENT,
-
-     EXCEPT trip.txt.
-
-     Files inside /images are not included
-     because we are listing non-recursively.
+     AUTOMATIC DOCUMENTS
   ======================================== */
 
   const automaticDocuments =
@@ -464,25 +637,19 @@ async function loadTripFromDropbox(
     tripFolderEntries
 
       .filter(
-
         entry =>
-
-          entry.type ===
-          "file"
-
+          entry.type === "file"
       )
 
       .filter(
 
         entry =>
 
-          entry.name
-            .toLowerCase()
+          entry.name.toLowerCase()
 
           !==
 
-          TRIP_METADATA_FILE
-            .toLowerCase()
+          TRIP_METADATA_FILE.toLowerCase()
 
       )
 
@@ -495,13 +662,11 @@ async function loadTripFromDropbox(
         entry => ({
 
           label:
-
             fileNameToLabel(
               entry.name
             ),
 
           file:
-
             makeDropboxFileUrl(
               entry.path
             )
@@ -512,16 +677,16 @@ async function loadTripFromDropbox(
 
 
   /* ========================================
-     EXTERNAL LINKS FROM trip.txt
-
-     Example:
-
-     Link: Peterhof Fountains | https://...
+     EXTERNAL LINKS
   ======================================== */
 
   const externalLinks =
 
-    metadata.links
+    (
+      travel.metadataLinks
+      ||
+      []
+    )
 
       .filter(
 
@@ -549,19 +714,16 @@ async function loadTripFromDropbox(
 
 
   /* ========================================
-     OPTIONAL MANUAL LOCAL LINKS
-
-     Example:
-
-     Link: Special Name | report.pdf
-
-     Normal local files do NOT need to
-     be listed in trip.txt.
+     MANUAL LOCAL LINKS
   ======================================== */
 
   const manualLocalLinks =
 
-    metadata.links
+    (
+      travel.metadataLinks
+      ||
+      []
+    )
 
       .filter(
 
@@ -595,7 +757,6 @@ async function loadTripFromDropbox(
               link.label,
 
             file:
-
               makeDropboxFileUrl(
                 path
               )
@@ -607,11 +768,7 @@ async function loadTripFromDropbox(
       );
 
 
-  /* ========================================
-     COMBINE + REMOVE DUPLICATES
-  ======================================== */
-
-  const links =
+  travel.links =
 
     deduplicateLinks(
 
@@ -625,9 +782,7 @@ async function loadTripFromDropbox(
 
 
   /* ========================================
-     CHECK WHETHER images FOLDER EXISTS
-
-     THIS PREVENTS EXPECTED 404 ERRORS.
+     FIND images FOLDER
   ======================================== */
 
   const imagesFolderEntry =
@@ -636,28 +791,21 @@ async function loadTripFromDropbox(
 
       entry =>
 
-        entry.type ===
-          "folder"
+        entry.type === "folder"
 
         &&
 
-        entry.name
-          .toLowerCase()
+        entry.name.toLowerCase()
 
         ===
 
-        TRIP_IMAGES_FOLDER
-          .toLowerCase()
+        TRIP_IMAGES_FOLDER.toLowerCase()
 
     );
 
 
-  let imageEntries =
-    [];
-
-
   /* ========================================
-     ONLY REQUEST images IF IT EXISTS
+     LOAD IMAGE LISTING
   ======================================== */
 
   if (
@@ -666,7 +814,7 @@ async function loadTripFromDropbox(
 
     try {
 
-      imageEntries =
+      const imageEntries =
 
         await getDropboxFolder(
 
@@ -676,20 +824,55 @@ async function loadTripFromDropbox(
 
         );
 
+
+      travel.images =
+
+        imageEntries
+
+          .filter(
+            entry =>
+              entry.type === "file"
+          )
+
+          .filter(
+
+            entry =>
+
+              isImageFile(
+                entry.name
+              )
+
+          )
+
+          .sort(
+            naturalEntrySort
+          )
+
+          .map(
+
+            entry =>
+
+              makeDropboxFileUrl(
+                entry.path
+              )
+
+          );
+
+
     } catch (
       error
     ) {
 
       console.error(
 
-        `Could not load images for ${folder.name}:`,
+        `Could not load images for ${travel.title}:`,
 
         error
 
       );
 
 
-      imageEntries =
+      travel.images =
         [];
 
     }
@@ -697,192 +880,178 @@ async function loadTripFromDropbox(
   }
 
 
-  /* ========================================
-     BUILD IMAGE URL ARRAY
-  ======================================== */
+  travel.contentLoaded =
+    true;
 
-  const images =
 
-    imageEntries
+  return travel;
 
-      .filter(
+}
 
-        entry =>
 
-          entry.type ===
-          "file"
+/* ============================================
+   PRELOAD + DECODE FIRST IMAGE
 
-      )
+   Modal only opens once first image is ready.
+============================================ */
 
-      .filter(
+function preloadFirstTravelImage(
+  travel
+) {
 
-        entry =>
+  if (
+    travel.firstImageReady
+  ) {
 
-          isImageFile(
-            entry.name
-          )
+    return Promise.resolve();
 
-      )
+  }
 
-      .sort(
-        naturalEntrySort
-      )
 
-      .map(
+  if (
+    travel.firstImagePromise
+  ) {
 
-        entry =>
+    return travel.firstImagePromise;
 
-          makeDropboxFileUrl(
-            entry.path
-          )
+  }
+
+
+  travel.firstImagePromise =
+
+    (async () => {
+
+
+      await loadTripContent(
+        travel
+      );
+
+
+      if (
+
+        !travel.images
+
+        ||
+
+        travel.images.length === 0
+
+      ) {
+
+        travel.firstImageReady =
+          true;
+
+
+        return;
+
+      }
+
+
+      const image =
+        new Image();
+
+
+      travel.preloadedFirstImage =
+        image;
+
+
+      try {
+
+        image.fetchPriority =
+          "high";
+
+      } catch (
+        error
+      ) {
+
+      }
+
+
+      image.src =
+        travel.images[0];
+
+
+      try {
+
+        await image.decode();
+
+      } catch (
+        error
+      ) {
+
+        await new Promise(
+
+          resolve => {
+
+
+            if (
+              image.complete
+            ) {
+
+              resolve();
+
+              return;
+
+            }
+
+
+            image.onload =
+              resolve;
+
+
+            image.onerror =
+              resolve;
+
+          }
+
+        );
+
+      }
+
+
+      travel.firstImageReady =
+        true;
+
+
+    })()
+
+      .finally(
+
+        () => {
+
+          travel.firstImagePromise =
+            null;
+
+        }
 
       );
 
 
-  /* ========================================
-     FINISHED TRIP OBJECT
-  ======================================== */
-
-  return {
-
-    id:
-      folder.name,
-
-    title:
-      metadata.title,
-
-    year:
-      metadata.year,
-
-    travelers:
-      metadata.travelers,
-
-    generation:
-      metadata.generation,
-
-    blurb:
-      metadata.blurb,
-
-    x:
-      metadata.x,
-
-    y:
-      metadata.y,
-
-    images:
-      images,
-
-    links:
-      links
-
-  };
+  return travel.firstImagePromise;
 
 }
 
 
 /* ============================================
-   DROPBOX: GET FOLDER
+   BACKGROUND FIRST-IMAGE PREFETCH
 ============================================ */
 
-async function getDropboxFolder(
+function scheduleTravelContentPrefetch() {
 
-  path,
+  setTimeout(
 
-  recursive = false
+    () => {
 
-) {
+      prefetchTravelContentWithLimit(
 
-  const url =
+        TRAVELS,
 
-    `${PHOTO_API}/folder?path=${
-      encodeURIComponent(
-        path
-      )
-    }&recursive=${
-      recursive
-        ? "true"
-        : "false"
-    }`;
+        PREFETCH_CONCURRENCY
 
+      );
 
-  const response =
-    await fetch(
-      url
-    );
+    },
 
-
-  if (
-    !response.ok
-  ) {
-
-    throw new Error(
-
-      `Folder could not be loaded: ${path}`
-
-    );
-
-  }
-
-
-  return response.json();
-
-}
-
-
-/* ============================================
-   DROPBOX: GET TEXT FILE
-============================================ */
-
-async function getDropboxText(
-  path
-) {
-
-  const response =
-
-    await fetch(
-
-      `${PHOTO_API}/text?path=${
-        encodeURIComponent(
-          path
-        )
-      }`
-
-    );
-
-
-  if (
-    !response.ok
-  ) {
-
-    throw new Error(
-
-      `Text file could not be loaded: ${path}`
-
-    );
-
-  }
-
-
-  return response.text();
-
-}
-
-
-/* ============================================
-   DROPBOX: CREATE FILE URL
-============================================ */
-
-function makeDropboxFileUrl(
-  path
-) {
-
-  return (
-
-    `${PHOTO_API}/file?path=${
-      encodeURIComponent(
-        path
-      )
-    }`
+    50
 
   );
 
@@ -890,110 +1059,40 @@ function makeDropboxFileUrl(
 
 
 /* ============================================
-   PARSE trip.txt
-
-   EXPECTED FORMAT:
-
-   Title: Belize
-   Year: 2019
-   Travelers: Zohar Family
-   Generation: family
-   X: 24.5
-   Y: 45.5
-   Blurb: Optional text
-
-   Link: Label | https://example.com
+   LIMITED-CONCURRENCY PREFETCH
 ============================================ */
 
-function parseTripText(
-  text
+async function prefetchTravelContentWithLimit(
+
+  travels,
+
+  concurrency
+
 ) {
 
-  const trip = {
-
-    title:
-      "",
-
-    year:
-      "",
-
-    travelers:
-      "",
-
-    generation:
-      "",
-
-    blurb:
-      "",
-
-    x:
-      NaN,
-
-    y:
-      NaN,
-
-    links:
-      []
-
-  };
+  let nextIndex =
+    0;
 
 
-  const lines =
+  async function worker() {
 
-    text.split(
-      /\r?\n/
-    );
-
-
-  for (
-    const originalLine
-    of lines
-  ) {
-
-    const line =
-      originalLine.trim();
-
-
-    if (
-      !line
+    while (
+      nextIndex <
+      travels.length
     ) {
 
-      continue;
-
-    }
-
-
-    /* ========================================
-       LINKS
-    ======================================== */
-
-    if (
-
-      line
-        .toLowerCase()
-        .startsWith(
-          "link:"
-        )
-
-    ) {
-
-      const value =
-
-        line
-          .slice(5)
-          .trim();
+      const index =
+        nextIndex++;
 
 
-      const separator =
-
-        value.indexOf(
-          "|"
-        );
+      const travel =
+        travels[
+          index
+        ];
 
 
       if (
-        separator ===
-        -1
+        !travel
       ) {
 
         continue;
@@ -1001,174 +1100,1097 @@ function parseTripText(
       }
 
 
-      const label =
+      try {
 
-        value
-          .slice(
-            0,
-            separator
-          )
-          .trim();
+        await preloadFirstTravelImage(
+          travel
+        );
 
-
-      const file =
-
-        value
-          .slice(
-            separator + 1
-          )
-          .trim();
-
-
-      if (
-
-        label
-
-        &&
-
-        file
-
+      } catch (
+        error
       ) {
 
-        trip.links.push({
+        console.warn(
 
-          label:
-            label,
+          `Could not preload first image for ${travel.title}:`,
 
-          file:
-            file
+          error
 
-        });
+        );
 
       }
-
-
-      continue;
-
-    }
-
-
-    /* ========================================
-       NORMAL METADATA
-    ======================================== */
-
-    const colon =
-
-      line.indexOf(
-        ":"
-      );
-
-
-    if (
-      colon ===
-      -1
-    ) {
-
-      continue;
-
-    }
-
-
-    const key =
-
-      line
-
-        .slice(
-          0,
-          colon
-        )
-
-        .trim()
-
-        .toLowerCase();
-
-
-    const value =
-
-      line
-
-        .slice(
-          colon + 1
-        )
-
-        .trim();
-
-
-    switch (
-      key
-    ) {
-
-      case "title":
-
-        trip.title =
-          value;
-
-        break;
-
-
-      case "year":
-
-        trip.year =
-          value;
-
-        break;
-
-
-      case "travelers":
-
-        trip.travelers =
-          value;
-
-        break;
-
-
-      case "generation":
-
-        trip.generation =
-          value;
-
-        break;
-
-
-      case "blurb":
-
-        trip.blurb =
-          value;
-
-        break;
-
-
-      case "x":
-
-        trip.x =
-          Number(
-            value
-          );
-
-        break;
-
-
-      case "y":
-
-        trip.y =
-          Number(
-            value
-          );
-
-        break;
 
     }
 
   }
 
 
-  return trip;
+  const workerCount =
+
+    Math.min(
+
+      concurrency,
+
+      travels.length
+
+    );
+
+
+  const workers =
+    [];
+
+
+  for (
+
+    let i = 0;
+
+    i < workerCount;
+
+    i++
+
+  ) {
+
+    workers.push(
+      worker()
+    );
+
+  }
+
+
+  await Promise.allSettled(
+    workers
+  );
 
 }
 
 
 /* ============================================
-   RENDER MAP PINS
+   GENERATION HELPERS
+============================================ */
+
+function normalizeTravelGeneration(
+  generation
+) {
+
+  return String(
+    generation || ""
+  )
+    .trim()
+    .toLowerCase();
+
+}
+
+
+/* ============================================
+   GET FILTER CATEGORY
+
+   first + next = Sabba & Safta
+   family = Family
+   new categories = own name
+============================================ */
+
+function getTravelCategory(
+  generation
+) {
+
+  const normalized =
+
+    normalizeTravelGeneration(
+      generation
+    );
+
+
+  if (
+    !normalized
+  ) {
+
+    return "Other";
+
+  }
+
+
+  if (
+    TRAVEL_GENERATION_GROUPS[
+      normalized
+    ]
+  ) {
+
+    return TRAVEL_GENERATION_GROUPS[
+      normalized
+    ];
+
+  }
+
+
+  return normalized
+
+    .replace(
+      /[_-]+/g,
+      " "
+    )
+
+    .replace(
+
+      /\b\w/g,
+
+      character =>
+        character.toUpperCase()
+
+    );
+
+}
+
+
+/* ============================================
+   CREATE CONTROL ROW
+
+   Contains:
+
+   Generations ▼
+   Trips ▼
+============================================ */
+
+function createTravelControls() {
+
+  if (
+    travelControls
+  ) {
+
+    return;
+
+  }
+
+
+  travelControls =
+
+    document.createElement(
+      "div"
+    );
+
+
+  travelControls.className =
+    "travel-controls";
+
+
+  travelControls.innerHTML = `
+
+    <div
+      class="travel-dropdown"
+    >
+
+      <button
+        type="button"
+        class="travel-control-button"
+        id="travel-generation-filter-button"
+        aria-expanded="false"
+      >
+
+        Filter
+
+        <span
+          class="travel-control-arrow"
+        >
+          ▾
+        </span>
+
+      </button>
+
+
+      <div
+        class="
+          travel-dropdown-menu
+          travel-generation-menu
+        "
+        id="travel-generation-filter-menu"
+        hidden
+      >
+      </div>
+
+    </div>
+
+
+    <div
+      class="travel-dropdown"
+    >
+
+      <button
+        type="button"
+        class="travel-control-button"
+        id="travel-trip-selector-button"
+        aria-expanded="false"
+      >
+
+        Trips
+
+        <span
+          class="travel-control-arrow"
+        >
+          ▾
+        </span>
+
+      </button>
+
+
+      <div
+        class="
+          travel-dropdown-menu
+          travel-trip-menu
+        "
+        id="travel-trip-selector-menu"
+        hidden
+      >
+      </div>
+
+    </div>
+
+  `;
+
+
+  const travelMain =
+
+    document.querySelector(
+      ".travel-main"
+    );
+
+
+  if (
+    travelMain
+  ) {
+
+    travelMain.prepend(
+      travelControls
+    );
+
+  } else {
+
+    document.body.appendChild(
+      travelControls
+    );
+
+  }
+
+
+  travelFilterButton =
+
+    document.getElementById(
+      "travel-generation-filter-button"
+    );
+
+
+  travelFilterMenu =
+
+    document.getElementById(
+      "travel-generation-filter-menu"
+    );
+
+
+  travelTripsButton =
+
+    document.getElementById(
+      "travel-trip-selector-button"
+    );
+
+
+  travelTripsMenu =
+
+    document.getElementById(
+      "travel-trip-selector-menu"
+    );
+
+
+  /* Generation dropdown */
+
+  travelFilterButton
+    ?.addEventListener(
+
+      "click",
+
+      event => {
+
+
+        event.stopPropagation();
+
+
+        const willOpen =
+          travelFilterMenu.hidden;
+
+
+        closeTravelDropdowns();
+
+
+        travelFilterMenu.hidden =
+          !willOpen;
+
+
+        travelFilterButton.setAttribute(
+
+          "aria-expanded",
+
+          willOpen
+            ? "true"
+            : "false"
+
+        );
+
+      }
+
+    );
+
+
+  /* Trip dropdown */
+
+  travelTripsButton
+    ?.addEventListener(
+
+      "click",
+
+      event => {
+
+
+        event.stopPropagation();
+
+
+        const willOpen =
+          travelTripsMenu.hidden;
+
+
+        closeTravelDropdowns();
+
+
+        travelTripsMenu.hidden =
+          !willOpen;
+
+
+        travelTripsButton.setAttribute(
+
+          "aria-expanded",
+
+          willOpen
+            ? "true"
+            : "false"
+
+        );
+
+      }
+
+    );
+
+
+  /* Prevent menu clicks closing menu */
+
+  travelFilterMenu
+    ?.addEventListener(
+
+      "click",
+
+      event => {
+
+        event.stopPropagation();
+
+      }
+
+    );
+
+
+  travelTripsMenu
+    ?.addEventListener(
+
+      "click",
+
+      event => {
+
+        event.stopPropagation();
+
+      }
+
+    );
+
+
+  document.addEventListener(
+
+    "click",
+
+    closeTravelDropdowns
+
+  );
+
+}
+
+
+/* ============================================
+   CLOSE DROPDOWNS
+============================================ */
+
+function closeTravelDropdowns() {
+
+  if (
+    travelFilterMenu
+  ) {
+
+    travelFilterMenu.hidden =
+      true;
+
+  }
+
+
+  if (
+    travelTripsMenu
+  ) {
+
+    travelTripsMenu.hidden =
+      true;
+
+  }
+
+
+  travelFilterButton
+    ?.setAttribute(
+
+      "aria-expanded",
+
+      "false"
+
+    );
+
+
+  travelTripsButton
+    ?.setAttribute(
+
+      "aria-expanded",
+
+      "false"
+
+    );
+
+}
+
+
+/* ============================================
+   REGISTER CATEGORY
+============================================ */
+
+function registerTravelCategory(
+  travel
+) {
+
+  const category =
+
+    getTravelCategory(
+      travel.generation
+    );
+
+
+  travel.filterCategory =
+    category;
+
+
+  const alreadyExists =
+
+    availableTravelCategories.has(
+      category
+    );
+
+
+  availableTravelCategories.add(
+    category
+  );
+
+
+  if (
+    !alreadyExists
+  ) {
+
+    renderTravelFilterOptions();
+
+  }
+
+
+  renderTravelTripOptions();
+
+}
+
+
+/* ============================================
+   GENERATION MULTISELECT
+============================================ */
+
+function renderTravelFilterOptions() {
+
+  if (
+    !travelFilterMenu
+  ) {
+
+    return;
+
+  }
+
+
+  travelFilterMenu.innerHTML =
+    "";
+
+
+  const categories =
+
+    Array
+      .from(
+        availableTravelCategories
+      )
+
+      .sort(
+
+        (
+          a,
+          b
+        ) => {
+
+
+          const priority = {
+
+            "Sabba & Safta":
+              1,
+
+            "Family":
+              2
+
+          };
+
+
+          const aPriority =
+
+            priority[a]
+            ||
+            100;
+
+
+          const bPriority =
+
+            priority[b]
+            ||
+            100;
+
+
+          if (
+            aPriority !==
+            bPriority
+          ) {
+
+            return (
+              aPriority
+              -
+              bPriority
+            );
+
+          }
+
+
+          return a.localeCompare(
+            b
+          );
+
+        }
+
+      );
+
+
+  categories.forEach(
+
+    category => {
+
+
+      const label =
+
+        document.createElement(
+          "label"
+        );
+
+
+      label.className =
+        "travel-generation-option";
+
+
+      const checkbox =
+
+        document.createElement(
+          "input"
+        );
+
+
+      checkbox.type =
+        "checkbox";
+
+
+      checkbox.value =
+        category;
+
+
+      checkbox.checked =
+
+        selectedTravelCategories.has(
+          category
+        );
+
+
+      checkbox.addEventListener(
+
+        "change",
+
+        () => {
+
+
+          if (
+            checkbox.checked
+          ) {
+
+            selectedTravelCategories.add(
+              category
+            );
+
+          } else {
+
+            selectedTravelCategories.delete(
+              category
+            );
+
+          }
+
+
+          updateTravelPinVisibility();
+
+        }
+
+      );
+
+
+      const text =
+
+        document.createElement(
+          "span"
+        );
+
+
+      text.textContent =
+        category;
+
+
+      label.appendChild(
+        checkbox
+      );
+
+
+      label.appendChild(
+        text
+      );
+
+
+      travelFilterMenu.appendChild(
+        label
+      );
+
+    }
+
+  );
+
+}
+
+
+/* ============================================
+   TRIP SORT PRIORITY
+
+   first
+   family
+   next
+   everything else
+============================================ */
+
+function getTravelTripSortPriority(
+  travel
+) {
+
+  const generation =
+
+    normalizeTravelGeneration(
+      travel.generation
+    );
+
+
+  switch (
+    generation
+  ) {
+
+    case "first":
+
+      return 1;
+
+
+    case "family":
+
+      return 2;
+
+
+    case "next":
+
+      return 3;
+
+
+    default:
+
+      return 4;
+
+  }
+
+}
+
+
+/* ============================================
+   TRIP TITLE DROPDOWN
+============================================ */
+
+function renderTravelTripOptions() {
+
+  if (
+    !travelTripsMenu
+  ) {
+
+    return;
+
+  }
+
+
+  travelTripsMenu.innerHTML =
+    "";
+
+
+  const sortedTravels =
+
+    TRAVELS
+
+      .map(
+
+        (
+          travel,
+          index
+        ) => ({
+
+          travel,
+          index
+
+        })
+
+      )
+
+      .sort(
+
+        (
+          a,
+          b
+        ) => {
+
+
+          const priorityDifference =
+
+            getTravelTripSortPriority(
+              a.travel
+            )
+
+            -
+
+            getTravelTripSortPriority(
+              b.travel
+            );
+
+
+          if (
+            priorityDifference !==
+            0
+          ) {
+
+            return priorityDifference;
+
+          }
+
+
+          const yearA =
+
+            Number(
+              a.travel.year
+            )
+
+            ||
+            0;
+
+
+          const yearB =
+
+            Number(
+              b.travel.year
+            )
+
+            ||
+            0;
+
+
+          if (
+            yearA !==
+            yearB
+          ) {
+
+            return yearA - yearB;
+
+          }
+
+
+          return String(
+            a.travel.title
+          )
+            .localeCompare(
+
+              String(
+                b.travel.title
+              )
+
+            );
+
+        }
+
+      );
+
+
+  sortedTravels.forEach(
+
+    item => {
+
+
+      const travel =
+        item.travel;
+
+
+      const index =
+        item.index;
+
+
+      const generation =
+
+        normalizeTravelGeneration(
+          travel.generation
+        );
+
+
+      const option =
+
+        document.createElement(
+          "button"
+        );
+
+
+      option.type =
+        "button";
+
+
+      option.className =
+        "travel-trip-option";
+
+
+      /*
+        Menu stripe colors:
+
+        first = red
+        family = white
+        next = blue
+        new categories = blue
+      */
+
+      if (
+        generation === "first"
+      ) {
+
+        option.classList.add(
+          "travel-trip-option-first"
+        );
+
+      } else if (
+        generation === "family"
+      ) {
+
+        option.classList.add(
+          "travel-trip-option-family"
+        );
+
+      } else {
+
+        option.classList.add(
+          "travel-trip-option-next"
+        );
+
+      }
+
+
+      option.innerHTML = `
+
+  <span
+    class="travel-trip-option-info"
+  >
+
+    <span
+      class="travel-trip-option-title"
+    >
+      ${escapeHtml(
+        travel.title || ""
+      )}
+    </span>
+
+    ${
+      travel.travelers
+
+        ? `
+
+          <span
+            class="travel-trip-option-travelers"
+          >
+            ${escapeHtml(
+              travel.travelers
+            )}
+          </span>
+
+        `
+
+        : ""
+    }
+
+  </span>
+
+
+  <span
+    class="travel-trip-option-year"
+  >
+    ${escapeHtml(
+      travel.year || ""
+    )}
+  </span>
+
+`;
+
+
+      option.addEventListener(
+
+        "click",
+
+        async () => {
+
+
+          option.classList.add(
+            "loading"
+          );
+
+
+          try {
+
+            /*
+              Wait until first image is fully
+              downloaded and decoded.
+            */
+
+            await preloadFirstTravelImage(
+              travel
+            );
+
+
+            closeTravelDropdowns();
+
+
+            openTravelModal(
+              index
+            );
+
+
+          } catch (
+            error
+          ) {
+
+            console.error(
+
+              `Could not open ${travel.title}:`,
+
+              error
+
+            );
+
+
+          } finally {
+
+            option.classList.remove(
+              "loading"
+            );
+
+          }
+
+        }
+
+      );
+
+
+      travelTripsMenu.appendChild(
+        option
+      );
+
+    }
+
+  );
+
+}
+
+
+/* ============================================
+   UPDATE PIN VISIBILITY
+============================================ */
+
+function updateTravelPinVisibility() {
+
+  if (
+    !travelPins
+  ) {
+
+    return;
+
+  }
+
+
+  const pins =
+
+    travelPins.querySelectorAll(
+      ".travel-pin"
+    );
+
+
+  pins.forEach(
+
+    pin => {
+
+
+      const category =
+
+        pin.dataset
+          .travelCategory;
+
+
+      pin.style.display =
+
+        selectedTravelCategories.has(
+          category
+        )
+
+          ? ""
+
+          : "none";
+
+    }
+
+  );
+
+}
+
+
+/* ============================================
+   RENDER ALL MAP PINS
 ============================================ */
 
 function renderTravelPins() {
@@ -1193,88 +2215,264 @@ function renderTravelPins() {
       index
     ) => {
 
-
-      const pin =
-
-        document.createElement(
-          "button"
-        );
-
-
-      pin.type =
-        "button";
-
-
-      pin.className =
-        "travel-pin";
-
-
-      if (
-        travel.generation
-      ) {
-
-        pin.classList.add(
-
-          `generation-${travel.generation}`
-
-        );
-
-      }
-
-
-      pin.style.left =
-        `${travel.x}%`;
-
-
-      pin.style.top =
-        `${travel.y}%`;
-
-
-      pin.setAttribute(
-
-        "aria-label",
-
-        `${travel.title}, ${travel.year || ""}`
-
-      );
-
-
-      pin.innerHTML = `
-
-        <span
-          class="travel-pin-dot"
-        ></span>
-
-        <span
-          class="travel-pin-year"
-        >
-          ${travel.year || ""}
-        </span>
-
-      `;
-
-
-      pin.addEventListener(
-
-        "click",
-
-        () => {
-
-          openTravelModal(
-            index
-          );
-
-        }
-
-      );
-
-
-      travelPins.appendChild(
-        pin
+      renderTravelPin(
+        travel,
+        index
       );
 
     }
 
+  );
+
+}
+
+
+/* ============================================
+   RENDER ONE MAP PIN
+============================================ */
+
+function renderTravelPin(
+
+  travel,
+
+  index
+
+) {
+
+  if (
+    !travelPins
+  ) {
+
+    return;
+
+  }
+
+
+  const pin =
+
+    document.createElement(
+      "button"
+    );
+
+
+  pin.type =
+    "button";
+
+
+  pin.className =
+    "travel-pin";
+
+
+  const generation =
+
+    normalizeTravelGeneration(
+      travel.generation
+    );
+
+
+  /*
+    Keep original first / next / family
+    generation classes.
+  */
+
+  if (
+    generation
+  ) {
+
+    pin.classList.add(
+
+      `generation-${generation}`
+
+    );
+
+  }
+
+
+  /*
+    Any new generation also receives
+    generation-new, which is styled exactly
+    like generation-next in CSS.
+  */
+
+  if (
+
+    generation !== "first"
+
+    &&
+
+    generation !== "next"
+
+    &&
+
+    generation !== "family"
+
+  ) {
+
+    pin.classList.add(
+      "generation-new"
+    );
+
+  }
+
+
+  const category =
+
+    travel.filterCategory
+
+    ||
+
+    getTravelCategory(
+      travel.generation
+    );
+
+
+  pin.dataset.travelCategory =
+    category;
+
+
+  pin.style.left =
+    `${travel.x}%`;
+
+
+  pin.style.top =
+    `${travel.y}%`;
+
+
+  pin.setAttribute(
+
+    "aria-label",
+
+    `${travel.title}, ${travel.year || ""}`
+
+  );
+
+
+  pin.innerHTML = `
+
+    <span
+      class="travel-pin-dot"
+    ></span>
+
+    <span
+      class="travel-pin-year"
+    >
+      ${escapeHtml(
+        travel.year || ""
+      )}
+    </span>
+
+  `;
+
+
+  /*
+    Only selected categories are visible.
+
+    Sabba & Safta and Family are selected
+    by default.
+
+    New generations are hidden by default.
+  */
+
+  pin.style.display =
+
+    selectedTravelCategories.has(
+      category
+    )
+
+      ? ""
+
+      : "none";
+
+
+  /*
+    Immediate UI feedback.
+
+    Pin pulses while waiting for the first
+    image to finish downloading and decoding.
+  */
+
+  pin.addEventListener(
+
+    "click",
+
+    async () => {
+
+
+      if (
+        pin.classList.contains(
+          "loading"
+        )
+      ) {
+
+        return;
+
+      }
+
+
+      pin.classList.add(
+        "loading"
+      );
+
+
+      pin.setAttribute(
+        "aria-busy",
+        "true"
+      );
+
+
+      pin.disabled =
+        true;
+
+
+      try {
+
+        await preloadFirstTravelImage(
+          travel
+        );
+
+
+        openTravelModal(
+          index
+        );
+
+
+      } catch (
+        error
+      ) {
+
+        console.error(
+
+          `Could not open ${travel.title}:`,
+
+          error
+
+        );
+
+
+      } finally {
+
+        pin.classList.remove(
+          "loading"
+        );
+
+
+        pin.removeAttribute(
+          "aria-busy"
+        );
+
+
+        pin.disabled =
+          false;
+
+      }
+
+    }
+
+  );
+
+
+  travelPins.appendChild(
+    pin
   );
 
 }
@@ -1294,6 +2492,22 @@ function openTravelModal(
 
   currentImageIndex =
     0;
+
+
+  const travel =
+
+    TRAVELS[
+      index
+    ];
+
+
+  if (
+    !travel
+  ) {
+
+    return;
+
+  }
 
 
   renderTravelModal();
@@ -1332,8 +2546,6 @@ function openTravelModal(
 ============================================ */
 
 function closeTravelModal() {
-
-  /* Close lightbox first if necessary */
 
   closeTravelLightbox();
 
@@ -1428,10 +2640,6 @@ function renderTravelModal() {
   }
 
 
-  /* ========================================
-     BLURB
-  ======================================== */
-
   if (
     travelModalBlurb
   ) {
@@ -1469,9 +2677,7 @@ function renderTravelModal() {
 
   renderTravelImage();
 
-
   renderTravelImageDots();
-
 
   renderTravelLinks();
 
@@ -1504,15 +2710,8 @@ function renderTravelImage() {
     travel.images || [];
 
 
-  /* ========================================
-     NO IMAGES
-
-     HIDE THE ENTIRE IMAGE SECTION
-  ======================================== */
-
   if (
-    images.length ===
-    0
+    images.length === 0
   ) {
 
     if (
@@ -1590,10 +2789,6 @@ function renderTravelImage() {
   }
 
 
-  /* ========================================
-     IMAGES EXIST
-  ======================================== */
-
   if (
     travelImageSection
   ) {
@@ -1627,6 +2822,13 @@ function renderTravelImage() {
   }
 
 
+  const currentUrl =
+
+    images[
+      currentImageIndex
+    ];
+
+
   if (
     travelCarouselImage
   ) {
@@ -1635,11 +2837,20 @@ function renderTravelImage() {
       "block";
 
 
-    travelCarouselImage.src =
+    try {
 
-      images[
-        currentImageIndex
-      ];
+      travelCarouselImage.fetchPriority =
+        "high";
+
+    } catch (
+      error
+    ) {
+
+    }
+
+
+    travelCarouselImage.src =
+      currentUrl;
 
 
     travelCarouselImage.alt =
@@ -1648,10 +2859,6 @@ function renderTravelImage() {
 
   }
 
-
-  /* ========================================
-     IMAGE COUNTER
-  ======================================== */
 
   if (
     travelImageCounter
@@ -1668,14 +2875,9 @@ function renderTravelImage() {
   }
 
 
-  /* ========================================
-     CAROUSEL ARROWS
-  ======================================== */
-
   const hasMultipleImages =
 
-    images.length >
-    1;
+    images.length > 1;
 
 
   if (
@@ -1707,11 +2909,122 @@ function renderTravelImage() {
 
   }
 
+
+  preloadAdjacentTravelImages(
+    travel
+  );
+
 }
 
 
 /* ============================================
-   RENDER IMAGE DOTS
+   PRELOAD ADJACENT IMAGES
+============================================ */
+
+function preloadAdjacentTravelImages(
+  travel
+) {
+
+  const images =
+    travel.images || [];
+
+
+  if (
+    images.length <= 1
+  ) {
+
+    return;
+
+  }
+
+
+  const nextIndex =
+
+    (
+      currentImageIndex
+      +
+      1
+    )
+
+    %
+
+    images.length;
+
+
+  const previousIndex =
+
+    (
+      currentImageIndex
+      -
+      1
+      +
+      images.length
+    )
+
+    %
+
+    images.length;
+
+
+  const urls =
+
+    new Set(
+
+      [
+        images[
+          nextIndex
+        ],
+
+        images[
+          previousIndex
+        ]
+      ]
+
+    );
+
+
+  urls.forEach(
+
+    url => {
+
+
+      if (
+        !url
+      ) {
+
+        return;
+
+      }
+
+
+      const image =
+        new Image();
+
+
+      try {
+
+        image.fetchPriority =
+          "low";
+
+      } catch (
+        error
+      ) {
+
+      }
+
+
+      image.src =
+        url;
+
+    }
+
+  );
+
+}
+
+
+/* ============================================
+   IMAGE DOTS
 ============================================ */
 
 function renderTravelImageDots() {
@@ -1742,8 +3055,7 @@ function renderTravelImageDots() {
 
 
   if (
-    images.length <=
-    1
+    images.length <= 1
   ) {
 
     return;
@@ -1772,8 +3084,7 @@ function renderTravelImageDots() {
 
       dot.className =
 
-        index ===
-        currentImageIndex
+        index === currentImageIndex
 
           ? "travel-image-dot active"
 
@@ -1795,12 +3106,12 @@ function renderTravelImageDots() {
 
         () => {
 
+
           currentImageIndex =
             index;
 
 
           renderTravelImage();
-
 
           renderTravelImageDots();
 
@@ -1843,8 +3154,7 @@ function showPreviousTravelImage() {
 
 
   if (
-    images.length <=
-    1
+    images.length <= 1
   ) {
 
     return;
@@ -1868,7 +3178,6 @@ function showPreviousTravelImage() {
 
 
   renderTravelImage();
-
 
   renderTravelImageDots();
 
@@ -1898,8 +3207,7 @@ function showNextTravelImage() {
 
 
   if (
-    images.length <=
-    1
+    images.length <= 1
   ) {
 
     return;
@@ -1921,7 +3229,6 @@ function showNextTravelImage() {
 
 
   renderTravelImage();
-
 
   renderTravelImageDots();
 
@@ -1973,8 +3280,7 @@ function renderTravelLinks() {
 
 
   if (
-    links.length ===
-    0
+    links.length === 0
   ) {
 
     if (
@@ -2022,15 +3328,6 @@ function renderTravelLinks() {
         linkData.label;
 
 
-      /*
-        PDFs and other documents open
-        in a new tab.
-
-        The Cloudflare Worker serves
-        PDFs with Content-Disposition:
-        inline.
-      */
-
       link.target =
         "_blank";
 
@@ -2055,7 +3352,7 @@ function renderTravelLinks() {
 
 
 /* ============================================
-   FULL-SCREEN IMAGE LIGHTBOX
+   FULL-SCREEN LIGHTBOX
 ============================================ */
 
 function openTravelLightbox() {
@@ -2073,8 +3370,7 @@ function openTravelLightbox() {
 
   if (
 
-    images.length ===
-    0
+    images.length === 0
 
     ||
 
@@ -2162,7 +3458,7 @@ function closeTravelLightbox() {
 
 
 /* ============================================
-   CHECK LIGHTBOX STATE
+   CHECK LIGHTBOX
 ============================================ */
 
 function isTravelLightboxOpen() {
@@ -2185,7 +3481,7 @@ function isTravelLightboxOpen() {
 
 
 /* ============================================
-   RENDER FULL-SCREEN IMAGE
+   RENDER LIGHTBOX IMAGE
 ============================================ */
 
 function renderTravelLightboxImage() {
@@ -2203,8 +3499,7 @@ function renderTravelLightboxImage() {
 
   if (
 
-    images.length ===
-    0
+    images.length === 0
 
     ||
 
@@ -2246,8 +3541,7 @@ function renderTravelLightboxImage() {
 
   const hasMultipleImages =
 
-    images.length >
-    1;
+    images.length > 1;
 
 
   if (
@@ -2283,7 +3577,7 @@ function renderTravelLightboxImage() {
 
 
 /* ============================================
-   LIGHTBOX PREVIOUS
+   LIGHTBOX NAVIGATION
 ============================================ */
 
 function showPreviousLightboxImage() {
@@ -2293,10 +3587,6 @@ function showPreviousLightboxImage() {
 }
 
 
-/* ============================================
-   LIGHTBOX NEXT
-============================================ */
-
 function showNextLightboxImage() {
 
   showNextTravelImage();
@@ -2305,8 +3595,408 @@ function showNextLightboxImage() {
 
 
 /* ============================================
-   FILE NAME → DISPLAY LABEL
+   DROPBOX: GET FOLDER
 ============================================ */
+
+async function getDropboxFolder(
+
+  path,
+
+  recursive = false
+
+) {
+
+  const url =
+
+    `${PHOTO_API}/folder?path=${
+      encodeURIComponent(
+        path
+      )
+    }&recursive=${
+      recursive
+        ? "true"
+        : "false"
+    }`;
+
+
+  const response =
+
+    await fetch(
+      url
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    throw new Error(
+
+      `Folder could not be loaded: ${path}`
+
+    );
+
+  }
+
+
+  return response.json();
+
+}
+
+
+/* ============================================
+   DROPBOX: GET TEXT FILE
+============================================ */
+
+async function getDropboxText(
+  path
+) {
+
+  const response =
+
+    await fetch(
+
+      `${PHOTO_API}/text?path=${
+        encodeURIComponent(
+          path
+        )
+      }`
+
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    throw new Error(
+
+      `Text file could not be loaded: ${path}`
+
+    );
+
+  }
+
+
+  return response.text();
+
+}
+
+
+/* ============================================
+   DROPBOX FILE URL
+============================================ */
+
+function makeDropboxFileUrl(
+  path
+) {
+
+  return (
+
+    `${PHOTO_API}/file?path=${
+      encodeURIComponent(
+        path
+      )
+    }`
+
+  );
+
+}
+
+
+/* ============================================
+   PARSE trip.txt
+============================================ */
+
+function parseTripText(
+  text
+) {
+
+  const trip = {
+
+    title:
+      "",
+
+    year:
+      "",
+
+    travelers:
+      "",
+
+    generation:
+      "",
+
+    blurb:
+      "",
+
+    x:
+      NaN,
+
+    y:
+      NaN,
+
+    links:
+      []
+
+  };
+
+
+  const lines =
+
+    text.split(
+      /\r?\n/
+    );
+
+
+  for (
+    const originalLine of lines
+  ) {
+
+    const line =
+
+      originalLine.trim();
+
+
+    if (
+      !line
+    ) {
+
+      continue;
+
+    }
+
+
+    if (
+
+      line
+        .toLowerCase()
+        .startsWith(
+          "link:"
+        )
+
+    ) {
+
+      const value =
+
+        line
+          .slice(5)
+          .trim();
+
+
+      const separator =
+
+        value.indexOf(
+          "|"
+        );
+
+
+      if (
+        separator === -1
+      ) {
+
+        continue;
+
+      }
+
+
+      const label =
+
+        value
+          .slice(
+            0,
+            separator
+          )
+          .trim();
+
+
+      const file =
+
+        value
+          .slice(
+            separator + 1
+          )
+          .trim();
+
+
+      if (
+        label
+        &&
+        file
+      ) {
+
+        trip.links.push({
+
+          label:
+            label,
+
+          file:
+            file
+
+        });
+
+      }
+
+
+      continue;
+
+    }
+
+
+    const colon =
+
+      line.indexOf(
+        ":"
+      );
+
+
+    if (
+      colon === -1
+    ) {
+
+      continue;
+
+    }
+
+
+    const key =
+
+      line
+        .slice(
+          0,
+          colon
+        )
+        .trim()
+        .toLowerCase();
+
+
+    const value =
+
+      line
+        .slice(
+          colon + 1
+        )
+        .trim();
+
+
+    switch (
+      key
+    ) {
+
+      case "title":
+
+        trip.title =
+          value;
+
+        break;
+
+
+      case "year":
+
+        trip.year =
+          value;
+
+        break;
+
+
+      case "travelers":
+
+        trip.travelers =
+          value;
+
+        break;
+
+
+      case "generation":
+
+        trip.generation =
+          value;
+
+        break;
+
+
+      case "blurb":
+
+        trip.blurb =
+          value;
+
+        break;
+
+
+      case "x":
+
+        trip.x =
+          Number(
+            value
+          );
+
+        break;
+
+
+      case "y":
+
+        trip.y =
+          Number(
+            value
+          );
+
+        break;
+
+    }
+
+  }
+
+
+  return trip;
+
+}
+
+
+/* ============================================
+   HELPERS
+============================================ */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value
+  ).replace(
+
+    /[&<>"']/g,
+
+    character => {
+
+      const entities = {
+
+        "&":
+          "&amp;",
+
+        "<":
+          "&lt;",
+
+        ">":
+          "&gt;",
+
+        '"':
+          "&quot;",
+
+        "'":
+          "&#039;"
+
+      };
+
+
+      return entities[
+        character
+      ];
+
+    }
+
+  );
+
+}
+
 
 function fileNameToLabel(
   filename
@@ -2314,36 +4004,18 @@ function fileNameToLabel(
 
   return filename
 
-    /*
-      Remove file extension.
-    */
-
     .replace(
-
       /\.[^/.]+$/,
-
       ""
-
     )
 
-    /*
-      Replace underscores with spaces.
-    */
-
     .replace(
-
       /_/g,
-
       " "
-
     );
 
 }
 
-
-/* ============================================
-   REMOVE DUPLICATE LINKS
-============================================ */
 
 function deduplicateLinks(
   links
@@ -2391,16 +4063,11 @@ function deduplicateLinks(
 }
 
 
-/* ============================================
-   IMAGE FILE CHECK
-============================================ */
-
 function isImageFile(
   filename
 ) {
 
   return /\.(jpg|jpeg|png|webp|gif|avif)$/i
-
     .test(
       filename
     );
@@ -2408,36 +4075,17 @@ function isImageFile(
 }
 
 
-/* ============================================
-   EXTERNAL URL CHECK
-============================================ */
-
 function isExternalUrl(
   value
 ) {
 
   return /^https?:\/\//i
-
     .test(
       value
     );
 
 }
 
-
-/* ============================================
-   NATURAL FILE SORT
-
-   image1
-   image2
-   image10
-
-   instead of:
-
-   image1
-   image10
-   image2
-============================================ */
 
 function naturalEntrySort(
   a,
@@ -2451,11 +4099,13 @@ function naturalEntrySort(
     undefined,
 
     {
+
       numeric:
         true,
 
       sensitivity:
         "base"
+
     }
 
   );
@@ -2464,7 +4114,7 @@ function naturalEntrySort(
 
 
 /* ============================================
-   NORMAL CAROUSEL EVENTS
+   CAROUSEL EVENTS
 ============================================ */
 
 travelImagePrev
@@ -2487,10 +4137,6 @@ travelImageNext
   );
 
 
-/* ============================================
-   CLICK MAIN IMAGE → OPEN FULL-SCREEN
-============================================ */
-
 travelCarouselImage
   ?.addEventListener(
 
@@ -2502,7 +4148,7 @@ travelCarouselImage
 
 
 /* ============================================
-   TRAVEL MODAL EVENTS
+   MODAL EVENTS
 ============================================ */
 
 travelModalClose
@@ -2580,21 +4226,12 @@ document.addEventListener(
   event => {
 
 
-    /* ========================================
-       LIGHTBOX OPEN
-
-       Escape closes only the preview.
-
-       Arrow keys navigate images.
-    ======================================== */
-
     if (
       isTravelLightboxOpen()
     ) {
 
       if (
-        event.key ===
-        "Escape"
+        event.key === "Escape"
       ) {
 
         closeTravelLightbox();
@@ -2605,8 +4242,7 @@ document.addEventListener(
 
 
       if (
-        event.key ===
-        "ArrowLeft"
+        event.key === "ArrowLeft"
       ) {
 
         showPreviousLightboxImage();
@@ -2617,8 +4253,7 @@ document.addEventListener(
 
 
       if (
-        event.key ===
-        "ArrowRight"
+        event.key === "ArrowRight"
       ) {
 
         showNextLightboxImage();
@@ -2632,10 +4267,6 @@ document.addEventListener(
 
     }
 
-
-    /* ========================================
-       NORMAL TRAVEL MODAL
-    ======================================== */
 
     if (
 
@@ -2657,8 +4288,7 @@ document.addEventListener(
 
 
     if (
-      event.key ===
-      "Escape"
+      event.key === "Escape"
     ) {
 
       closeTravelModal();
@@ -2669,8 +4299,7 @@ document.addEventListener(
 
 
     if (
-      event.key ===
-      "ArrowLeft"
+      event.key === "ArrowLeft"
     ) {
 
       showPreviousTravelImage();
@@ -2681,8 +4310,7 @@ document.addEventListener(
 
 
     if (
-      event.key ===
-      "ArrowRight"
+      event.key === "ArrowRight"
     ) {
 
       showNextTravelImage();
@@ -2697,14 +4325,7 @@ document.addEventListener(
 /* ============================================
    COORDINATE HELPER
 
-   HOLD ALT / OPTION AND CLICK THE MAP.
-
-   Outputs:
-
-   X: 24.5
-   Y: 45.5
-
-   for use inside trip.txt.
+   Hold Alt / Option and click map.
 ============================================ */
 
 travelMap
@@ -2733,23 +4354,19 @@ travelMap
 
       if (
 
-        event.clientX <
-        mapRect.left
+        event.clientX < mapRect.left
 
         ||
 
-        event.clientX >
-        mapRect.right
+        event.clientX > mapRect.right
 
         ||
 
-        event.clientY <
-        mapRect.top
+        event.clientY < mapRect.top
 
         ||
 
-        event.clientY >
-        mapRect.bottom
+        event.clientY > mapRect.bottom
 
       ) {
 
@@ -2797,15 +4414,11 @@ travelMap
 
 
       const roundedX =
-        x.toFixed(
-          1
-        );
+        x.toFixed(1);
 
 
       const roundedY =
-        y.toFixed(
-          1
-        );
+        y.toFixed(1);
 
 
       if (

@@ -7,6 +7,10 @@
   --travel-ink: #5e0b11;
   --travel-paper: #f5f0e7;
   --travel-pin: #8b0014;
+
+  --travel-first: #790111;
+  --travel-next: #13518c;
+  --travel-family: #ffffff;
 }
 
 
@@ -16,7 +20,9 @@
 
 .travel-page {
   margin: 0;
-  background: var(--travel-blue);
+
+  background:
+    var(--travel-blue);
 }
 
 
@@ -26,12 +32,17 @@
 
 .travel-header {
   position: relative;
+
   z-index: 100;
-  background: var(--travel-blue);
+
+  background:
+    var(--travel-blue);
 }
 
+
 .travel-header .top-nav-link {
-  color: var(--travel-ink);
+  color:
+    var(--travel-ink);
 }
 
 
@@ -40,14 +51,480 @@
 ========================================================= */
 
 .travel-main {
-  min-height: calc(100vh - 65px);
+  min-height:
+    calc(
+      100vh
+      -
+      65px
+    );
 
   padding:
-    40px
-    clamp(25px, 5vw, 90px)
+    28px
+    clamp(
+      25px,
+      5vw,
+      90px
+    )
     80px;
 
-  background: var(--travel-blue);
+  background:
+    var(--travel-blue);
+}
+
+
+/* =========================================================
+   TRAVEL CONTROLS
+
+   LEFT SIDE BELOW HEADER
+
+   Generations + Trips
+========================================================= */
+
+.travel-controls {
+  position: relative;
+
+  z-index: 400;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 10px;
+
+  width:
+    min(
+      1450px,
+      100%
+    );
+
+  margin:
+    0
+    auto
+    22px;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+}
+
+
+/* =========================================================
+   DROPDOWN WRAPPER
+========================================================= */
+
+.travel-dropdown {
+  position: relative;
+}
+
+
+/* =========================================================
+   CLOSED DROPDOWN BUTTONS
+
+   Compact select-style appearance.
+========================================================= */
+
+.travel-control-button {
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 20px;
+
+  min-width: 170px;
+
+  padding:
+    9px
+    14px;
+
+  border:
+    1px
+    solid
+    rgba(
+      94,
+      11,
+      17,
+      0.35
+    );
+
+  border-radius: 3px;
+
+  background:
+    rgba(
+      245,
+      240,
+      231,
+      0.9
+    );
+
+  color:
+    var(--travel-ink);
+
+  font-family: inherit;
+
+  font-size: 1.05rem;
+
+  font-weight: 500;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow:
+    none;
+
+  transition:
+    background
+    140ms
+    ease,
+    border-color
+    140ms
+    ease;
+}
+
+
+.travel-control-button:hover {
+  background:
+    var(--travel-paper);
+
+  border-color:
+    rgba(
+      94,
+      11,
+      17,
+      0.55
+    );
+}
+
+
+.travel-control-button[aria-expanded="true"] {
+  background:
+    var(--travel-paper);
+}
+
+
+/* =========================================================
+   DROPDOWN ARROW
+========================================================= */
+
+.travel-control-arrow {
+  display: inline-block;
+
+  font-size: 0.72rem;
+
+  opacity: 0.7;
+
+  transition:
+    transform
+    160ms
+    ease;
+}
+
+
+.travel-control-button[aria-expanded="true"]
+.travel-control-arrow {
+  transform:
+    rotate(
+      180deg
+    );
+}
+
+
+/* =========================================================
+   OPEN DROPDOWN MENUS
+
+   Styled like the family site,
+   not like a generic modern filter.
+========================================================= */
+
+.travel-dropdown-menu {
+  position: absolute;
+
+  top:
+    calc(
+      100%
+      +
+      7px
+    );
+
+  left: 0;
+
+  z-index: 1000;
+
+  min-width: 225px;
+
+  max-height: 430px;
+
+  overflow-y: auto;
+
+  border:
+    1px
+    solid
+    rgba(
+      94,
+      11,
+      17,
+      0.25
+    );
+
+  background:
+    #e8dfcf;
+
+  color:
+    var(--travel-ink);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  box-shadow:
+    0
+    12px
+    24px
+    rgba(
+      0,
+      0,
+      0,
+      0.15
+    );
+}
+
+
+.travel-dropdown-menu[hidden] {
+  display: none;
+}
+
+
+/* =========================================================
+   GENERATION MULTISELECT MENU
+========================================================= */
+
+.travel-generation-menu {
+  padding:
+    7px
+    0;
+}
+
+
+.travel-generation-option {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  width: 100%;
+
+  padding:
+    10px
+    16px;
+
+  color:
+    var(--travel-ink);
+
+  font-size: 1.05rem;
+
+  line-height: 1.1;
+
+  cursor: pointer;
+
+  box-sizing:
+    border-box;
+
+  transition:
+    background
+    120ms
+    ease;
+}
+
+
+.travel-generation-option:hover {
+  background:
+    rgba(
+      94,
+      11,
+      17,
+      0.07
+    );
+}
+
+
+.travel-generation-option input {
+  width: 15px;
+  height: 15px;
+
+  margin: 0;
+
+  accent-color:
+    var(--travel-ink);
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   TRIP TITLE MENU
+
+   Colored rows create red / white / blue stripes.
+========================================================= */
+
+.travel-trip-menu {
+  min-width: 310px;
+
+  padding: 0;
+}
+
+
+/* =========================================================
+   INDIVIDUAL TRIP ROW
+========================================================= */
+
+.travel-trip-option {
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 24px;
+
+  width: 100%;
+
+  margin: 0;
+
+  padding:
+    11px
+    16px;
+
+  border: 0;
+
+  border-bottom:
+    1px
+    solid
+    rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1.05rem;
+
+  line-height: 1.1;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  box-sizing:
+    border-box;
+
+  transition:
+    filter
+    120ms
+    ease,
+    opacity
+    120ms
+    ease;
+}
+
+
+.travel-trip-option:last-child {
+  border-bottom: 0;
+}
+
+
+.travel-trip-option:hover {
+  filter:
+    brightness(
+      0.9
+    );
+}
+
+
+/* =========================================================
+   FIRST GENERATION TRIP ROWS
+
+   Same red as generation-first pins.
+========================================================= */
+
+.travel-trip-option-first {
+  background:
+    var(--travel-first);
+
+  color:
+    #ffffff;
+}
+
+
+/* =========================================================
+   FAMILY TRIP ROWS
+
+   Same white as generation-family pins.
+========================================================= */
+
+.travel-trip-option-family {
+  background:
+    var(--travel-family);
+
+  color:
+    var(--travel-ink);
+}
+
+
+/* =========================================================
+   NEXT + ALL FUTURE GENERATION TRIP ROWS
+
+   Same blue as generation-next pins.
+========================================================= */
+
+.travel-trip-option-next {
+  background:
+    var(--travel-next);
+
+  color:
+    #ffffff;
+}
+
+
+/* =========================================================
+   TRIP TITLE + YEAR
+========================================================= */
+
+.travel-trip-option-title {
+  font-weight: 600;
+}
+
+
+.travel-trip-option-year {
+  flex-shrink: 0;
+
+  font-size: 0.92rem;
+
+  opacity: 0.82;
+}
+
+
+/* =========================================================
+   TRIP DROPDOWN LOADING STATE
+========================================================= */
+
+.travel-trip-option.loading {
+  cursor: wait;
+
+  opacity: 0.58;
 }
 
 
@@ -58,9 +535,15 @@
 .travel-map-wrap {
   position: relative;
 
-  width: min(1450px, 100%);
+  width:
+    min(
+      1450px,
+      100%
+    );
 
-  margin: 0 auto;
+  margin:
+    0
+    auto;
 }
 
 
@@ -72,11 +555,13 @@
   display: block;
 
   width: 100%;
+
   height: auto;
 
   opacity: 0.82;
 
-  mix-blend-mode: multiply;
+  mix-blend-mode:
+    multiply;
 
   user-select: none;
 }
@@ -88,197 +573,396 @@
 
 .travel-pins {
   position: absolute;
+
   inset: 0;
 
   pointer-events: none;
 }
 
+
 /* =========================================================
-   GENERATION COLORS
+   GENERATION PIN COLORS
 ========================================================= */
 
 .travel-pin.generation-first {
-  --pin-color: #790111;
+  --pin-color:
+    var(--travel-first);
 }
+
 
 .travel-pin.generation-next {
-  --pin-color: #13518c;
+  --pin-color:
+    var(--travel-next);
 }
+
 
 .travel-pin.generation-family {
-  --pin-color: #ffffff;
+  --pin-color:
+    var(--travel-family);
 }
 
 
-/* Pin dot */
+/* =========================================================
+   NEW / UNKNOWN GENERATIONS
 
-.travel-pin .travel-pin-dot {
-  background: var(
-    --pin-color,
-    #790111
-  );
+   Exact same appearance as generation-next.
+========================================================= */
+
+.travel-pin.generation-new {
+  --pin-color:
+    var(--travel-next);
 }
 
 
-/* Pin year */
+/* =========================================================
+   TRAVEL PIN
+========================================================= */
 
-.travel-pin .travel-pin-year {
-  color: var(
-    --pin-color,
-    #790111
-  );
-}
-
-
-/* Whole family needs dark text so it remains readable */
-
-.travel-pin.generation-family .travel-pin-year {
-  color: dark-gray;
-  background: rgba(193, 189, 190, 0.259);
-}
-
-.travel-pin.generation-next .travel-pin-year {
-  color: var(--pin-color, #13518c);
-  background: rgba(30, 36, 93, 0.155);
-}
-
-/* ==========================================
-   TRAVEL IMAGE LIGHTBOX
-========================================== */
-
-.travel-carousel-image {
-  cursor: zoom-in;
-}
-
-.travel-lightbox {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.travel-lightbox.open {
-  display: flex;
-}
-
-.travel-lightbox-backdrop {
+.travel-pin {
   position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.92);
-}
 
-.travel-lightbox-content {
-  position: relative;
-  z-index: 2;
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
 
   display: flex;
+
   flex-direction: column;
+
   align-items: center;
-  justify-content: center;
 
-  width: calc(100vw - 180px);
-  height: calc(100vh - 80px);
+  padding: 0;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--travel-pin);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  cursor: pointer;
+
+  pointer-events: auto;
+
+  transition:
+    transform
+    160ms
+    ease,
+    opacity
+    160ms
+    ease;
 }
 
-.travel-lightbox-image {
-  display: block;
 
-  max-width: 100%;
-  max-height: calc(100vh - 130px);
-
-  width: auto;
-  height: auto;
-
-  object-fit: contain;
+.travel-pin:hover {
+  transform:
+    translate(
+      -50%,
+      -50%
+    )
+    scale(
+      1.12
+    );
 }
 
-.travel-lightbox-counter {
-  margin-top: 14px;
 
-  color: white;
-  font-size: 14px;
+/* =========================================================
+   PIN DOT
+========================================================= */
+
+.travel-pin-dot {
+  width: 14px;
+
+  height: 14px;
+
+  border-radius: 50%;
+
+  background:
+    var(
+      --pin-color,
+      var(--travel-first)
+    );
+
+  box-shadow:
+    0
+    2px
+    5px
+    rgba(
+      0,
+      0,
+      0,
+      0.22
+    );
+}
+
+
+/* =========================================================
+   PIN YEAR
+========================================================= */
+
+.travel-pin-year {
+  position: relative;
+
+  z-index: 20;
+
+  margin-top: 3px;
+
+  padding:
+    2px
+    7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(
+      94,
+      11,
+      17,
+      0.10
+    );
+
+  color:
+    var(
+      --pin-color,
+      var(--travel-first)
+    );
+
+  font-size: 1rem;
+
+  font-weight: 600;
+
+  line-height: 1;
+}
+
+/* =========================================================
+   PIN STACKING
+
+   Dates should always appear above nearby pin dots.
+========================================================= */
+
+.travel-pin {
+  z-index: 10;
+}
+
+
+/*
+  Keep the dot at the base level of each pin.
+*/
+
+.travel-pin-dot {
+  position: relative;
+
+  z-index: 1;
+}
+
+
+/*
+  Keep year labels above the pin dots.
+*/
+
+.travel-pin-year {
+  position: relative;
+
+  z-index: 100;
+
+  pointer-events: none;
+}
+
+
+/*
+  Active pin rises above everything while
+  hovering, focusing, or loading.
+*/
+
+.travel-pin:hover,
+.travel-pin:focus,
+.travel-pin.loading {
+  z-index: 200;
+}
+/* =========================================================
+   NEXT GENERATION YEAR
+========================================================= */
+
+.travel-pin.generation-next
+.travel-pin-year {
+  color:
+    var(
+      --pin-color,
+      var(--travel-next)
+    );
+
+  background:
+    rgba(
+      30,
+      36,
+      93,
+      0.155
+    );
+}
+
+
+/* =========================================================
+   NEW GENERATION YEAR
+
+   Exact same as generation-next.
+========================================================= */
+
+.travel-pin.generation-new
+.travel-pin-year {
+  color:
+    var(
+      --pin-color,
+      var(--travel-next)
+    );
+
+  background:
+    rgba(
+      30,
+      36,
+      93,
+      0.155
+    );
+}
+
+
+/* =========================================================
+   FAMILY YEAR
+
+   White pin with darker text background.
+========================================================= */
+
+.travel-pin.generation-family
+.travel-pin-year {
+  color:
+    white;
+
+  background:
+    rgba(
+      193,
+      189,
+      190,
+      0.259
+    );
+}
+
+
+/* =========================================================
+   TRAVEL PIN LOADING STATE
+========================================================= */
+
+.travel-pin.loading {
+  cursor: wait;
+
+  pointer-events: none;
+}
+
+
+.travel-pin.loading
+.travel-pin-dot {
+  animation:
+    travel-pin-loading-pulse
+    0.7s
+    ease-in-out
+    infinite
+    alternate;
+}
+
+
+.travel-pin.loading
+.travel-pin-year {
+  opacity: 0.55;
+}
+
+
+@keyframes travel-pin-loading-pulse {
+
+  from {
+    transform:
+      scale(
+        1
+      );
+
+    opacity:
+      0.55;
+  }
+
+  to {
+    transform:
+      scale(
+        1.5
+      );
+
+    opacity:
+      1;
+  }
+
+}
+
+
+/* =========================================================
+   MAP NOTE
+========================================================= */
+
+.travel-map-note {
+  margin:
+    18px
+    0
+    0;
+
   text-align: center;
+
+  color:
+    var(--travel-ink);
+
+  font-size: 1.2rem;
+
+  font-style: italic;
 }
 
-.travel-lightbox-close {
+
+/* =========================================================
+   COORDINATE HELPER
+========================================================= */
+
+.coordinate-helper {
   position: absolute;
-  z-index: 3;
 
-  top: 20px;
-  right: 28px;
+  z-index: 500;
 
-  border: 0;
-  background: transparent;
+  transform:
+    translate(
+      12px,
+      -110%
+    );
 
-  color: white;
-  font-size: 42px;
-  line-height: 1;
+  padding:
+    7px
+    11px;
 
-  cursor: pointer;
+  border-radius: 4px;
+
+  background:
+    var(--travel-ink);
+
+  color:
+    #fffaf2;
+
+  font-size: 0.9rem;
+
+  pointer-events: none;
+
+  white-space: nowrap;
 }
 
-.travel-lightbox-prev,
-.travel-lightbox-next {
-  position: absolute;
-  z-index: 3;
 
-  top: 50%;
-  transform: translateY(-50%);
-
-  border: 0;
-  background: rgba(0, 0, 0, 0.25);
-
-  color: white;
-
-  width: 60px;
-  height: 80px;
-
-  font-size: 52px;
-  line-height: 1;
-
-  cursor: pointer;
-}
-
-.travel-lightbox-prev {
-  left: 20px;
-}
-
-.travel-lightbox-next {
-  right: 20px;
-}
-
-.travel-lightbox-prev:hover,
-.travel-lightbox-next:hover,
-.travel-lightbox-close:hover {
-  opacity: 0.7;
-}
-
-@media (max-width: 700px) {
-
-  .travel-lightbox-content {
-    width: calc(100vw - 80px);
-    height: calc(100vh - 60px);
-  }
-
-  .travel-lightbox-prev,
-  .travel-lightbox-next {
-    width: 40px;
-    height: 65px;
-
-    font-size: 40px;
-  }
-
-  .travel-lightbox-prev {
-    left: 5px;
-  }
-
-  .travel-lightbox-next {
-    right: 5px;
-  }
-
-}
 /* =========================================================
    GENERATION TAG
 ========================================================= */
@@ -311,174 +995,44 @@
 
 
 .travel-generation-tag.generation-first {
-  background: #790111;
-  color: #ffffff;
+  background:
+    var(--travel-first);
+
+  color:
+    #ffffff;
 }
 
 
 .travel-generation-tag.generation-next {
-  background: #53718e;
-  color: #ffffff;
+  background:
+    #53718e;
+
+  color:
+    #ffffff;
 }
 
 
 .travel-generation-tag.generation-family {
-  background: #ffffff;
-  color: #790111;
-}
-/* =========================================================
-   TRAVEL PIN
-========================================================= */
+  background:
+    #ffffff;
 
-.travel-pin {
-  position: absolute;
-
-  transform:
-    translate(
-      -50%,
-      -50%
-    );
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-
-  padding: 0;
-
-  border: 0;
-
-  background: transparent;
-
-  color: var(--travel-pin);
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  cursor: pointer;
-
-  pointer-events: auto;
-
-  transition:
-    transform 160ms ease;
-}
-
-.travel-pin:hover {
-  transform:
-    translate(
-      -50%,
-      -50%
-    )
-    scale(1.12);
+  color:
+    #790111;
 }
 
 
 /* =========================================================
-   PIN DOT
+   NEW GENERATION TAG
+
+   Same appearance as next.
 ========================================================= */
 
-.travel-pin-dot {
-  width: 14px;
-  height: 14px;
+.travel-generation-tag.generation-new {
+  background:
+    #53718e;
 
-  border-radius: 50%;
-
-  background: var(--travel-pin);
-
-  border:
-    2px
-    opaque 
-    var(--travel-pin);
-
-  box-shadow:
-    0
-    2px
-    5px
-    rgba(
-      0,
-      0,
-      0,
-      0.22
-    );
-}
-
-
-/* =========================================================
-   PIN YEAR
-========================================================= */
-
-.travel-pin-year {
-  margin-top: 3px;
-
-  padding:
-    2px
-    7px;
-
-  border-radius: 999px;
-
-  background: rgba(94, 11, 17, 0.10);
-
-  color: var(--travel-pin);
-
-  font-size: 1rem;
-
-  font-weight: 600;
-
-  line-height: 1;
-}
-
-
-/* =========================================================
-   MAP NOTE
-========================================================= */
-
-.travel-map-note {
-  margin:
-    18px
-    0
-    0;
-
-  text-align: center;
-
-  color: var(--travel-ink);
-
-  font-size: 1.2rem;
-
-  font-style: italic;
-}
-
-
-/* =========================================================
-   COORDINATE HELPER
-========================================================= */
-
-.coordinate-helper {
-  position: absolute;
-
-  z-index: 500;
-
-  transform:
-    translate(
-      12px,
-      -110%
-    );
-
-  padding:
-    7px
-    11px;
-
-  border-radius: 4px;
-
-  background: var(--travel-ink);
-
-  color: #fffaf2;
-
-  font-size: 0.9rem;
-
-  pointer-events: none;
-
-  white-space: nowrap;
+  color:
+    #ffffff;
 }
 
 
@@ -488,6 +1042,7 @@
 
 .travel-modal {
   position: fixed;
+
   inset: 0;
 
   z-index: 5000;
@@ -495,10 +1050,14 @@
   display: none;
 
   align-items: center;
+
   justify-content: center;
 
-  padding: 20px 60px;
+  padding:
+    20px
+    60px;
 }
+
 
 .travel-modal.open {
   display: flex;
@@ -511,6 +1070,7 @@
 
 .travel-modal-backdrop {
   position: absolute;
+
   inset: 0;
 
   background:
@@ -521,7 +1081,10 @@
       0.22
     );
 
-  backdrop-filter: blur(1px);
+  backdrop-filter:
+    blur(
+      1px
+    );
 }
 
 
@@ -538,7 +1101,9 @@
     min(
       1350px,
       calc(
-        100vw - 140px
+        100vw
+        -
+        140px
       )
     );
 
@@ -546,7 +1111,9 @@
 
   max-height:
     calc(
-      100vh - 40px
+      100vh
+      -
+      40px
     );
 
   overflow-y: auto;
@@ -556,9 +1123,11 @@
     45px
     42px;
 
-  background: #e8dfcf;
+  background:
+    #e8dfcf;
 
-  color: var(--travel-ink);
+  color:
+    var(--travel-ink);
 
   font-family:
     "Cormorant Garamond",
@@ -585,9 +1154,11 @@
 .travel-modal-header {
   display: flex;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  align-items: flex-start;
+  align-items:
+    flex-start;
 
   gap: 30px;
 
@@ -602,7 +1173,8 @@
 .travel-modal-title-row {
   display: flex;
 
-  align-items: baseline;
+  align-items:
+    baseline;
 
   gap: 22px;
 
@@ -696,6 +1268,7 @@
   display: flex;
 
   align-items: center;
+
   justify-content: center;
 }
 
@@ -707,14 +1280,12 @@
 .travel-carousel-stage {
   width: 100%;
 
-  height:
-    min(
-      500px
-    );
+  height: 500px;
 
   display: flex;
 
   align-items: center;
+
   justify-content: center;
 
   overflow: hidden;
@@ -737,12 +1308,16 @@
   display: block;
 
   max-width: 100%;
+
   max-height: 100%;
 
   width: auto;
+
   height: auto;
 
   object-fit: contain;
+
+  cursor: zoom-in;
 }
 
 
@@ -756,11 +1331,14 @@
   top: 50%;
 
   transform:
-    translateY(-50%);
+    translateY(
+      -50%
+    );
 
   z-index: 10;
 
   width: 52px;
+
   height: 52px;
 
   padding: 0;
@@ -780,15 +1358,18 @@
   cursor: pointer;
 }
 
+
 .travel-carousel-arrow::before {
   content: "";
 
   position: absolute;
 
   top: 50%;
+
   left: 50%;
 
   width: 15px;
+
   height: 15px;
 
   border-right:
@@ -802,9 +1383,11 @@
     var(--travel-ink);
 }
 
+
 .travel-carousel-arrow-left {
   left: 14px;
 }
+
 
 .travel-carousel-arrow-left::before {
   transform:
@@ -817,9 +1400,11 @@
     );
 }
 
+
 .travel-carousel-arrow-right {
   right: 14px;
 }
+
 
 .travel-carousel-arrow-right::before {
   transform:
@@ -864,8 +1449,10 @@
   flex-wrap: wrap;
 }
 
+
 .travel-image-dot {
   width: 9px;
+
   height: 9px;
 
   padding: 0;
@@ -877,18 +1464,21 @@
 
   border-radius: 50%;
 
-  background: transparent;
+  background:
+    transparent;
 
   cursor: pointer;
 }
 
+
 .travel-image-dot.active {
-  background: var(--travel-ink);
+  background:
+    var(--travel-ink);
 }
 
 
 /* =========================================================
-   PDF LINKS
+   PDF / DOCUMENT LINKS
 ========================================================= */
 
 .travel-pdf-links-wrap {
@@ -907,6 +1497,7 @@
     );
 }
 
+
 .travel-pdf-links-wrap h2 {
   margin:
     0
@@ -920,6 +1511,7 @@
   font-weight: 600;
 }
 
+
 .travel-pdf-links {
   display: flex;
 
@@ -927,6 +1519,7 @@
 
   gap: 10px;
 }
+
 
 .travel-pdf-link {
   display: inline-block;
@@ -947,15 +1540,19 @@
 
   border-radius: 999px;
 
-  color: var(--travel-ink);
+  color:
+    var(--travel-ink);
 
   text-decoration: none;
 
   font-size: 1rem;
 
   transition:
-    background 160ms ease;
+    background
+    160ms
+    ease;
 }
+
 
 .travel-pdf-link:hover {
   background:
@@ -969,7 +1566,7 @@
 
 
 /* =========================================================
-   CLOSE BUTTON
+   MODAL CLOSE BUTTON
 ========================================================= */
 
 .travel-modal-close {
@@ -978,18 +1575,22 @@
   z-index: 5100;
 
   top: 14px;
+
   right: 22px;
 
   width: 44px;
+
   height: 44px;
 
   padding: 0;
 
   border: 0;
 
-  background: transparent;
+  background:
+    transparent;
 
-  color: #fffaf2;
+  color:
+    #fffaf2;
 
   font-size: 2.8rem;
 
@@ -1007,21 +1608,312 @@ body.travel-modal-open {
 
 
 /* =========================================================
+   FULL-SCREEN IMAGE LIGHTBOX
+========================================================= */
+
+.travel-lightbox {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 10000;
+
+  display: none;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+
+.travel-lightbox.open {
+  display: flex;
+}
+
+
+.travel-lightbox-backdrop {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.92
+    );
+}
+
+
+.travel-lightbox-content {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width:
+    calc(
+      100vw
+      -
+      180px
+    );
+
+  height:
+    calc(
+      100vh
+      -
+      80px
+    );
+}
+
+
+.travel-lightbox-image {
+  display: block;
+
+  max-width: 100%;
+
+  max-height:
+    calc(
+      100vh
+      -
+      130px
+    );
+
+  width: auto;
+
+  height: auto;
+
+  object-fit: contain;
+}
+
+
+.travel-lightbox-counter {
+  margin-top: 14px;
+
+  color: white;
+
+  font-size: 14px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   LIGHTBOX CLOSE
+========================================================= */
+
+.travel-lightbox-close {
+  position: absolute;
+
+  z-index: 3;
+
+  top: 20px;
+
+  right: 28px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color: white;
+
+  font-size: 42px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   TRIP DROPDOWN TEXT
+========================================================= */
+
+.travel-trip-option-info {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  gap: 3px;
+
+  min-width: 0;
+}
+
+
+.travel-trip-option-title {
+  font-weight: 600;
+
+  line-height: 1.05;
+}
+
+
+.travel-trip-option-travelers {
+  font-size: 0.86rem;
+
+  font-style: italic;
+
+  font-weight: 400;
+
+  line-height: 1.1;
+
+  opacity: 0.78;
+}
+
+
+.travel-trip-option-year {
+  flex-shrink: 0;
+
+  align-self: center;
+
+  font-size: 0.92rem;
+
+  opacity: 0.82;
+}
+/* =========================================================
+   LIGHTBOX ARROWS
+========================================================= */
+
+.travel-lightbox-prev,
+.travel-lightbox-next {
+  position: absolute;
+
+  z-index: 3;
+
+  top: 50%;
+
+  transform:
+    translateY(
+      -50%
+    );
+
+  border: 0;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.25
+    );
+
+  color: white;
+
+  width: 60px;
+
+  height: 80px;
+
+  font-size: 52px;
+
+  line-height: 1;
+
+  cursor: pointer;
+}
+
+
+.travel-lightbox-prev {
+  left: 20px;
+}
+
+
+.travel-lightbox-next {
+  right: 20px;
+}
+
+
+.travel-lightbox-prev:hover,
+.travel-lightbox-next:hover,
+.travel-lightbox-close:hover {
+  opacity: 0.7;
+}
+
+
+/* =========================================================
    MOBILE
 ========================================================= */
 
-@media (max-width: 700px) {
+@media (
+  max-width: 700px
+) {
 
   .travel-main {
     padding:
-      25px
+      18px
       12px
       60px;
   }
 
 
+  /* -----------------------------
+     CONTROL ROW
+  ----------------------------- */
+
+  .travel-controls {
+    gap: 8px;
+
+    margin-bottom: 16px;
+
+    flex-wrap: wrap;
+  }
+
+
+  .travel-control-button {
+    min-width: 0;
+
+    padding:
+      8px
+      11px;
+
+    font-size: 0.9rem;
+  }
+
+
+  .travel-dropdown-menu {
+    min-width: 210px;
+
+    max-height: 55vh;
+  }
+
+
+  .travel-trip-menu {
+    min-width: 270px;
+  }
+
+
+  .travel-generation-option {
+    font-size: 0.95rem;
+
+    padding:
+      9px
+      13px;
+  }
+
+
+  .travel-trip-option {
+    padding:
+      10px
+      13px;
+
+    font-size: 0.95rem;
+  }
+
+
+  /* -----------------------------
+     PINS
+  ----------------------------- */
+
   .travel-pin-dot {
     width: 11px;
+
     height: 11px;
   }
 
@@ -1031,6 +1923,10 @@ body.travel-modal-open {
   }
 
 
+  /* -----------------------------
+     MODAL
+  ----------------------------- */
+
   .travel-modal {
     padding: 10px;
   }
@@ -1039,12 +1935,16 @@ body.travel-modal-open {
   .travel-modal-panel {
     width:
       calc(
-        100vw - 20px
+        100vw
+        -
+        20px
       );
 
     max-height:
       calc(
-        100vh - 20px
+        100vh
+        -
+        20px
       );
 
     padding:
@@ -1074,6 +1974,10 @@ body.travel-modal-open {
   }
 
 
+  /* -----------------------------
+     CAROUSEL
+  ----------------------------- */
+
   .travel-carousel-stage {
     height: 50vh;
   }
@@ -1081,21 +1985,65 @@ body.travel-modal-open {
 
   .travel-carousel-arrow {
     width: 40px;
+
     height: 40px;
   }
 
 
   .travel-carousel-arrow::before {
     width: 12px;
+
     height: 12px;
 
     border-right-width: 2px;
+
     border-bottom-width: 2px;
   }
 
 
   .travel-pdf-links-wrap h2 {
     font-size: 1.5rem;
+  }
+
+
+  /* -----------------------------
+     LIGHTBOX
+  ----------------------------- */
+
+  .travel-lightbox-content {
+    width:
+      calc(
+        100vw
+        -
+        80px
+      );
+
+    height:
+      calc(
+        100vh
+        -
+        60px
+      );
+  }
+
+
+  .travel-lightbox-prev,
+  .travel-lightbox-next {
+    width: 40px;
+
+    height: 65px;
+
+    font-size: 40px;
+  }
+
+
+  .travel-lightbox-prev {
+    left: 5px;
+  }
+
+
+  .travel-lightbox-next {
+    right: 5px;
   }
 
 }
