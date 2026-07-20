@@ -1,16 +1,72 @@
-const recipeGrid =
-  document.getElementById("recipes-grid");
+/* =========================================================
+   DROPBOX RECIPE SETTINGS
+========================================================= */
 
-const recipeFilter =
-  document.getElementById("recipe-filter");
+const DROPBOX_API_BASE =
+  "https://family-photo-api.emilyzohar.workers.dev";
+
+const DROPBOX_RECIPES_FOLDER =
+  "/Recipes";
+
+
+/* =========================================================
+   RECIPE DATA
+========================================================= */
+
+let RECIPES = [];
+
+let currentRecipeIndex = 0;
+
+let activeFilter =
+  "all";
+
+let searchTerm =
+  "";
+
+let hasSnappedToGrid =
+  false;
+
+
+/* =========================================================
+   PAGE ELEMENTS
+========================================================= */
+
+const recipeGrid =
+  document.getElementById(
+    "recipes-grid"
+  );
+
+const recipeFilterButton =
+  document.getElementById(
+    "recipe-filter-button"
+  );
+
+const recipeFilterLabel =
+  document.getElementById(
+    "recipe-filter-label"
+  );
+
+const recipeFilterMenu =
+  document.getElementById(
+    "recipe-filter-menu"
+  );
 
 const recipeSearch =
-  document.getElementById("recipe-search");
+  document.getElementById(
+    "recipe-search"
+  );
 
 const recipesEmpty =
-  document.getElementById("recipes-empty");
+  document.getElementById(
+    "recipes-empty"
+  );
 
-  const recipeModal =
+
+/* =========================================================
+   MODAL ELEMENTS
+========================================================= */
+
+const recipeModal =
   document.getElementById(
     "recipe-modal"
   );
@@ -65,59 +121,65 @@ const recipeModalSecretsSection =
     "recipe-modal-secrets-section"
   );
 
-const recipeModalImage =
+const recipeModalImageWrap =
   document.getElementById(
-    "recipe-modal-image"
+    "recipe-modal-image-wrap"
   );
 
 
-let currentRecipeIndex =
-  0;
+/* =========================================================
+   GENERAL HELPERS
+========================================================= */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /[&<>"']/g,
+
+      character => {
+
+        const entities = {
+
+          "&":
+            "&amp;",
+
+          "<":
+            "&lt;",
+
+          ">":
+            "&gt;",
+
+          '"':
+            "&quot;",
+
+          "'":
+            "&#039;"
+
+        };
 
 
-let activeFilter = "all";
-let searchTerm = "";
-let hasSnappedToGrid = false;
+        return entities[
+          character
+        ];
 
+      }
 
-/* ============================================
-   HELPERS
-============================================ */
-
-function escapeHtml(value) {
-
-  return String(value).replace(
-    /[&<>"']/g,
-
-    (char) => {
-
-      const entities = {
-
-        "&": "&amp;",
-
-        "<": "&lt;",
-
-        ">": "&gt;",
-
-        '"': "&quot;",
-
-        "'": "&#039;"
-
-      };
-
-      return entities[char];
-
-    }
-
-  );
+    );
 
 }
 
 
-function normalise(value) {
+function normalise(
+  value
+) {
 
   return String(
-    value || ""
+    value ?? ""
   )
     .trim()
     .toLowerCase();
@@ -125,58 +187,192 @@ function normalise(value) {
 }
 
 
-/* ============================================
-   BUILD CATEGORY FILTER
-============================================ */
+function createRecipeId(
+  value
+) {
 
-function buildCategoryFilter() {
+  return String(
+    value ?? ""
+  )
 
-  const categories = [
+    .trim()
 
-    ...new Set(
+    .toLowerCase()
 
-      RECIPES
-
-        .map(
-          recipe =>
-            recipe.category
-        )
-
-        .filter(Boolean)
-
+    .normalize(
+      "NFD"
     )
 
-  ];
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    )
+
+    .replace(
+      /[^a-z0-9]+/g,
+      "-"
+    )
+
+    .replace(
+      /^-+|-+$/g,
+      ""
+    );
+
+}
 
 
-  categories.sort(
-    (a, b) =>
-      a.localeCompare(b)
-  );
+function getFilenameWithoutExtension(
+  path
+) {
+
+  return String(
+    path ?? ""
+  )
+
+    .split(
+      "/"
+    )
+
+    .pop()
+
+    .replace(
+      /\.[^.]+$/,
+      ""
+    );
+
+}
 
 
-  categories.forEach(
+function createCategoryClass(
+  category
+) {
 
-    category => {
+  return normalise(
+    category
+  )
 
-      const option =
-        document.createElement(
-          "option"
-        );
+    .replace(
+      /[^a-z0-9]+/g,
+      "-"
+    )
+
+    .replace(
+      /^-+|-+$/g,
+      ""
+    );
+
+}
 
 
-      option.value =
-        normalise(category);
+/* =========================================================
+   DROPBOX API URL
+========================================================= */
+
+function buildDropboxApiUrl(
+  endpoint,
+  parameters = {}
+) {
+
+  const base =
+
+    DROPBOX_API_BASE
+      .endsWith(
+        "/"
+      )
+
+      ? DROPBOX_API_BASE
+
+      : `${DROPBOX_API_BASE}/`;
 
 
-      option.textContent =
-        category;
+  const cleanEndpoint =
 
-
-      recipeFilter.appendChild(
-        option
+    String(
+      endpoint
+    )
+      .replace(
+        /^\/+/,
+        ""
       );
 
+
+  const url =
+
+    new URL(
+      cleanEndpoint,
+      base
+    );
+
+
+  Object
+    .entries(
+      parameters
+    )
+
+    .forEach(
+
+      (
+        [
+          key,
+          value
+        ]
+      ) => {
+
+        if (
+          value !==
+            undefined
+
+          &&
+
+          value !==
+            null
+        ) {
+
+          url
+            .searchParams
+            .set(
+              key,
+              String(
+                value
+              )
+            );
+
+        }
+
+      }
+
+    );
+
+
+  return url
+    .toString();
+
+}
+
+
+/* =========================================================
+   DROPBOX FILE URL
+========================================================= */
+
+function getDropboxFileUrl(
+  path
+) {
+
+  if (
+    !path
+  ) {
+
+    return "";
+
+  }
+
+
+  return buildDropboxApiUrl(
+
+    "/file",
+
+    {
+      path
     }
 
   );
@@ -184,18 +380,1581 @@ function buildCategoryFilter() {
 }
 
 
-/* ============================================
+/* =========================================================
+   FETCH DROPBOX FOLDER
+========================================================= */
+
+async function fetchDropboxFolder(
+  path
+) {
+
+  const url =
+
+    buildDropboxApiUrl(
+
+      "/folder",
+
+      {
+        path
+      }
+
+    );
+
+
+  const response =
+
+    await fetch(
+
+      url,
+
+      {
+
+        method:
+          "GET",
+
+
+        headers: {
+
+          Accept:
+            "application/json"
+
+        }
+
+      }
+
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    const errorText =
+
+      await response
+        .text();
+
+
+    throw new Error(
+
+      `Could not list the Dropbox recipe folder. HTTP ${response.status}. ${errorText}`
+
+    );
+
+  }
+
+
+  const entries =
+
+    await response
+      .json();
+
+
+  if (
+    !Array.isArray(
+      entries
+    )
+  ) {
+
+    throw new Error(
+
+      "The Dropbox folder endpoint did not return a file list."
+
+    );
+
+  }
+
+
+  return entries;
+
+}
+
+
+/* =========================================================
+   FETCH DROPBOX TEXT FILE
+========================================================= */
+
+async function fetchDropboxText(
+  path
+) {
+
+  const url =
+
+    buildDropboxApiUrl(
+
+      "/text",
+
+      {
+        path
+      }
+
+    );
+
+
+  const response =
+
+    await fetch(
+
+      url,
+
+      {
+
+        method:
+          "GET",
+
+
+        headers: {
+
+          Accept:
+            "text/plain"
+
+        }
+
+      }
+
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    const errorText =
+
+      await response
+        .text();
+
+
+    throw new Error(
+
+      `Could not load ${path}. HTTP ${response.status}. ${errorText}`
+
+    );
+
+  }
+
+
+  return response
+    .text();
+
+}
+
+
+/* =========================================================
+   TEXT FILE METADATA
+========================================================= */
+
+function extractMetadataValue(
+  text,
+  fieldName
+) {
+
+  const escapedField =
+
+    fieldName
+      .replace(
+
+        /[.*+?^${}()|[\]\\]/g,
+
+        "\\$&"
+
+      );
+
+
+  const expression =
+
+    new RegExp(
+
+      `^\\s*${escapedField}\\s*:\\s*(.*?)\\s*$`,
+
+      "im"
+
+    );
+
+
+  const match =
+
+    text.match(
+      expression
+    );
+
+
+  return match
+
+    ? match[1]
+        .trim()
+
+    : "";
+
+}
+
+
+/* =========================================================
+   RECIPE TEXT SECTIONS
+========================================================= */
+
+function extractRecipeSection(
+  text,
+  sectionName
+) {
+
+  const escapedSection =
+
+    sectionName
+      .replace(
+
+        /[.*+?^${}()|[\]\\]/g,
+
+        "\\$&"
+
+      );
+
+
+  const expression =
+
+    new RegExp(
+
+      `\\[${escapedSection}\\]([\\s\\S]*?)\\[\\/${escapedSection}\\]`,
+
+      "i"
+
+    );
+
+
+  const match =
+
+    text.match(
+      expression
+    );
+
+
+  if (
+    !match
+  ) {
+
+    return "";
+
+  }
+
+
+  return plainTextToRecipeHtml(
+
+    match[1]
+      .trim()
+
+  );
+
+}
+
+
+/* =========================================================
+   SIMPLE RECIPE TEXT FORMATTING
+========================================================= */
+
+function plainTextToRecipeHtml(
+  text
+) {
+
+  const cleanText =
+
+    String(
+      text ?? ""
+    )
+
+      .replace(
+        /\r\n/g,
+        "\n"
+      )
+
+      .replace(
+        /\r/g,
+        "\n"
+      )
+
+      .trim();
+
+
+  if (
+    !cleanText
+  ) {
+
+    return "";
+
+  }
+
+
+  const blocks =
+
+    cleanText
+      .split(
+        /\n\s*\n/
+      );
+
+
+  return blocks
+
+    .map(
+
+      block =>
+
+        formatRecipeBlock(
+          block
+        )
+
+    )
+
+    .join(
+      ""
+    );
+
+}
+
+
+/* =========================================================
+   FORMAT ONE TEXT BLOCK
+========================================================= */
+
+function formatRecipeBlock(
+  block
+) {
+
+  const lines =
+
+    String(
+      block
+    )
+
+      .split(
+        "\n"
+      )
+
+      .map(
+
+        line =>
+
+          line
+            .trim()
+
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  if (
+    lines.length ===
+      0
+  ) {
+
+    return "";
+
+  }
+
+
+  const allBullets =
+
+    lines
+      .every(
+
+        line =>
+
+          /^[-*]\s+/
+            .test(
+              line
+            )
+
+      );
+
+
+  const allNumbers =
+
+    lines
+      .every(
+
+        line =>
+
+          /^\d+[.)]\s+/
+            .test(
+              line
+            )
+
+      );
+
+
+  if (
+    allBullets
+  ) {
+
+    const items =
+
+      lines
+
+        .map(
+
+          line => {
+
+            const text =
+
+              line
+                .replace(
+                  /^[-*]\s+/,
+                  ""
+                );
+
+
+            return `
+
+              <li>
+                ${formatInlineRecipeText(
+                  text
+                )}
+              </li>
+
+            `;
+
+          }
+
+        )
+
+        .join(
+          ""
+        );
+
+
+    return `
+
+      <ul>
+        ${items}
+      </ul>
+
+    `;
+
+  }
+
+
+  if (
+    allNumbers
+  ) {
+
+    const items =
+
+      lines
+
+        .map(
+
+          line => {
+
+            const text =
+
+              line
+                .replace(
+                  /^\d+[.)]\s+/,
+                  ""
+                );
+
+
+            return `
+
+              <li>
+                ${formatInlineRecipeText(
+                  text
+                )}
+              </li>
+
+            `;
+
+          }
+
+        )
+
+        .join(
+          ""
+        );
+
+
+    return `
+
+      <ol>
+        ${items}
+      </ol>
+
+    `;
+
+  }
+
+
+  const paragraph =
+
+    lines
+
+      .map(
+
+        line =>
+
+          formatInlineRecipeText(
+            line
+          )
+
+      )
+
+      .join(
+        "<br>"
+      );
+
+
+  return `
+
+    <p>
+      ${paragraph}
+    </p>
+
+  `;
+
+}
+
+
+/* =========================================================
+   INLINE TEXT FORMATTING
+
+   **text** becomes bold.
+========================================================= */
+
+function formatInlineRecipeText(
+  value
+) {
+
+  let safeText =
+
+    escapeHtml(
+      value
+    );
+
+
+  safeText =
+
+    safeText
+      .replace(
+
+        /\*\*(.+?)\*\*/g,
+
+        "<strong>$1</strong>"
+
+      );
+
+
+  return safeText;
+
+}
+
+
+/* =========================================================
+   PARSE ONE RECIPE TEXT FILE
+========================================================= */
+
+function parseRecipeText(
+  text,
+  sourcePath = ""
+) {
+
+  const cleanText =
+
+    String(
+      text ?? ""
+    )
+
+      .replace(
+        /\r\n/g,
+        "\n"
+      )
+
+      .replace(
+        /\r/g,
+        "\n"
+      )
+
+      .trim();
+
+
+  const filenameId =
+
+    createRecipeId(
+
+      getFilenameWithoutExtension(
+        sourcePath
+      )
+
+    );
+
+
+  const name =
+
+    extractMetadataValue(
+      cleanText,
+      "name"
+    );
+
+
+  const suppliedId =
+
+    extractMetadataValue(
+      cleanText,
+      "id"
+    );
+
+
+  const category =
+
+    extractMetadataValue(
+      cleanText,
+      "category"
+    );
+
+
+  const showInPileValue =
+
+    extractMetadataValue(
+      cleanText,
+      "showInPile"
+    );
+
+
+  const orderValue =
+
+    extractMetadataValue(
+      cleanText,
+      "order"
+    );
+
+
+  /* =====================================================
+     MULTIPLE IMAGE PATHS
+
+     Example:
+
+     images: /Recipes/images/a.jpeg, /Recipes/images/b.jpeg
+  ===================================================== */
+
+  const imagesValue =
+
+    extractMetadataValue(
+      cleanText,
+      "images"
+    );
+
+
+  const imagePaths =
+
+    imagesValue
+
+      .split(
+        ","
+      )
+
+      .map(
+
+        path =>
+
+          path
+            .trim()
+
+      )
+
+      .filter(
+        Boolean
+      );
+
+
+  const numericOrder =
+
+    Number(
+      orderValue
+    );
+
+
+  const recipe = {
+
+    id:
+
+      createRecipeId(
+
+        suppliedId
+
+        ||
+
+        filenameId
+
+        ||
+
+        name
+
+      ),
+
+
+    name:
+
+      name,
+
+
+    category:
+
+      category,
+
+
+    showInPile:
+
+      [
+
+        "true",
+
+        "yes",
+
+        "1"
+
+      ]
+
+        .includes(
+
+          normalise(
+            showInPileValue
+          )
+
+        ),
+
+
+    order:
+
+      orderValue !== ""
+
+      &&
+
+      Number.isFinite(
+        numericOrder
+      )
+
+        ? numericOrder
+
+        : null,
+
+
+    imagePaths:
+
+      imagePaths,
+
+
+    ingredients:
+
+      extractRecipeSection(
+        cleanText,
+        "ingredients"
+      ),
+
+
+    preparation:
+
+      extractRecipeSection(
+        cleanText,
+        "preparation"
+      ),
+
+
+    secrets:
+
+      extractRecipeSection(
+        cleanText,
+        "secrets"
+      ),
+
+
+    sourcePath:
+
+      sourcePath
+
+  };
+
+
+  return recipe;
+
+}
+
+
+/* =========================================================
+   VALIDATE ONE RECIPE
+========================================================= */
+
+function validateRecipe(
+  recipe,
+  filename
+) {
+
+  const errors =
+    [];
+
+
+  if (
+    !recipe.id
+  ) {
+
+    errors.push(
+      "missing id"
+    );
+
+  }
+
+
+  if (
+    !recipe.name
+  ) {
+
+    errors.push(
+      "missing name"
+    );
+
+  }
+
+
+  if (
+    !recipe.category
+  ) {
+
+    errors.push(
+      "missing category"
+    );
+
+  }
+
+
+  if (
+    !recipe.ingredients
+  ) {
+
+    errors.push(
+      "missing [ingredients] section"
+    );
+
+  }
+
+
+  if (
+    !recipe.preparation
+  ) {
+
+    errors.push(
+      "missing [preparation] section"
+    );
+
+  }
+
+
+  if (
+    errors.length >
+      0
+  ) {
+
+    throw new Error(
+
+      `${filename}: ${errors.join(", ")}.`
+
+    );
+
+  }
+
+
+  return recipe;
+
+}
+
+
+/* =========================================================
+   VALIDATE UNIQUE IDS
+========================================================= */
+
+function validateUniqueRecipeIds(
+  recipes
+) {
+
+  const usedIds =
+
+    new Map();
+
+
+  recipes
+    .forEach(
+
+      recipe => {
+
+        if (
+
+          usedIds.has(
+            recipe.id
+          )
+
+        ) {
+
+          const firstPath =
+
+            usedIds.get(
+              recipe.id
+            );
+
+
+          throw new Error(
+
+            `Duplicate recipe ID "${recipe.id}" in ${firstPath} and ${recipe.sourcePath}.`
+
+          );
+
+        }
+
+
+        usedIds.set(
+
+          recipe.id,
+
+          recipe.sourcePath
+
+        );
+
+      }
+
+    );
+
+}
+
+
+/* =========================================================
+   RECIPE SORTING
+========================================================= */
+
+function shuffleRecipes(recipes) {
+  const shuffled =
+    [...recipes];
+
+  for (
+    let index = shuffled.length - 1;
+    index > 0;
+    index -= 1
+  ) {
+    const randomIndex =
+      Math.floor(
+        Math.random() *
+        (index + 1)
+      );
+
+    [
+      shuffled[index],
+      shuffled[randomIndex]
+    ] = [
+      shuffled[randomIndex],
+      shuffled[index]
+    ];
+  }
+
+  return shuffled;
+}
+
+
+/* =========================================================
+   LOADING MESSAGE
+========================================================= */
+
+function showRecipeLoadingMessage() {
+
+  recipeGrid.innerHTML = `
+
+    <div class="recipes-load-message">
+
+      <p>
+        Loading recipes…
+      </p>
+
+    </div>
+
+  `;
+
+
+  recipesEmpty.hidden =
+    true;
+
+}
+
+
+/* =========================================================
+   LOADING ERROR
+========================================================= */
+
+function showRecipeLoadingError(
+  message
+) {
+
+  recipeGrid.innerHTML = `
+
+    <div class="recipes-load-error">
+
+      <h2>
+        Recipes could not be loaded
+      </h2>
+
+      <p>
+        ${escapeHtml(
+          message
+        )}
+      </p>
+
+    </div>
+
+  `;
+
+
+  recipesEmpty.hidden =
+    true;
+
+}
+
+
+/* =========================================================
+   LOAD ALL RECIPES FROM DROPBOX
+========================================================= */
+
+async function loadRecipesFromDropbox() {
+
+  recipeGrid
+    .setAttribute(
+      "aria-busy",
+      "true"
+    );
+
+
+  recipeFilterButton.disabled =
+  true;
+
+
+  recipeSearch.disabled =
+    true;
+
+
+  showRecipeLoadingMessage();
+
+
+  try {
+
+    const entries =
+
+      await fetchDropboxFolder(
+
+        DROPBOX_RECIPES_FOLDER
+
+      );
+
+
+    const recipeFiles =
+
+      entries
+
+        .filter(
+
+          entry => {
+
+            const isFile =
+
+              entry.type ===
+                "file";
+
+
+            const isTextFile =
+
+              String(
+                entry.name ?? ""
+              )
+
+                .toLowerCase()
+
+                .endsWith(
+                  ".txt"
+                );
+
+
+            return (
+
+              isFile
+
+              &&
+
+              isTextFile
+
+            );
+
+          }
+
+        )
+
+        .sort(
+
+          (
+            fileA,
+            fileB
+          ) =>
+
+            String(
+              fileA.name
+            )
+
+              .localeCompare(
+
+                String(
+                  fileB.name
+                )
+
+              )
+
+        );
+
+
+    if (
+      recipeFiles.length ===
+        0
+    ) {
+
+      throw new Error(
+
+        `No .txt recipe files were found in ${DROPBOX_RECIPES_FOLDER}.`
+
+      );
+
+    }
+
+
+    const fileResults =
+
+      await Promise.allSettled(
+
+        recipeFiles.map(
+
+          async file => {
+
+            const text =
+
+              await fetchDropboxText(
+
+                file.path
+
+              );
+
+
+            const recipe =
+
+              parseRecipeText(
+
+                text,
+
+                file.path
+
+              );
+
+
+            return validateRecipe(
+
+              recipe,
+
+              file.name
+
+            );
+
+          }
+
+        )
+
+      );
+
+
+    const loadedRecipes =
+      [];
+
+
+    const failedFiles =
+      [];
+
+
+    fileResults
+      .forEach(
+
+        (
+          result,
+          index
+        ) => {
+
+          const file =
+
+            recipeFiles[
+              index
+            ];
+
+
+          if (
+
+            result.status ===
+              "fulfilled"
+
+          ) {
+
+            loadedRecipes.push(
+
+              result.value
+
+            );
+
+
+            return;
+
+          }
+
+
+          failedFiles.push(
+
+            file.name
+
+          );
+
+
+          console.error(
+
+            `Recipe file failed: ${file.name}`,
+
+            result.reason
+
+          );
+
+        }
+
+      );
+
+
+    if (
+      loadedRecipes.length ===
+        0
+    ) {
+
+      throw new Error(
+
+        "Recipe files were found, but none could be read successfully. Check the browser console for details."
+
+      );
+
+    }
+
+
+    validateUniqueRecipeIds(
+
+      loadedRecipes
+
+    );
+
+
+    RECIPES =
+  shuffleRecipes(
+    loadedRecipes
+  );
+
+
+    resetRecipeInterface();
+
+    buildCategoryFilter();
+
+    renderRecipes();
+
+
+    if (
+      failedFiles.length >
+        0
+    ) {
+
+      console.warn(
+
+        `These recipe files were skipped: ${failedFiles.join(", ")}`
+
+      );
+
+    }
+
+  }
+
+  catch (
+    error
+  ) {
+
+    console.error(
+
+      "Recipe loading failed:",
+
+      error
+
+    );
+
+
+    showRecipeLoadingError(
+
+      error.message
+
+      ||
+
+      "An unknown error occurred."
+
+    );
+
+  }
+
+  finally {
+
+    recipeGrid
+      .removeAttribute(
+        "aria-busy"
+      );
+
+
+    recipeFilterButton.disabled =
+  false;
+
+
+    recipeSearch.disabled =
+      false;
+
+  }
+
+}
+
+
+/* =========================================================
+   RESET PAGE STATE
+========================================================= */
+
+function resetRecipeInterface() {
+
+  activeFilter =
+    "all";
+
+
+  searchTerm =
+    "";
+
+
+  hasSnappedToGrid =
+    false;
+
+
+  currentRecipeIndex =
+    0;
+
+
+  recipeSearch.value =
+    "";
+
+
+  recipeFilterLabel.textContent =
+  "Filter";
+
+recipeFilterMenu.innerHTML =
+  "";
+
+closeRecipeFilter();
+
+
+  recipeGrid
+    .classList
+    .remove(
+      "is-grid"
+    );
+
+
+  recipeGrid
+    .classList
+    .add(
+      "is-piled"
+    );
+
+}
+
+
+/* =========================================================
+   BUILD CATEGORY FILTER
+========================================================= */
+
+function buildCategoryFilter() {
+  const categories = [
+    ...new Set(
+      RECIPES
+        .map(
+          recipe =>
+            recipe.category
+        )
+        .filter(Boolean)
+    )
+  ];
+
+  categories.sort(
+    (categoryA, categoryB) =>
+      categoryA.localeCompare(
+        categoryB
+      )
+  );
+
+  recipeFilterMenu.innerHTML =
+    "";
+
+  const allButton =
+    createFilterOption(
+      "all",
+      "All recipes"
+    );
+
+  recipeFilterMenu.appendChild(
+    allButton
+  );
+
+  categories.forEach(
+    category => {
+      const option =
+        createFilterOption(
+          normalise(
+            category
+          ),
+          category
+        );
+
+      recipeFilterMenu.appendChild(
+        option
+      );
+    }
+  );
+}
+
+function createFilterOption(
+  value,
+  label
+) {
+  const button =
+    document.createElement(
+      "button"
+    );
+
+  button.type =
+    "button";
+
+  button.className =
+    "recipes-filter-option";
+
+  button.dataset.value =
+    value;
+
+  button.textContent =
+    label;
+
+  button.setAttribute(
+    "role",
+    "menuitem"
+  );
+
+  button.addEventListener(
+    "click",
+    () => {
+      activeFilter =
+        value;
+
+      recipeFilterLabel.textContent =
+        value === "all"
+          ? "Filter"
+          : label;
+
+      closeRecipeFilter();
+
+      applyRecipeFilters();
+    }
+  );
+
+  return button;
+}
+function openRecipeFilter() {
+  recipeFilterMenu.hidden =
+    false;
+
+  recipeFilterButton.setAttribute(
+    "aria-expanded",
+    "true"
+  );
+}
+
+
+function closeRecipeFilter() {
+  recipeFilterMenu.hidden =
+    true;
+
+  recipeFilterButton.setAttribute(
+    "aria-expanded",
+    "false"
+  );
+}
+
+
+function toggleRecipeFilter() {
+  const isOpen =
+    recipeFilterButton.getAttribute(
+      "aria-expanded"
+    ) === "true";
+
+  if (
+    isOpen
+  ) {
+    closeRecipeFilter();
+  } else {
+    openRecipeFilter();
+  }
+}
+
+recipeFilterButton.addEventListener(
+  "click",
+  event => {
+    event.stopPropagation();
+
+    toggleRecipeFilter();
+  }
+);
+
+
+recipeFilterMenu.addEventListener(
+  "click",
+  event => {
+    event.stopPropagation();
+  }
+);
+
+
+document.addEventListener(
+  "click",
+  closeRecipeFilter
+);
+
+
+document.addEventListener(
+  "keydown",
+  event => {
+    if (
+      event.key === "Escape"
+    ) {
+      closeRecipeFilter();
+    }
+  }
+);
+
+/* =========================================================
    CREATE RECIPE CARD
-============================================ */
+========================================================= */
 
 function createRecipeCard(
   recipe,
   index
-  
 ) {
-    
 
   const card =
+
     document.createElement(
       "a"
     );
@@ -203,34 +1962,40 @@ function createRecipeCard(
 
   card.className =
     "recipe-card";
-    if (recipe.showInPile) {
-  card.classList.add("show-in-pile");
-}
+
+
+  if (
+    recipe.showInPile
+  ) {
+
+    card.classList.add(
+      "show-in-pile"
+    );
+
+  }
 
 
   card.href =
-    recipe.href || "#";
+    "#";
+
+
+  card.dataset.recipeId =
+    recipe.id;
 
 
   card.dataset.name =
+
     normalise(
       recipe.name
     );
 
 
   card.dataset.category =
+
     normalise(
       recipe.category
     );
 
-
-  /*
-    The cards all occupy the same
-    centre point in pile mode.
-
-    These values only change
-    their small offset and rotation.
-  */
 
   const pilePresets = [
 
@@ -286,38 +2051,66 @@ function createRecipeCard(
 
 
   const pile =
+
     pilePresets[
-      index %
+
+      index
+
+      %
+
       pilePresets.length
+
     ];
 
 
   card.style.setProperty(
+
     "--pile-x",
+
     `${pile.x}px`
+
   );
 
 
   card.style.setProperty(
+
     "--pile-y",
+
     `${pile.y}px`
+
   );
 
 
   card.style.setProperty(
+
     "--pile-r",
+
     `${pile.r}deg`
+
   );
 
 
   card.style.setProperty(
+
     "--card-delay",
+
     `${index * 55}ms`
+
   );
 
 
   card.style.zIndex =
-    String(index + 1);
+
+    String(
+      index + 1
+    );
+
+
+  const categoryClass =
+
+    createCategoryClass(
+      recipe.category
+    );
 
 
   card.innerHTML = `
@@ -325,12 +2118,13 @@ function createRecipeCard(
     <div class="recipe-card-paper">
 
       <span
-  class="recipe-card-category category-${normalise(recipe.category).replace(/\s+/g, "-")}"
->
-  ${escapeHtml(
-    recipe.category
-  )}
-</span>
+        class="recipe-card-category category-${categoryClass}"
+      >
+        ${escapeHtml(
+          recipe.category
+        )}
+      </span>
+
 
       <h2
         class="recipe-card-title"
@@ -350,60 +2144,89 @@ function createRecipeCard(
 }
 
 
-/* ============================================
-   RENDER RECIPES
-============================================ */
+/* =========================================================
+   RENDER RECIPE CARDS
+========================================================= */
 
 function renderRecipes() {
 
-  recipeGrid.innerHTML = "";
+  recipeGrid.innerHTML =
+    "";
 
 
-  /* Build all recipe cards */
+  let pileIndex =
+    0;
 
-  let pileIndex = 0;
 
-RECIPES.forEach((recipe, index) => {
+  RECIPES
+    .forEach(
 
-  const card =
-    createRecipeCard(
-      recipe,
-      index
+      (
+        recipe,
+        index
+      ) => {
+
+        const card =
+
+          createRecipeCard(
+
+            recipe,
+
+            index
+
+          );
+
+
+        if (
+          recipe.showInPile
+        ) {
+
+          pileIndex +=
+            1;
+
+
+          card.dataset.pilePosition =
+
+            String(
+              pileIndex
+            );
+
+        }
+
+
+        recipeGrid
+          .appendChild(
+            card
+          );
+
+      }
+
     );
 
-  if (recipe.showInPile) {
-
-    pileIndex += 1;
-
-    card.dataset.pilePosition =
-      pileIndex;
-
-  }
-
-  recipeGrid.appendChild(card);
-
-});
-
-
-  /* Add separate Safta's Kitchen cover image */
 
   const pileCover =
+
     document.createElement(
       "img"
     );
 
+
   pileCover.className =
     "recipe-pile-cover";
+
 
   pileCover.src =
     "assets/recipes/saftas-kitchen.png";
 
+
   pileCover.alt =
     "Safta's Kitchen";
 
-  recipeGrid.appendChild(
-    pileCover
-  );
+
+  recipeGrid
+    .appendChild(
+      pileCover
+    );
 
 
   applyRecipeFilters();
@@ -411,9 +2234,9 @@ RECIPES.forEach((recipe, index) => {
 }
 
 
-/* ============================================
-   SEARCH + FILTER
-============================================ */
+/* =========================================================
+   APPLY SEARCH AND CATEGORY FILTER
+========================================================= */
 
 function applyRecipeFilters() {
 
@@ -431,86 +2254,94 @@ function applyRecipeFilters() {
     0;
 
 
-  cards.forEach(
+  cards
+    .forEach(
 
-    card => {
+      card => {
 
-      const name =
-        card.dataset.name;
+        const name =
 
+          card.dataset.name
 
-      const category =
-        card.dataset.category;
+          ||
 
-
-      const matchesFilter =
-
-        activeFilter ===
-          "all"
-
-        ||
-
-        category ===
-          activeFilter;
+          "";
 
 
-      const matchesSearch =
+        const category =
 
-        !searchTerm
+          card.dataset.category
 
-        ||
+          ||
 
-        name.includes(
-          searchTerm
-        )
+          "";
 
-        ||
 
-        category.includes(
-          searchTerm
+        const matchesFilter =
+
+          activeFilter ===
+            "all"
+
+          ||
+
+          category ===
+            activeFilter;
+
+
+        const matchesSearch =
+
+          !searchTerm
+
+          ||
+
+          name.includes(
+            searchTerm
+          )
+
+          ||
+
+          category.includes(
+            searchTerm
+          );
+
+
+        const isVisible =
+
+          matchesFilter
+
+          &&
+
+          matchesSearch;
+
+
+        card.classList.toggle(
+
+          "recipe-card-hidden",
+
+          !isVisible
+
         );
 
 
-      const isVisible =
+        if (
+          isVisible
+        ) {
 
-        matchesFilter
+          visibleCount +=
+            1;
 
-        &&
-
-        matchesSearch;
-
-
-      card.classList.toggle(
-
-        "recipe-card-hidden",
-
-        !isVisible
-
-      );
-
-
-      if (
-        isVisible
-      ) {
-
-        visibleCount += 1;
+        }
 
       }
 
-    }
-
-  );
+    );
 
 
   recipesEmpty.hidden =
-    visibleCount !== 0;
 
+    visibleCount !==
+      0;
 
-  /*
-    Once pile has opened,
-    filtering keeps cards
-    in the grid.
-  */
 
   if (
     hasSnappedToGrid
@@ -534,56 +2365,38 @@ function applyRecipeFilters() {
 }
 
 
-/* ============================================
-   FILTER EVENT
-============================================ */
-
-recipeFilter.addEventListener(
-
-  "change",
-
-  (event) => {
-
-    activeFilter =
-      normalise(
-        event.target.value
-      );
 
 
-    applyRecipeFilters();
-
-  }
-
-);
-
-
-/* ============================================
+/* =========================================================
    SEARCH EVENT
-============================================ */
+========================================================= */
 
-recipeSearch.addEventListener(
+recipeSearch
+  .addEventListener(
 
-  "input",
+    "input",
 
-  (event) => {
+    event => {
 
-    searchTerm =
-      normalise(
-        event.target.value
-      );
+      searchTerm =
 
+        normalise(
 
-    applyRecipeFilters();
+          event.target.value
 
-  }
-
-);
+        );
 
 
-/* ============================================
-   PILE -> GRID
-   CLICK THE PILE TO OPEN
-============================================ */
+      applyRecipeFilters();
+
+    }
+
+  );
+
+
+/* =========================================================
+   PILE TO GRID ANIMATION
+========================================================= */
 
 function openRecipeGrid() {
 
@@ -600,25 +2413,17 @@ function openRecipeGrid() {
     true;
 
 
-  /*
-    Get currently visible cards.
-  */
-
   const cards = [
 
-    ...recipeGrid.querySelectorAll(
+    ...recipeGrid
+      .querySelectorAll(
 
-      ".recipe-card:not(.recipe-card-hidden)"
+        ".recipe-card:not(.recipe-card-hidden)"
 
-    )
+      )
 
   ];
 
-
-  /*
-    Save where each card currently
-    appears in the pile.
-  */
 
   const firstPositions =
 
@@ -626,15 +2431,11 @@ function openRecipeGrid() {
 
       card =>
 
-        card.getBoundingClientRect()
+        card
+          .getBoundingClientRect()
 
     );
 
-
-  /*
-    Change layout from pile
-    to normal CSS grid.
-  */
 
   recipeGrid
     .classList
@@ -650,113 +2451,90 @@ function openRecipeGrid() {
     );
 
 
-  /*
-    Get each card's new
-    final grid position.
-  */
-
   const lastPositions =
 
     cards.map(
 
       card =>
 
-        card.getBoundingClientRect()
+        card
+          .getBoundingClientRect()
 
     );
 
 
-  /*
-    Temporarily move each card
-    back to where it was in the pile.
+  cards
+    .forEach(
 
-    This is the FLIP animation method.
-  */
+      (
+        card,
+        index
+      ) => {
 
-  cards.forEach(
+        const deltaX =
 
-    (
-      card,
-      index
-    ) => {
+          firstPositions[
+            index
+          ].left
 
-      const deltaX =
+          -
 
-        firstPositions[index].left
-
-        -
-
-        lastPositions[index].left;
+          lastPositions[
+            index
+          ].left;
 
 
-      const deltaY =
+        const deltaY =
 
-        firstPositions[index].top
+          firstPositions[
+            index
+          ].top
 
-        -
+          -
 
-        lastPositions[index].top;
-
-
-      card.style.transition =
-        "none";
-
-
-      card.style.transform =
-
-        `translate(
-          ${deltaX}px,
-          ${deltaY}px
-        )`;
-
-    }
-
-  );
+          lastPositions[
+            index
+          ].top;
 
 
-  /*
-    Force browser to register
-    those temporary positions.
-  */
-
-  void recipeGrid.offsetHeight;
+        card.style.transition =
+          "none";
 
 
-  /*
-    Animate every card
-    into the final grid.
-  */
+        card.style.transform =
 
-  cards.forEach(
+          `translate(${deltaX}px, ${deltaY}px)`;
 
-    (
-      card,
-      index
-    ) => {
+      }
 
-      card.style.transition =
-
-        `transform
-        900ms
-        cubic-bezier(.2,.8,.2,1)
-        ${index * 55}ms`;
+    );
 
 
-      card.style.transform =
-
-        "translate(0, 0)";
-
-    }
-
-  );
+  void recipeGrid
+    .offsetHeight;
 
 
-  /*
-    Remove temporary inline
-    animation styles afterward.
+  cards
+    .forEach(
 
-    The CSS can then take over again.
-  */
+      (
+        card,
+        index
+      ) => {
+
+        card.style.transition =
+
+          `transform 900ms cubic-bezier(.2,.8,.2,1) ${index * 55}ms`;
+
+
+        card.style.transform =
+
+          "translate(0, 0)";
+
+      }
+
+    );
+
 
   const animationLength =
 
@@ -771,22 +2549,25 @@ function openRecipeGrid() {
 
     () => {
 
-      cards.forEach(
+      cards
+        .forEach(
 
-        card => {
+          card => {
 
-          card.style.transition =
-            "";
+            card.style.transition =
+              "";
 
-          card.style.transform =
-            "";
 
-          card.style.zIndex =
-            "";
+            card.style.transform =
+              "";
 
-        }
 
-      );
+            card.style.zIndex =
+              "";
+
+          }
+
+        );
 
     },
 
@@ -797,110 +2578,120 @@ function openRecipeGrid() {
 }
 
 
-/* ============================================
-   CLICK BEHAVIOUR
-============================================ */
+/* =========================================================
+   GRID CLICK BEHAVIOUR
+========================================================= */
 
-recipeGrid.addEventListener(
-  "click",
-  (event) => {
+recipeGrid
+  .addEventListener(
 
-    /*
-      Clicking Safta's Kitchen cover
-      opens the recipe pile.
-    */
+    "click",
 
-    if (
-      event.target.classList.contains(
-        "recipe-pile-cover"
-      )
-    ) {
+    event => {
+
+      const pileCover =
+
+        event.target.closest(
+
+          ".recipe-pile-cover"
+
+        );
+
+
+      if (
+        pileCover
+      ) {
+
+        event
+          .preventDefault();
+
+
+        if (
+          !hasSnappedToGrid
+        ) {
+
+          openRecipeGrid();
+
+        }
+
+
+        return;
+
+      }
+
+
+      const card =
+
+        event.target.closest(
+
+          ".recipe-card"
+
+        );
+
+
+      if (
+        !card
+      ) {
+
+        return;
+
+      }
+
+
+      event
+        .preventDefault();
+
 
       if (
         !hasSnappedToGrid
       ) {
 
-        event.preventDefault();
-
         openRecipeGrid();
+
+        return;
 
       }
 
-      return;
+
+      const recipeId =
+
+        card.dataset.recipeId;
+
+
+      const recipeIndex =
+
+        RECIPES
+          .findIndex(
+
+            recipe =>
+
+              recipe.id ===
+                recipeId
+
+          );
+
+
+      if (
+        recipeIndex !==
+          -1
+      ) {
+
+        openRecipeModal(
+
+          recipeIndex
+
+        );
+
+      }
 
     }
 
-
-    const card =
-      event.target.closest(
-        ".recipe-card"
-      );
+  );
 
 
-    if (
-      !card
-    ) {
-
-      return;
-
-    }
-
-
-    /*
-      First click on a recipe card:
-      open pile into grid.
-    */
-
-    if (
-      !hasSnappedToGrid
-    ) {
-
-      event.preventDefault();
-
-      openRecipeGrid();
-
-      return;
-
-    }
-
-
-    /*
-      Once grid is open:
-      clicking a card opens recipe popup.
-    */
-
-    event.preventDefault();
-
-
-    const cardName =
-      card.dataset.name;
-
-
-    const recipeIndex =
-      RECIPES.findIndex(
-        recipe =>
-          normalise(
-            recipe.name
-          ) === cardName
-      );
-
-
-    if (
-      recipeIndex !== -1
-    ) {
-
-      openRecipeModal(
-        recipeIndex
-      );
-
-    }
-
-  }
-);
-
-/* ============================================
+/* =========================================================
    OPEN RECIPE MODAL
-============================================ */
+========================================================= */
 
 function openRecipeModal(
   index
@@ -922,8 +2713,11 @@ function openRecipeModal(
 
   recipeModal
     .setAttribute(
+
       "aria-hidden",
+
       "false"
+
     );
 
 
@@ -933,79 +2727,316 @@ function openRecipeModal(
       "recipe-modal-open"
     );
 
+
+  recipeModalClose
+    .focus();
+
 }
 
 
-/* ============================================
+/* =========================================================
    RENDER CURRENT RECIPE
-============================================ */
+========================================================= */
 
 function renderRecipeModal() {
 
   const recipe =
-    RECIPES[currentRecipeIndex];
+
+    RECIPES[
+      currentRecipeIndex
+    ];
+
+
+  if (
+    !recipe
+  ) {
+
+    return;
+
+  }
 
 
   recipeModalTitle.textContent =
-    recipe.name || "";
+
+    recipe.name
+
+    ||
+
+    "";
 
 
   recipeModalCategory.textContent =
-    recipe.category || "";
+
+    recipe.category
+
+    ||
+
+    "";
 
 
   recipeModalIngredients.innerHTML =
-    recipe.ingredients || "";
+
+    recipe.ingredients
+
+    ||
+
+    "";
 
 
   recipeModalPreparation.innerHTML =
-    recipe.preparation || "";
+
+    recipe.preparation
+
+    ||
+
+    "";
 
 
-  /* ========================================
+  /* =====================================================
      SAFTA'S SECRETS
-  ======================================== */
+  ===================================================== */
 
   const hasSecrets =
-    recipe.secrets &&
-    recipe.secrets.trim() !== "";
+
+    Boolean(
+
+      recipe.secrets
+
+      &&
+
+      recipe.secrets
+        .trim()
+
+    );
 
 
-  if (hasSecrets) {
+  if (
+    hasSecrets
+  ) {
 
     recipeModalSecrets.innerHTML =
+
       recipe.secrets;
 
+
+    recipeModalSecretsSection.hidden =
+
+      false;
+
+
     recipeModalSecretsSection.style.display =
+
       "";
 
-  } else {
+  }
+
+  else {
 
     recipeModalSecrets.innerHTML =
+
       "";
 
+
+    recipeModalSecretsSection.hidden =
+
+      true;
+
+
     recipeModalSecretsSection.style.display =
+
       "none";
+
+  }
+
+
+  /* =====================================================
+     RECIPE IMAGES
+  ===================================================== */
+
+  recipeModalImageWrap.innerHTML =
+
+    "";
+
+
+  const hasImages =
+
+    Array.isArray(
+
+      recipe.imagePaths
+
+    )
+
+    &&
+
+    recipe.imagePaths.length >
+      0;
+
+
+  if (
+    hasImages
+  ) {
+
+    recipe.imagePaths
+      .forEach(
+
+        (
+          imagePath,
+          index
+        ) => {
+
+
+          const imageItem =
+
+            document.createElement(
+
+              "div"
+
+            );
+
+
+          imageItem.className =
+
+            "recipe-modal-image-item";
+
+
+          const image =
+
+            document.createElement(
+
+              "img"
+
+            );
+
+
+          image.className =
+
+            "recipe-modal-image";
+
+
+          image.src =
+
+            getDropboxFileUrl(
+
+              imagePath
+
+            );
+
+
+          image.alt =
+
+            `Original recipe image ${index + 1} for ${recipe.name}`;
+
+
+          image.loading =
+
+            "lazy";
+
+
+          image
+            .addEventListener(
+
+              "error",
+
+              () => {
+
+                console.error(
+
+                  `Could not load recipe image: ${imagePath}`
+
+                );
+
+
+                imageItem
+                  .remove();
+
+
+                if (
+
+                  recipeModalImageWrap
+                    .children
+                    .length ===
+                      0
+
+                ) {
+
+                  recipeModalImageWrap.hidden =
+
+                    true;
+
+                }
+
+              }
+
+            );
+
+
+          imageItem
+            .appendChild(
+
+              image
+
+            );
+
+
+          recipeModalImageWrap
+            .appendChild(
+
+              imageItem
+
+            );
+
+        }
+
+      );
+
+
+    recipeModalImageWrap.hidden =
+
+      false;
+
+  }
+
+  else {
+
+    recipeModalImageWrap.hidden =
+
+      true;
 
   }
 
 }
 
 
-/* ============================================
+/* =========================================================
    PREVIOUS RECIPE
-============================================ */
+========================================================= */
 
 function showPreviousRecipe() {
 
+  if (
+    RECIPES.length ===
+      0
+  ) {
+
+    return;
+
+  }
+
+
   currentRecipeIndex =
 
     (
+
       currentRecipeIndex
+
       -
+
       1
+
       +
+
       RECIPES.length
+
     )
 
     %
@@ -1018,18 +3049,32 @@ function showPreviousRecipe() {
 }
 
 
-/* ============================================
+/* =========================================================
    NEXT RECIPE
-============================================ */
+========================================================= */
 
 function showNextRecipe() {
 
+  if (
+    RECIPES.length ===
+      0
+  ) {
+
+    return;
+
+  }
+
+
   currentRecipeIndex =
 
     (
+
       currentRecipeIndex
+
       +
+
       1
+
     )
 
     %
@@ -1042,9 +3087,9 @@ function showNextRecipe() {
 }
 
 
-/* ============================================
+/* =========================================================
    CLOSE RECIPE MODAL
-============================================ */
+========================================================= */
 
 function closeRecipeModal() {
 
@@ -1057,8 +3102,11 @@ function closeRecipeModal() {
 
   recipeModal
     .setAttribute(
+
       "aria-hidden",
+
       "true"
+
     );
 
 
@@ -1071,98 +3119,115 @@ function closeRecipeModal() {
 }
 
 
-/* ============================================
-   MODAL EVENTS
-============================================ */
+/* =========================================================
+   MODAL BUTTON EVENTS
+========================================================= */
 
 recipeModalPrev
   .addEventListener(
+
     "click",
+
     showPreviousRecipe
+
   );
 
 
 recipeModalNext
   .addEventListener(
+
     "click",
+
     showNextRecipe
+
   );
 
 
 recipeModalClose
   .addEventListener(
+
     "click",
+
     closeRecipeModal
+
   );
 
 
 recipeModalBackdrop
   .addEventListener(
+
     "click",
+
     closeRecipeModal
+
   );
 
 
-document.addEventListener(
+/* =========================================================
+   KEYBOARD MODAL CONTROLS
+========================================================= */
 
-  "keydown",
+document
+  .addEventListener(
 
-  (event) => {
+    "keydown",
+
+    event => {
+
+      const modalIsOpen =
+
+        recipeModal
+          .classList
+          .contains(
+            "open"
+          );
 
 
-    if (
-      !recipeModal
-        .classList
-        .contains(
-          "open"
-        )
-    ) {
+      if (
+        !modalIsOpen
+      ) {
 
-      return;
+        return;
+
+      }
+
+
+      if (
+        event.key ===
+          "Escape"
+      ) {
+
+        closeRecipeModal();
+
+      }
+
+
+      if (
+        event.key ===
+          "ArrowLeft"
+      ) {
+
+        showPreviousRecipe();
+
+      }
+
+
+      if (
+        event.key ===
+          "ArrowRight"
+      ) {
+
+        showNextRecipe();
+
+      }
 
     }
 
-
-    if (
-      event.key ===
-      "Escape"
-    ) {
-
-      closeRecipeModal();
-
-    }
+  );
 
 
-    if (
-      event.key ===
-      "ArrowLeft"
-    ) {
-
-      showPreviousRecipe();
-
-    }
-
-
-    if (
-      event.key ===
-      "ArrowRight"
-    ) {
-
-      showNextRecipe();
-
-    }
-
-
-  }
-
-);
-
-
-/* ============================================
+/* =========================================================
    INITIALISE
-============================================ */
+========================================================= */
 
-buildCategoryFilter();
-
-renderRecipes();
-
+loadRecipesFromDropbox();

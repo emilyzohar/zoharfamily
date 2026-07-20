@@ -37,14 +37,39 @@
     <div class="recipes-toolbar">
 
       <div class="recipes-filter-wrap">
-        <label class="sr-only" for="recipe-filter">
-          Filter recipes by category
-        </label>
 
-        <select id="recipe-filter" class="recipes-filter">
-          <option value="all">filter</option>
-        </select>
-      </div>
+  <div class="recipes-dropdown">
+
+    <button
+      id="recipe-filter-button"
+      class="recipes-filter-button"
+      type="button"
+      aria-haspopup="true"
+      aria-expanded="false"
+      aria-controls="recipe-filter-menu"
+    >
+      <span id="recipe-filter-label">
+        Filter
+      </span>
+
+      <span
+        class="recipes-filter-arrow"
+        aria-hidden="true"
+      >
+        ▾
+      </span>
+    </button>
+
+    <div
+      id="recipe-filter-menu"
+      class="recipes-filter-menu"
+      role="menu"
+      hidden
+    ></div>
+
+  </div>
+
+</div>
 
       <div class="recipes-search-wrap">
         <label class="sr-only" for="recipe-search">
@@ -142,41 +167,47 @@
 
     <div class="recipe-modal-content">
 
-      <div class="recipe-modal-left">
+  <div class="recipe-modal-left">
 
-        <section class="recipe-modal-block">
-          <h2>Ingredients</h2>
+    <section class="recipe-modal-block">
+      <h2>Ingredients</h2>
 
-          <div
-            id="recipe-modal-ingredients"
-            class="recipe-modal-text"
-          ></div>
-        </section>
+      <div
+        id="recipe-modal-ingredients"
+        class="recipe-modal-text"
+      ></div>
+    </section>
 
-        <section
-          id="recipe-modal-secrets-section"
-          class="recipe-modal-block recipe-modal-secrets"
-        >
-          <h2>Safta’s Secrets</h2>
+    <section
+      id="recipe-modal-secrets-section"
+      class="recipe-modal-block recipe-modal-secrets"
+    >
+      <h2>Safta’s Secrets</h2>
 
-          <div
-            id="recipe-modal-secrets"
-            class="recipe-modal-text"
-          ></div>
-        </section>
+      <div
+        id="recipe-modal-secrets"
+        class="recipe-modal-text"
+      ></div>
+    </section>
 
-      </div>
+  </div>
 
-      <section class="recipe-modal-block recipe-modal-procedure">
-        <h2>Procedure</h2>
+  <section class="recipe-modal-block recipe-modal-procedure">
+    <h2>Procedure</h2>
 
-        <div
-          id="recipe-modal-preparation"
-          class="recipe-modal-text"
-        ></div>
-      </section>
+    <div
+      id="recipe-modal-preparation"
+      class="recipe-modal-text"
+    ></div>
 
-    </div>
+    <div
+      id="recipe-modal-image-wrap"
+      class="recipe-modal-image-wrap"
+      hidden
+    ></div>
+  </section>
+
+</div>
 
   </article>
 
@@ -190,7 +221,6 @@
   </button>
 </div>
 
-  <script src="recipes-data.js"></script>
   <script src="recipes.js"></script>
 
 </body>

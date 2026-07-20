@@ -1,6 +1,6 @@
 /* =========================================================
    RECIPES PAGE
-   ========================================================= */
+========================================================= */
 
 :root {
   --recipes-blue: #90a9c4;
@@ -8,17 +8,14 @@
   --recipes-cream: #f6efdc;
   --recipes-ink: #5e0b11;
 
-  /* Bigger pile */
   --recipe-card-pile-width: 760px;
-
-  /* Smaller opened cards */
   --recipe-card-grid-width: 300px;
 }
 
 
 /* =========================================================
    ACCESSIBILITY
-   ========================================================= */
+========================================================= */
 
 .sr-only {
   position: absolute;
@@ -40,8 +37,8 @@
 
 
 /* =========================================================
-   FULL SCREEN HERO
-   ========================================================= */
+   HERO / HEADER
+========================================================= */
 
 .recipes-hero {
   position: relative;
@@ -59,25 +56,21 @@
 }
 
 
-/* =========================================================
-   HERO HEADER / NAV
-   Transparent and positioned over the hero image
-   ========================================================= */
-
 .recipes-header {
   position: relative;
+
   width: 100%;
   height: 700px;
 
   color: var(--recipes-ink);
 
-  background-image: url("assets/recipes/recipes-landing.png");
+  background-image:
+    url("assets/recipes/recipes-landing.png");
+
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
-
-
 
 
 .recipes-header .top-nav-inner {
@@ -90,7 +83,6 @@
   padding: 0 72px;
 
   display: flex;
-
   align-items: center;
 
   gap: 52px;
@@ -110,7 +102,6 @@
     serif;
 
   font-size: 1.5rem;
-
   font-weight: 400;
 
   transition:
@@ -129,22 +120,7 @@
 }
 
 
-/* =========================================================
-   OPTIONAL HERO IMAGE ELEMENT
-
-   If your HTML still contains:
-   .recipes-hero-art-wrap
-   .recipes-hero-art
-
-   hide them because the hero image is now the section
-   background itself.
-   ========================================================= */
-
-.recipes-hero-art-wrap {
-  display: none;
-}
-
-
+.recipes-hero-art-wrap,
 .recipes-hero-art {
   display: none;
 }
@@ -152,7 +128,7 @@
 
 /* =========================================================
    SCROLL CUE
-   ========================================================= */
+========================================================= */
 
 .recipes-scroll-cue {
   position: absolute;
@@ -164,14 +140,11 @@
     translateX(-50%);
 
   display: flex;
-
   align-items: center;
 
   gap: 8px;
 
-  padding:
-    8px
-    14px;
+  padding: 8px 14px;
 
   border: 0;
 
@@ -185,7 +158,6 @@
     serif;
 
   font-size: 1.2rem;
-
   font-style: italic;
 
   cursor: pointer;
@@ -209,18 +181,17 @@
 
 /* =========================================================
    MAIN RECIPE SECTION
-   ========================================================= */
+========================================================= */
 
 .recipes-main {
   min-height: 20vh;
-
-  background:
-    var(--recipes-blue);
 
   padding:
     70px
     clamp(28px, 4.5vw, 86px)
     120px;
+
+  background: var(--recipes-blue);
 
   overflow: hidden;
 }
@@ -228,7 +199,7 @@
 
 /* =========================================================
    TOOLBAR
-   ========================================================= */
+========================================================= */
 
 .recipes-toolbar {
   width:
@@ -243,7 +214,6 @@
     55px;
 
   display: flex;
-
   align-items: center;
 
   gap: 30px;
@@ -252,53 +222,141 @@
 
 /* =========================================================
    FILTER
-   ========================================================= */
+========================================================= */
+
+/* =========================================================
+   RECIPE FILTER
+   Matches the Travel page controls
+========================================================= */
+
+/* =========================================================
+   CUSTOM RECIPE FILTER
+========================================================= */
 
 .recipes-filter-wrap {
+  position: relative;
+
+  z-index: 1000;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+}
+
+
+.recipes-dropdown {
   position: relative;
 }
 
 
-.recipes-filter {
-  min-width: 295px;
-  height: 48px;
+.recipes-filter-button {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  min-width: 170px;
 
   padding:
-    0
-    54px
-    0
-    18px;
+    9px
+    14px;
 
-  appearance: none;
-  -webkit-appearance: none;
+  border:
+    1px solid
+    rgba(94, 11, 17, 0.35);
 
-  border: 0;
-
-  border-radius: 11px;
+  border-radius: 3px;
 
   background:
+    rgba(245, 240, 231, 0.9);
 
-    linear-gradient(
-      45deg,
-      transparent 50%,
-      var(--recipes-ink) 50%
-    )
-    calc(100% - 28px)
-    20px
-    / 8px 8px
-    no-repeat,
+  color:
+    var(--recipes-ink);
 
-    linear-gradient(
-      135deg,
-      var(--recipes-ink) 50%,
-      transparent 50%
-    )
-    calc(100% - 20px)
-    20px
-    / 8px 8px
-    no-repeat,
+  font-family: inherit;
 
-    var(--recipes-cream);
+  font-size: 1.05rem;
+  font-weight: 500;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+
+.recipes-filter-button:hover,
+.recipes-filter-button[aria-expanded="true"] {
+  background:
+    var(--recipes-paper);
+
+  border-color:
+    rgba(94, 11, 17, 0.55);
+}
+
+
+.recipes-filter-button:disabled {
+  cursor: wait;
+
+  opacity: 0.6;
+}
+
+
+.recipes-filter-arrow {
+  display: inline-block;
+
+  font-size: 0.72rem;
+
+  opacity: 0.7;
+
+  transition:
+    transform 160ms ease;
+}
+
+
+.recipes-filter-button[aria-expanded="true"]
+.recipes-filter-arrow {
+  transform:
+    rotate(180deg);
+}
+
+
+/* =========================================================
+   FILTER MENU
+========================================================= */
+
+.recipes-filter-menu {
+  position: absolute;
+
+  top:
+    calc(100% + 7px);
+
+  left: 0;
+
+  z-index: 2000;
+
+  min-width: 225px;
+
+  max-height: 430px;
+
+  overflow-y: auto;
+
+  padding:
+    7px
+    0;
+
+  border:
+    1px solid
+    rgba(94, 11, 17, 0.25);
+
+  background:
+    #e8dfcf;
 
   color:
     var(--recipes-ink);
@@ -308,57 +366,84 @@
     Georgia,
     serif;
 
-  font-size: 1.45rem;
-
-  font-style: italic;
-
-  cursor: pointer;
-
-  outline: none;
+  box-shadow:
+    0
+    12px
+    24px
+    rgba(0, 0, 0, 0.15);
 }
 
-/* =========================================
-   SAFTA'S KITCHEN PILE COVER
-========================================= */
 
-.recipe-pile-cover {
-  display: none;
-}
-
-.recipes-grid.is-piled .recipe-pile-cover {
-  position: absolute;
-  display: block;
-
-  left: 180px;
-  top: 10px;
-
-  width: 390px;
-  height: auto;
-
-  transform: rotate(-6deg);
-  transform-origin: top left;
-
-  object-fit: contain;
-
-  z-index: 3;
-
-  cursor: pointer;
-
-  filter:
-    drop-shadow(
-      0 10px 14px
-      rgba(0, 0, 0, 0.14)
-    );
-}
-
-.recipes-grid.is-grid .recipe-pile-cover {
+.recipes-filter-menu[hidden] {
   display: none;
 }
 
 
 /* =========================================================
+   FILTER OPTIONS
+========================================================= */
+
+.recipes-filter-option {
+  display: block;
+
+  width: 100%;
+
+  margin: 0;
+
+  padding:
+    10px
+    16px;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--recipes-ink);
+
+  font-family: inherit;
+
+  font-size: 1.05rem;
+
+  line-height: 1.1;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 120ms ease;
+}
+
+
+.recipes-filter-option:hover,
+.recipes-filter-option:focus-visible {
+  background:
+    rgba(94, 11, 17, 0.07);
+}
+
+
+@media (max-width: 850px) {
+
+  .recipes-dropdown,
+  .recipes-filter-button {
+    width: 100%;
+  }
+
+
+  .recipes-filter-menu {
+    width: 100%;
+
+    min-width: 0;
+  }
+
+}
+
+
+/* =========================================================
    SEARCH
-   ========================================================= */
+========================================================= */
 
 .recipes-search {
   width: 215px;
@@ -377,8 +462,7 @@
 
   background: transparent;
 
-  color:
-    var(--recipes-cream);
+  color: var(--recipes-cream);
 
   font-family:
     "Cormorant Garamond",
@@ -386,7 +470,6 @@
     serif;
 
   font-size: 1.45rem;
-
   font-style: italic;
 
   outline: none;
@@ -398,8 +481,7 @@
 
 
 .recipes-search::placeholder {
-  color:
-    var(--recipes-cream);
+  color: var(--recipes-cream);
 
   opacity: 1;
 }
@@ -409,18 +491,13 @@
   width: 290px;
 
   background:
-    rgba(
-      246,
-      239,
-      220,
-      0.08
-    );
+    rgba(246, 239, 220, 0.08);
 }
 
 
 /* =========================================================
-   RECIPE CONTAINER
-   ========================================================= */
+   RECIPE GRID CONTAINER
+========================================================= */
 
 .recipes-grid {
   position: relative;
@@ -431,26 +508,31 @@
       100%
     );
 
+  min-height: 850px;
+
   margin:
     0
     auto;
-
-  min-height: 850px;
 }
 
 
 /* =========================================================
-   BASE CARD
-   ========================================================= */
+   BASE RECIPE CARD
+========================================================= */
 
 .recipe-card {
   position: relative;
+
   display: block;
 
-  width: var(--recipe-card-pile-width);
-  aspect-ratio: 1.72 / 1;
+  width:
+    var(--recipe-card-pile-width);
+
+  aspect-ratio:
+    1.72 / 1;
 
   color: var(--recipes-ink);
+
   text-decoration: none;
 
   transform-origin: center;
@@ -460,26 +542,45 @@
     width 900ms cubic-bezier(.2, .8, .2, 1),
     opacity 300ms ease;
 
-  will-change: transform, width, opacity;
+  will-change:
+    transform,
+    width,
+    opacity;
 }
 
 
 /* =========================================================
    CARD PAPER
-   ========================================================= */
+========================================================= */
 
 .recipe-card-paper {
   position: absolute;
+
   inset: 0;
 
-  padding: 22px 24px;
+  padding:
+    22px
+    24px;
 
-  background-image: url("assets/recipes/recipe-card.png");
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
-  background-position: center;
+  background-image:
+    url("assets/recipes/recipe-card.png");
 
-  filter: drop-shadow(0 12px 12px rgba(0, 0, 0, 0.10));
+  background-size:
+    100% 100%;
+
+  background-repeat:
+    no-repeat;
+
+  background-position:
+    center;
+
+  filter:
+    drop-shadow(
+      0
+      12px
+      12px
+      rgba(0, 0, 0, 0.10)
+    );
 
   transition:
     transform 180ms ease,
@@ -489,7 +590,7 @@
 
 /* =========================================================
    CARD CATEGORY
-   ========================================================= */
+========================================================= */
 
 .recipe-card-category {
   position: absolute;
@@ -507,14 +608,13 @@
 
 /* =========================================================
    CARD TITLE
-   ========================================================= */
+========================================================= */
 
 .recipe-card-title {
   position: absolute;
 
   left: 150px;
   right: 70px;
-
   top: 52%;
 
   transform:
@@ -530,24 +630,65 @@
     );
 
   font-weight: 400;
-
   font-style: italic;
 
   line-height: 0.92;
 }
 
 
-/* =========================================
+/* =========================================================
+   PILE COVER
+========================================================= */
+
+.recipe-pile-cover {
+  display: none;
+}
+
+
+.recipes-grid.is-piled .recipe-pile-cover {
+  position: absolute;
+
+  display: block;
+
+  left: 180px;
+  top: 10px;
+
+  width: 390px;
+  height: auto;
+
+  transform:
+    rotate(-6deg);
+
+  transform-origin: top left;
+
+  object-fit: contain;
+
+  z-index: 3;
+
+  cursor: pointer;
+
+  filter:
+    drop-shadow(
+      0
+      10px
+      14px
+      rgba(0, 0, 0, 0.14)
+    );
+}
+
+
+.recipes-grid.is-grid .recipe-pile-cover {
+  display: none;
+}
+
+
+/* =========================================================
    PILE STATE
-========================================= */
-/* =========================================
-   PILE STATE
-   Only recipes marked showInPile: true
-   appear in the initial pile.
-========================================= */
+========================================================= */
 
 .recipes-grid.is-piled {
   position: relative;
+
   display: block;
 
   min-height: 600px;
@@ -556,21 +697,20 @@
 }
 
 
-/* All recipe cards occupy the same central
-   anchor point while the pile is closed. */
-
 .recipes-grid.is-piled .recipe-card {
   position: absolute;
 
   left: 50%;
   top: 45%;
 
-  width: var(--recipe-card-pile-width);
+  width:
+    var(--recipe-card-pile-width);
 
   margin-left:
     calc(
       var(--recipe-card-pile-width)
-      / -2
+      /
+      -2
     );
 
   margin-top: -220px;
@@ -581,9 +721,6 @@
 }
 
 
-/* Only recipes with showInPile: true
-   are visible in the pile */
-
 .recipes-grid.is-piled
 .recipe-card.show-in-pile {
   opacity: 1;
@@ -592,16 +729,9 @@
 }
 
 
-/* =========================================
+/* =========================================================
    PILE POSITIONS
-
-   These positions refer to the order of
-   recipes marked showInPile: true,
-   NOT their order in the full RECIPES array.
-========================================= */
-
-
-/* Back left */
+========================================================= */
 
 .recipes-grid.is-piled
 .recipe-card[data-pile-position="1"] {
@@ -610,15 +740,11 @@
       -190px,
       -100px
     )
-    rotate(
-      -6deg
-    );
+    rotate(-6deg);
 
   z-index: 1;
 }
 
-
-/* Back right */
 
 .recipes-grid.is-piled
 .recipe-card[data-pile-position="2"] {
@@ -627,15 +753,11 @@
       180px,
       -115px
     )
-    rotate(
-      5deg
-    );
+    rotate(5deg);
 
   z-index: 2;
 }
 
-
-/* Middle left */
 
 .recipes-grid.is-piled
 .recipe-card[data-pile-position="3"] {
@@ -644,15 +766,11 @@
       -235px,
       85px
     )
-    rotate(
-      7deg
-    );
+    rotate(7deg);
 
   z-index: 3;
 }
 
-
-/* Middle / lower */
 
 .recipes-grid.is-piled
 .recipe-card[data-pile-position="4"] {
@@ -661,15 +779,11 @@
       -45px,
       155px
     )
-    rotate(
-      -3deg
-    );
+    rotate(-3deg);
 
   z-index: 4;
 }
 
-
-/* Front right */
 
 .recipes-grid.is-piled
 .recipe-card[data-pile-position="5"] {
@@ -678,24 +792,15 @@
       130px,
       45px
     )
-    rotate(
-      1deg
-    );
+    rotate(1deg);
 
   z-index: 6;
 }
 
 
-/* =========================================
-   SAFTA'S KITCHEN PHOTO
-
-   Separate from recipe cards.
-========================================= */
-
-
-/* =========================================
+/* =========================================================
    GRID STATE
-========================================= */
+========================================================= */
 
 .recipes-grid.is-grid {
   display: grid;
@@ -708,11 +813,12 @@
 
   justify-content: center;
 
-  column-gap: 0px;
-  row-gap: 0px;
+  column-gap: 0;
+  row-gap: 0;
 
   min-height: auto;
 }
+
 
 .recipes-grid.is-grid .recipe-card {
   position: relative;
@@ -720,84 +826,99 @@
   left: auto;
   top: auto;
 
-  width: var(--recipe-card-grid-width);
+  width:
+    var(--recipe-card-grid-width);
 
   margin: 0;
 
   transform: none;
 
   opacity: 1;
+
   pointer-events: auto;
 }
 
 
-
 /* =========================================================
-   SMALLER TEXT IN GRID CARDS
-   ========================================================= */
+   GRID CARD TITLE
+========================================================= */
 
 .recipes-grid.is-grid .recipe-card-title {
   left: 45px;
-  right: 22px;
+  right: 35px;
   top: 52%;
 
   font-size:
     clamp(
-      1.9rem,
-      2.2vw,
-      2.8rem
+      1rem,
+      2vw,
+      2rem
     );
 
   line-height: 0.95;
 }
 
-/* =========================================
+
+/* =========================================================
    GRID CATEGORY PILL
-========================================= */
+========================================================= */
 
 .recipes-grid.is-grid .recipe-card-category {
   top: 27px;
   right: 40px;
 
-  padding: 5px 12px;
+  padding:
+    5px
+    12px;
+
+  border:
+    1px
+    solid
+    rgba(94, 11, 17, 0.12);
 
   border-radius: 999px;
 
-  font-size: 0.9rem;
-  line-height: 1;
+  background: #d8c7ad;
 
   color: var(--recipes-ink);
 
-  background: #d8c7ad;
+  font-size: 0.9rem;
 
-  border: 1px solid rgba(94, 11, 17, 0.12);
+  line-height: 1;
 
   white-space: nowrap;
 }
+
 
 .recipes-grid.is-grid .category-pastry {
   background: #d9c8ad;
 }
 
+
 .recipes-grid.is-grid .category-dessert {
   background: #d8b8b4;
 }
+
 
 .recipes-grid.is-grid .category-cakes {
   background: #dfc4b2;
 }
 
+
 .recipes-grid.is-grid .category-hanukah {
   background: #d9c98f;
 }
+
 
 .recipes-grid.is-grid .category-main {
   background: #b9c7b4;
 }
 
+
 .recipes-grid.is-grid .category-soup {
   background: #b9cbd1;
 }
+
 
 .recipes-grid.is-grid .category-sauces {
   background: #cbb9c8;
@@ -806,7 +927,7 @@
 
 /* =========================================================
    GRID CARD HOVER
-   ========================================================= */
+========================================================= */
 
 .recipes-grid.is-grid
 .recipe-card:hover
@@ -826,8 +947,8 @@
 
 
 /* =========================================================
-   SEARCH / FILTER HIDDEN
-   ========================================================= */
+   FILTERED CARD
+========================================================= */
 
 .recipe-card-hidden {
   display: none;
@@ -835,8 +956,8 @@
 
 
 /* =========================================================
-   NO RESULTS
-   ========================================================= */
+   EMPTY / LOADING / ERROR
+========================================================= */
 
 .recipes-empty {
   margin:
@@ -845,23 +966,584 @@
 
   text-align: center;
 
-  color:
-    var(--recipes-cream);
+  color: var(--recipes-cream);
 
   font-size: 2rem;
+  font-style: italic;
+}
 
+
+.recipes-load-message,
+.recipes-load-error {
+  margin:
+    100px
+    auto;
+
+  color: var(--recipes-cream);
+
+  text-align: center;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1.5rem;
+}
+
+
+.recipes-load-error h2 {
+  margin:
+    0
+    0
+    15px;
+
+  font-size: 2.4rem;
+
+  font-weight: 500;
   font-style: italic;
 }
 
 
 /* =========================================================
-   MEDIUM SCREENS
-   2 cards per row
-   ========================================================= */
+   RECIPE MODAL
+========================================================= */
 
-@media (
-  max-width: 1300px
-) {
+.recipe-modal {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 5000;
+
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    20px
+    24px;
+}
+
+
+.recipe-modal.open {
+  display: flex;
+}
+
+
+/* =========================================================
+   MODAL BACKDROP
+========================================================= */
+
+.recipe-modal-backdrop {
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    rgba(20, 10, 10, 0.16);
+
+  backdrop-filter:
+    blur(1px);
+}
+
+
+/* =========================================================
+   MODAL CARD
+========================================================= */
+
+.recipe-modal-card {
+  position: relative;
+
+  z-index: 2;
+
+  width:
+    min(
+      1450px,
+      calc(100vw - 70px)
+    );
+
+  height:
+    min(
+      800px,
+      calc(100vh - 40px)
+    );
+
+  padding:
+    42px
+    52px
+    48px;
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  background: #e8dfcf;
+
+  color: var(--recipes-ink);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  border-radius: 2px;
+
+  box-shadow:
+    0
+    18px
+    30px
+    rgba(0, 0, 0, 0.14);
+}
+
+
+/* =========================================================
+   MODAL TOP ROW
+========================================================= */
+
+.recipe-modal-top {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 80px;
+
+  margin-bottom: 50px;
+}
+
+
+.recipe-modal-top h1 {
+  margin: 0;
+
+  color: var(--recipes-ink);
+
+  font-size:
+    clamp(
+      3rem,
+      5vw,
+      5rem
+    );
+
+  font-weight: 400;
+  font-style: italic;
+
+  line-height: 0.9;
+}
+
+
+.recipe-modal-category {
+  padding-top: 10px;
+
+  color: var(--recipes-ink);
+
+  font-size:
+    clamp(
+      1.7rem,
+      2.2vw,
+      2.5rem
+    );
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   MODAL CONTENT COLUMNS
+========================================================= */
+
+.recipe-modal-content {
+  display: grid;
+
+  grid-template-columns:
+    minmax(280px, 0.75fr)
+    minmax(0, 1.9fr);
+
+  gap:
+    clamp(
+      40px,
+      5vw,
+      90px
+    );
+
+  align-items: start;
+}
+
+
+.recipe-modal-left {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 42px;
+
+  min-width: 0;
+}
+
+
+.recipe-modal-procedure {
+  min-width: 0;
+}
+
+
+/* =========================================================
+   MODAL SECTION HEADINGS
+========================================================= */
+
+.recipe-modal-block h2 {
+  margin:
+    0
+    0
+    16px;
+
+  color: var(--recipes-ink);
+
+  font-size:
+    clamp(
+      2rem,
+      3vw,
+      3rem
+    );
+
+  font-weight: 600;
+  font-style: italic;
+
+  line-height: 1;
+}
+
+
+/* =========================================================
+   MODAL BODY TEXT
+========================================================= */
+
+.recipe-modal-text {
+  color: var(--recipes-ink);
+
+  font-size:
+    clamp(
+      1.25rem,
+      1.5vw,
+      1.8rem
+    );
+
+  line-height: 1.38;
+
+  overflow-wrap: anywhere;
+}
+
+
+.recipe-modal-text p {
+  margin:
+    0
+    0
+    22px;
+}
+
+
+.recipe-modal-text p:last-child {
+  margin-bottom: 0;
+}
+
+
+.recipe-modal-text strong {
+  font-weight: 700;
+}
+
+
+.recipe-modal-text ul,
+.recipe-modal-text ol {
+  margin:
+    0
+    0
+    22px;
+
+  padding-left: 1.4em;
+}
+
+
+.recipe-modal-text li {
+  margin-bottom: 6px;
+}
+
+
+/* =========================================================
+   RECIPE IMAGES
+
+   The HTML image wrapper must be inside
+   .recipe-modal-procedure, below
+   #recipe-modal-preparation.
+========================================================= */
+
+.recipe-modal-image-wrap {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 28px;
+
+  width: 100%;
+
+  margin-top: 42px;
+
+  padding:
+    18px
+    0
+    30px;
+}
+
+
+.recipe-modal-image-wrap[hidden] {
+  display: none;
+}
+
+
+/* =========================================================
+   INDIVIDUAL IMAGE WRAPPER
+========================================================= */
+
+.recipe-modal-image-item {
+  position: relative;
+
+  width: 100%;
+  min-width: 0;
+
+  padding-top: 10px;
+}
+
+
+/* =========================================================
+   IMAGE
+========================================================= */
+
+.recipe-modal-image {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  object-fit: contain;
+
+  background: #ffffff;
+
+  border:
+    7px
+    solid
+    rgba(255, 255, 255, 0.92);
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0
+    12px
+    22px
+    rgba(0, 0, 0, 0.16);
+}
+
+
+/* =========================================================
+   IMAGE ROTATION
+========================================================= */
+
+.recipe-modal-image-item:nth-child(odd) {
+  transform:
+    rotate(-2deg);
+}
+
+
+.recipe-modal-image-item:nth-child(even) {
+  transform:
+    rotate(2deg);
+}
+
+
+/* =========================================================
+   IMAGE TAPE
+========================================================= */
+
+.recipe-modal-image-item::before {
+  content: "";
+
+  position: absolute;
+
+  z-index: 2;
+
+  top: -8px;
+  left: 50%;
+
+  width: 140px;
+  height: 36px;
+
+  transform:
+    translateX(-50%)
+    rotate(2deg);
+
+  background:
+    rgba(218, 198, 151, 0.88);
+
+  opacity: 0.92;
+
+  pointer-events: none;
+}
+
+
+.recipe-modal-image-item:nth-child(even)::before {
+  transform:
+    translateX(-50%)
+    rotate(-2deg);
+}
+
+
+/* =========================================================
+   MODAL CLOSE BUTTON
+========================================================= */
+
+.recipe-modal-close {
+  position: fixed;
+
+  z-index: 5100;
+
+  top: 20px;
+  right: 40px;
+
+  width: 44px;
+  height: 44px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: #fffaf2;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 2.8rem;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  opacity: 0.82;
+
+  transition:
+    opacity 160ms ease;
+}
+
+
+.recipe-modal-close:hover {
+  opacity: 1;
+}
+
+
+/* =========================================================
+   MODAL ARROWS
+========================================================= */
+
+.recipe-modal-arrow {
+  position: fixed;
+
+  z-index: 5100;
+
+  top: 50%;
+
+  transform:
+    translateY(-80%);
+
+  width: 52px;
+  height: 52px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  color: transparent;
+
+  cursor: pointer;
+
+  opacity: 0.78;
+
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+
+.recipe-modal-arrow:hover {
+  opacity: 1;
+}
+
+
+.recipe-modal-arrow::before {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+  left: 90%;
+
+  width: 18px;
+  height: 18px;
+
+  border-right:
+    3px
+    solid
+    #fffaf2;
+
+  border-bottom:
+    3px
+    solid
+    #fffaf2;
+}
+
+
+.recipe-modal-arrow-left {
+  left: 8px;
+}
+
+
+.recipe-modal-arrow-left::before {
+  transform:
+    translate(-40%, -50%)
+    rotate(135deg);
+}
+
+
+.recipe-modal-arrow-right {
+  right: 55px;
+}
+
+
+.recipe-modal-arrow-right::before {
+  transform:
+    translate(-60%, -50%)
+    rotate(-45deg);
+}
+
+
+/* =========================================================
+   DISABLE PAGE SCROLL
+========================================================= */
+
+body.recipe-modal-open {
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   MEDIUM SCREENS
+========================================================= */
+
+@media (max-width: 1300px) {
 
   :root {
     --recipe-card-grid-width:
@@ -881,13 +1563,81 @@
 
 
 /* =========================================================
-   TABLET / MOBILE
-   1 card per row
-   ========================================================= */
+   TABLET MODAL
+========================================================= */
 
-@media (
-  max-width: 850px
-) {
+@media (max-width: 1100px) {
+
+  .recipe-modal {
+    padding:
+      14px
+      16px;
+  }
+
+
+  .recipe-modal-card {
+    width:
+      calc(100vw - 44px);
+
+    height:
+      calc(100vh - 28px);
+
+    padding:
+      34px
+      30px
+      38px;
+  }
+
+
+  .recipe-modal-content {
+    grid-template-columns: 1fr;
+
+    gap: 34px;
+  }
+
+
+  .recipe-modal-left {
+    gap: 30px;
+  }
+
+
+  .recipe-modal-procedure {
+    margin-top: 10px;
+  }
+
+
+  .recipe-modal-image-wrap {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+@media (max-width: 850px) {
+
+  .recipes-filter {
+    width: 100%;
+    min-width: 0;
+
+    padding:
+      10px
+      42px
+      10px
+      14px;
+
+    font-size:
+      1rem;
+  }
+
+}
+
+/* =========================================================
+   TABLET / MOBILE RECIPE CARDS
+========================================================= */
+
+@media (max-width: 850px) {
 
   :root {
     --recipe-card-pile-width:
@@ -904,8 +1654,7 @@
   }
 
 
-  .recipes-header
-  .top-nav-inner {
+  .recipes-header .top-nav-inner {
     padding:
       0
       24px;
@@ -916,8 +1665,7 @@
   }
 
 
-  .recipes-header
-  .top-nav-link {
+  .recipes-header .top-nav-link {
     font-size: 1.1rem;
 
     white-space: nowrap;
@@ -951,8 +1699,7 @@
 
 
   .recipes-grid.is-grid {
-    grid-template-columns:
-      1fr;
+    grid-template-columns: 1fr;
 
     justify-items: center;
 
@@ -960,12 +1707,9 @@
   }
 
 
-  .recipes-grid.is-grid
-  .recipe-card {
+  .recipes-grid.is-grid .recipe-card {
     width:
-      var(
-        --recipe-card-grid-width
-      );
+      var(--recipe-card-grid-width);
   }
 
 
@@ -974,12 +1718,12 @@
   }
 
 
-  .recipes-grid.is-piled
-  .recipe-card {
+  .recipes-grid.is-piled .recipe-card {
     margin-left:
       calc(
         var(--recipe-card-pile-width)
-        / -2
+        /
+        -2
       );
 
     margin-top: -130px;
@@ -987,54 +1731,212 @@
 
 
   .recipes-grid.is-piled
-  .recipe-card:nth-child(1) {
+  .recipe-card[data-pile-position="1"] {
     transform:
-      translate(
-        -25px,
-        -10px
-      )
-      rotate(
-        -7deg
-      );
+      translate(-25px, -10px)
+      rotate(-7deg);
   }
 
 
   .recipes-grid.is-piled
-  .recipe-card:nth-child(2) {
+  .recipe-card[data-pile-position="2"] {
     transform:
-      translate(
-        20px,
-        -30px
-      )
-      rotate(
-        5deg
-      );
+      translate(20px, -30px)
+      rotate(5deg);
   }
 
 
   .recipes-grid.is-piled
-  .recipe-card:nth-child(3) {
+  .recipe-card[data-pile-position="3"] {
     transform:
-      translate(
-        -35px,
-        30px
-      )
-      rotate(
-        7deg
-      );
+      translate(-35px, 30px)
+      rotate(7deg);
   }
 
 
   .recipes-grid.is-piled
-  .recipe-card:nth-child(4) {
+  .recipe-card[data-pile-position="4"] {
     transform:
-      translate(
-        35px,
-        20px
-      )
-      rotate(
-        -5deg
+      translate(35px, 20px)
+      rotate(-5deg);
+  }
+
+
+  .recipes-grid.is-piled
+  .recipe-card[data-pile-position="5"] {
+    transform:
+      translate(0, 60px)
+      rotate(1deg);
+  }
+
+
+  .recipes-grid.is-piled .recipe-pile-cover {
+    left: 50%;
+    top: 70px;
+
+    width:
+      min(
+        65vw,
+        340px
       );
+
+    transform:
+      translateX(-50%)
+      rotate(-6deg);
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .recipe-modal {
+    padding: 10px;
+  }
+
+
+  .recipe-modal-card {
+    width:
+      calc(100vw - 20px);
+
+    height:
+      calc(100vh - 20px);
+
+    padding:
+      26px
+      20px
+      30px;
+  }
+
+
+  .recipe-modal-top {
+    gap: 18px;
+
+    margin-bottom: 20px;
+  }
+
+
+  .recipe-modal-top h1 {
+    font-size:
+      clamp(
+        3rem,
+        11vw,
+        4.6rem
+      );
+  }
+
+
+  .recipe-modal-category {
+    padding-top: 8px;
+
+    font-size: 1.15rem;
+  }
+
+
+  .recipe-modal-content {
+    display: block;
+  }
+
+
+  .recipe-modal-left {
+    gap: 24px;
+  }
+
+
+  .recipe-modal-procedure {
+    margin-top: 28px;
+  }
+
+
+  .recipe-modal-block h2 {
+    margin-bottom: 12px;
+  }
+
+
+  .recipe-modal-text {
+    font-size: 1.12rem;
+
+    line-height: 1.35;
+  }
+
+
+  .recipe-modal-image-wrap {
+    grid-template-columns: 1fr;
+
+    gap: 28px;
+
+    margin-top: 30px;
+
+    padding:
+      16px
+      0
+      20px;
+  }
+
+
+  .recipe-modal-image-item {
+    width:
+      min(
+        90%,
+        420px
+      );
+
+    margin:
+      0
+      auto;
+  }
+
+
+  .recipe-modal-image-item:nth-child(odd) {
+    transform:
+      rotate(-1.5deg);
+  }
+
+
+  .recipe-modal-image-item:nth-child(even) {
+    transform:
+      rotate(1.5deg);
+  }
+
+
+  .recipe-modal-image-item::before {
+    width: 125px;
+    height: 32px;
+  }
+
+
+  .recipe-modal-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+
+  .recipe-modal-arrow::before {
+    width: 14px;
+    height: 14px;
+
+    border-right-width: 2.5px;
+    border-bottom-width: 2.5px;
+  }
+
+
+  .recipe-modal-arrow-left {
+    left: 0;
+  }
+
+
+  .recipe-modal-arrow-right {
+    right: 0;
+  }
+
+
+  .recipe-modal-close {
+    top: 8px;
+    right: 12px;
   }
 
 }
@@ -1042,7 +1944,7 @@
 
 /* =========================================================
    REDUCED MOTION
-   ========================================================= */
+========================================================= */
 
 @media (
   prefers-reduced-motion:
@@ -1052,378 +1954,10 @@
   .recipe-card,
   .recipe-card-paper,
   .recipes-scroll-cue,
-  .recipes-search {
+  .recipes-search,
+  .recipe-modal-arrow,
+  .recipe-modal-close {
     transition: none;
   }
 
-}
-/* =========================================================
-   RECIPE MODAL
-========================================================= */
-
-.recipe-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-
-  display: none;
-  align-items: center;
-  justify-content: center;
-
-  padding: 20px 24px;
-}
-
-.recipe-modal.open {
-  display: flex;
-}
-
-
-/* =========================================================
-   BACKDROP
-========================================================= */
-
-.recipe-modal-backdrop {
-  position: absolute;
-  inset: 0;
-
-  background: rgba(20, 10, 10, 0.16);
-  backdrop-filter: blur(1px);
-}
-
-
-/* =========================================================
-   LARGE RECIPE PANEL
-========================================================= */
-
-.recipe-modal-card {
-  position: relative;
-  z-index: 2;
-
-  width: min(1250px, calc(100vw - 70px));
-  height: min(750px, calc(100vh - 40px));
-
-  overflow-y: auto;
-
-  padding: 42px 52px 48px;
-
-  background: #e8dfcf;
-  color: var(--recipes-ink);
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  border-radius: 2px;
-
-  box-shadow:
-    0 18px 30px rgba(0, 0, 0, 0.14);
-}
-
-
-/* =========================================================
-   TOP ROW
-========================================================= */
-
-.recipe-modal-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-
-  gap: 80px;
-
-  margin-bottom: 50px;
-}
-
-.recipe-modal-top h1 {
-  margin: 0;
-
-  color: var(--recipes-ink);
-
-  font-size: clamp(3.5rem, 6vw, 6rem);
-  font-weight: 400;
-  font-style: italic;
-  line-height: 0.9;
-}
-
-.recipe-modal-category {
-  padding-top: 10px;
-
-  color: var(--recipes-ink);
-
-  font-size: clamp(1.7rem, 2.2vw, 2.5rem);
-  line-height: 1;
-}
-
-
-/* =========================================================
-   CONTENT LAYOUT
-========================================================= */
-
-.recipe-modal-content {
-  display: grid;
-
-  grid-template-columns:
-    minmax(280px, 0.75fr)
-    minmax(520px, 1.9fr);
-
-  gap: clamp(40px, 5vw, 90px);
-
-  align-items: start;
-}
-
-.recipe-modal-left {
-  display: flex;
-  flex-direction: column;
-  gap: 42px;
-}
-
-
-/* =========================================================
-   SECTION HEADINGS
-========================================================= */
-
-.recipe-modal-block h2 {
-  margin: 0 0 16px;
-
-  color: var(--recipes-ink);
-
-  font-size: clamp(2rem, 3vw, 3rem);
-  font-weight: 600;
-  font-style: italic;
-  line-height: 1;
-}
-
-
-/* =========================================================
-   BODY TEXT
-========================================================= */
-
-.recipe-modal-text {
-  color: var(--recipes-ink);
-
-  font-size: clamp(1.25rem, 1.5vw, 1.8rem);
-  line-height: 1.38;
-}
-
-.recipe-modal-text p {
-  margin: 0 0 22px;
-}
-
-.recipe-modal-text p:last-child {
-  margin-bottom: 0;
-}
-
-.recipe-modal-text strong {
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   CLOSE BUTTON
-========================================================= */
-
-.recipe-modal-close {
-  position: fixed;
-  z-index: 5100;
-
-  top: 20px;
-  right: 40px;
-
-  width: 44px;
-  height: 44px;
-
-  padding: 0;
-  border: 0;
-  background: transparent;
-
-  color: #fffaf2;
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  font-size: 2.8rem;
-  line-height: 1;
-
-  cursor: pointer;
-
-  opacity: 0.82;
-  transition: opacity 160ms ease;
-}
-
-.recipe-modal-close:hover {
-  opacity: 1;
-}
-
-
-/* =========================================================
-   CHEVRON ARROWS
-========================================================= */
-
-.recipe-modal-arrow {
-  position: fixed;
-  z-index: 5100;
-
-  top: 50%;
-  transform: translateY(-80%);
-
-  width: 52px;
-  height: 52px;
-
-  padding: 0;
-  border: 0;
-  background: transparent;
-
-  color: transparent;
-  cursor: pointer;
-
-  opacity: 0.78;
-  transition:
-    opacity 160ms ease,
-    transform 160ms ease;
-}
-
-.recipe-modal-arrow:hover {
-  opacity: 1;
-}
-
-.recipe-modal-arrow::before {
-  content: "";
-
-  position: absolute;
-  top: 50%;
-  left: 90%;
-
-  width: 18px;
-  height: 18px;
-
-  border-right: 3px solid #fffaf2;
-  border-bottom: 3px solid #fffaf2;
-}
-
-.recipe-modal-arrow-left {
-  left: 8px;
-}
-
-.recipe-modal-arrow-left::before {
-  transform: translate(-40%, -50%) rotate(135deg);
-}
-
-.recipe-modal-arrow-right {
-  right: 55px;
-}
-
-.recipe-modal-arrow-right::before {
-  transform: translate(-60%, -50%) rotate(-45deg);
-}
-
-
-/* =========================================================
-   DISABLE PAGE SCROLL
-========================================================= */
-
-body.recipe-modal-open {
-  overflow: hidden;
-}
-
-
-/* =========================================================
-   TABLET
-========================================================= */
-
-@media (max-width: 1100px) {
-  .recipe-modal {
-    padding: 14px 16px;
-  }
-
-  .recipe-modal-card {
-    width: calc(100vw - 44px);
-    height: calc(100vh - 28px);
-
-    padding: 34px 30px 38px;
-  }
-
-  .recipe-modal-content {
-    grid-template-columns: 1fr;
-    gap: 34px;
-  }
-
-  .recipe-modal-left {
-    gap: 30px;
-  }
-}
-
-
-/* =========================================================
-   MOBILE
-========================================================= */
-
-@media (max-width: 700px) {
-  .recipe-modal {
-    padding: 10px;
-  }
-
-  .recipe-modal-card {
-    width: calc(100vw - 20px);
-    height: calc(100vh - 20px);
-
-    padding: 26px 20px 30px;
-  }
-
-  .recipe-modal-top {
-    gap: 18px;
-    margin-bottom: 20px;
-  }
-
-  .recipe-modal-top h1 {
-    font-size: clamp(3rem, 11vw, 4.6rem);
-  }
-
-  .recipe-modal-category {
-    font-size: 1.15rem;
-    padding-top: 8px;
-  }
-
-  .recipe-modal-content {
-    display: block;
-  }
-
-  .recipe-modal-left {
-    gap: 24px;
-  }
-
-  .recipe-modal-procedure {
-    margin-top: 28px;
-  }
-
-  .recipe-modal-block h2 {
-    margin-bottom: 12px;
-  }
-
-  .recipe-modal-text {
-    font-size: 1.12rem;
-    line-height: 1.35;
-  }
-
-  .recipe-modal-arrow {
-    width: 38px;
-    height: 38px;
-  }
-
-  .recipe-modal-arrow::before {
-    width: 14px;
-    height: 14px;
-    border-right-width: 2.5px;
-    border-bottom-width: 2.5px;
-  }
-
-  .recipe-modal-arrow-left {
-    left: 0;
-  }
-
-  .recipe-modal-arrow-right {
-    right: 0;
-  }
 }

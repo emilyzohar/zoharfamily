@@ -46,18 +46,133 @@ body {
 
   background-color: #f3f3f2;
 
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: 100% auto;
+  background-image:
+    url("assets/sabba/file.png");
 
-  color: var(--text);
+  background-repeat:
+    no-repeat;
+
+  background-position:
+    center top;
+
+  background-size:
+    100% auto;
+
+  color:
+    var(--text);
 
   font-family:
     Georgia,
     "Times New Roman",
     serif;
 
-  overflow: hidden;
+  overflow:
+    hidden;
+}
+
+/* =========================================================
+   DYNAMIC ARCHIVE LOADING
+========================================================= */
+
+.archive-loading {
+  position: fixed;
+
+  inset: 65px 0 0 0;
+
+  z-index: 50;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  color: var(--accent);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 2rem;
+  font-style: italic;
+  font-weight: 600;
+
+  text-align: center;
+
+  pointer-events: none;
+}
+
+
+.archive-loading::after {
+  content: "";
+
+  width: 18px;
+  height: 18px;
+
+  margin-left: 14px;
+
+  border:
+    2px
+    solid
+    rgba(104, 17, 22, 0.25);
+
+  border-top-color:
+    var(--accent);
+
+  border-radius: 50%;
+
+  animation:
+    archive-loading-spin
+    0.8s
+    linear
+    infinite;
+}
+
+
+.archive-error {
+  flex-direction: column;
+
+  gap: 12px;
+
+  pointer-events: auto;
+}
+
+
+.archive-error::after {
+  display: none;
+}
+
+
+.archive-error h2 {
+  margin: 0;
+
+  color: var(--accent);
+
+  font-size: 2.6rem;
+  font-weight: 600;
+  font-style: italic;
+}
+
+
+.archive-error p {
+  max-width: 700px;
+
+  margin: 0;
+
+  color: var(--accent);
+
+  font-size: 1.15rem;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+
+@keyframes archive-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 
