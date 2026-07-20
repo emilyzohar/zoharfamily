@@ -6,7 +6,7 @@ const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
 const DROPBOX_RECIPES_FOLDER =
-  "/Recipes";
+  "/Zohar Family/Recipes";
 
 
 /* =========================================================
@@ -389,16 +389,13 @@ async function fetchDropboxFolder(
 ) {
 
   const url =
-
-    buildDropboxApiUrl(
-
-      "/folder",
-
-      {
-        path
-      }
-
-    );
+  buildDropboxApiUrl(
+    "/folder",
+    {
+      path,
+      recursive: "true"
+    }
+  );
 
 
   const response =
@@ -1036,33 +1033,94 @@ function parseRecipeText(
   ===================================================== */
 
   const imagesValue =
+  extractMetadataValue(
+    cleanText,
+    "images"
+  );
 
-    extractMetadataValue(
-      cleanText,
-      "images"
+
+const recipeFolderPath =
+  String(
+    sourcePath || ""
+  )
+    .replace(
+      /\/[^/]+$/,
+      ""
     );
 
 
-  const imagePaths =
+const imagePaths =
+  imagesValue
+    .split(",")
+    .map(
+      path => {
+        let cleanPath =
+          path.trim();
 
-    imagesValue
+        /*
+          Repair an accidental repeated field label:
 
-      .split(
-        ","
-      )
+          images: images: filename.jpeg
+        */
 
-      .map(
+        cleanPath =
+          cleanPath.replace(
+            /^images\s*:\s*/i,
+            ""
+          );
 
-        path =>
+        if (
+          !cleanPath
+        ) {
+          return "";
+        }
 
-          path
-            .trim()
+        /*
+          Convert old absolute paths:
 
-      )
+          /Recipes/images/file.jpeg
 
-      .filter(
-        Boolean
-      );
+          to:
+
+          /Zohar Family/Recipes/images/file.jpeg
+        */
+
+        if (
+          /^\/Recipes(?:\/|$)/i.test(
+            cleanPath
+          )
+        ) {
+          return cleanPath.replace(
+            /^\/Recipes/i,
+            DROPBOX_RECIPES_FOLDER
+          );
+        }
+
+        /*
+          Keep current absolute Dropbox paths.
+        */
+
+        if (
+          cleanPath.startsWith("/")
+        ) {
+          return cleanPath;
+        }
+
+        /*
+          Resolve relative paths from the folder
+          containing the recipe text file.
+        */
+
+        return `${recipeFolderPath}/${cleanPath}`
+          .replace(
+            /\/+/g,
+            "/"
+          );
+      }
+    )
+    .filter(
+      Boolean
+    );
 
 
   const numericOrder =
@@ -2912,6 +2970,26 @@ function renderRecipeModal() {
 
             "recipe-modal-image";
 
+            const imageFilename =
+  String(imagePath)
+    .split("/")
+    .pop()
+    .toLowerCase();
+
+if (
+  imageFilename === "cheesecake.png"
+  ||
+  imageFilename === "cheescake.png"
+) {
+  imageItem.classList.add(
+    "recipe-modal-image-item--transparent"
+  );
+
+  image.classList.add(
+    "recipe-modal-image--transparent"
+  );
+}
+
 
           image.src =
 
@@ -2930,44 +3008,38 @@ function renderRecipeModal() {
           image.loading =
 
             "lazy";
+image.addEventListener(
+  "error",
+  () => {
+    const attemptedUrl =
+      getDropboxFileUrl(
+        imagePath
+      );
 
+    console.error(
+      "Recipe image failed to load:",
+      {
+        recipe:
+          recipe.name,
 
-          image
-            .addEventListener(
+        imagePath:
+          imagePath,
 
-              "error",
+        attemptedUrl:
+          attemptedUrl
+      }
+    );
 
-              () => {
+    imageItem.remove();
 
-                console.error(
-
-                  `Could not load recipe image: ${imagePath}`
-
-                );
-
-
-                imageItem
-                  .remove();
-
-
-                if (
-
-                  recipeModalImageWrap
-                    .children
-                    .length ===
-                      0
-
-                ) {
-
-                  recipeModalImageWrap.hidden =
-
-                    true;
-
-                }
-
-              }
-
-            );
+    if (
+      recipeModalImageWrap.children.length === 0
+    ) {
+      recipeModalImageWrap.hidden =
+        true;
+    }
+  }
+);
 
 
           imageItem

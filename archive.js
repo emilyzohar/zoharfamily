@@ -6,7 +6,7 @@ const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
 const DROPBOX_ARCHIVE_ROOT =
-  "/Works/Sabba";
+  "/Zohar Family/Works/Sabba";
 
 
 /* =========================================================
@@ -88,25 +88,88 @@ const DOCUMENT_EXTENSIONS = new Set([
 ========================================================= */
 
 const ARCHIVE_OVERRIDES = {
-
-  "books/LoveTriangle.pdf": {
-    title:
-      "Love Triangle"
+  "poems/safta.avif": {
+    title: "Poems for Safta",
+    order: 1
+  },
+  "poems/sabba.avif": {
+    title: "Poem for Myself",
+    order: 2
+  },
+  "poems/yal.avif": {
+    title: "Poem for Eyal",
+    order: 3
   },
 
-  "books/The Voyage.pdf": {
-    title:
-      "The Voyage"
+  "poems/alon.avif": {
+    title: "Poems for Alon",
+    order: 4
+  },
+  "poems/sharon.avif": {
+    title: "Poem for Sharon",
+    order: 5
+  },
+  "poems/erin.avif": {
+    title: "Poems for Erin",
+    order: 6
+  },
+  "poems/ethan.avif": {
+    title: "Poems for Ethan",
+    order: 7
   },
 
-  "articles/politics/rightwrong.pdf": {
-    title:
-      "How to do the right thing, the wrong way",
-
-    year:
-      "2003"
+  "poems/emily.avif": {
+    title: "Poem for Emily",
+    order: 8
+  },
+  "poems/zachary.avif": {
+    title: "Poem for Zach",
+    order: 9
+  },
+  "poems/jacklyn.avif": {
+    title: "Poem for Jacklyn",
+    order: 10
+  },
+  "poems/jaime.avif": {
+    title: "Poem for Jaime",
+    order: 11
+  },
+  "poems/alexandra.avif": {
+    title: "Poems for Alexandra",
+    order: 12
+  },
+  "poems/ema.avif": {
+    title: "Poem for Ema",
+    order: 13
+  },
+  "poems/abba.avif": {
+    title: "Poem for Abba",
+    order: 14
+  },
+  "poems/sister.avif": {
+    title: "Poem for Sister",
+    order: 15
+  },
+  "poems/hebrew.avif": {
+    title: "Poems in Hebrew",
+    order: 16
+  },
+  "poems/coby.avif": {
+    title: "Poem for Coby",
+    order: 17
+  },
+  "poems/friend.avif": {
+    title: "Poem for a Friend",
+    order: 18
+  },
+  "poems/rotem.avif": {
+    title: "Poem for Rotem",
+    order: 19
+  },
+  "poems/other.avif": {
+    title: "Other Poems",
+    order: 20
   }
-
 };
 
 
@@ -501,15 +564,21 @@ function getDropboxFileUrl(
 }
 
 
-async function fetchDropboxFolder(
-  path
-) {
+/* =========================================================
+   FETCH ENTIRE ARCHIVE IN ONE REQUEST
+========================================================= */
+
+async function fetchAllArchiveEntries() {
   const response =
     await fetch(
       buildDropboxApiUrl(
         "/folder",
         {
-          path
+          path:
+            DROPBOX_ARCHIVE_ROOT,
+
+          recursive:
+            "true"
         }
       ),
       {
@@ -530,7 +599,7 @@ async function fetchDropboxFolder(
       await response.text();
 
     throw new Error(
-      `Could not list ${path}. HTTP ${response.status}. ${errorText}`
+      `Could not load ${DROPBOX_ARCHIVE_ROOT}. HTTP ${response.status}. ${errorText}`
     );
   }
 
@@ -543,7 +612,7 @@ async function fetchDropboxFolder(
     )
   ) {
     throw new Error(
-      `The Dropbox folder endpoint did not return an array for ${path}.`
+      "The Dropbox archive endpoint did not return an array."
     );
   }
 
@@ -552,126 +621,351 @@ async function fetchDropboxFolder(
 
 
 /* =========================================================
-   RECURSIVE DROPBOX SCAN
+   BUILD FOLDER TREE FROM RECURSIVE RESULTS
 ========================================================= */
 
-async function scanDropboxFolder(
-  folderPath
+function buildArchiveFolderTree(
+  entries
 ) {
-  const entries =
-    await fetchDropboxFolder(
-      folderPath
-    );
+  const root = {
+    name:
+      getFilename(
+        DROPBOX_ARCHIVE_ROOT
+      ),
 
-  const files =
-    [];
+    path:
+      DROPBOX_ARCHIVE_ROOT,
 
-  const childFolders =
-    [];
+    files:
+      [],
 
-  entries.forEach(
-    entry => {
-      const entryType =
+    folders:
+      []
+  };
+
+
+  const folderMap =
+    new Map();
+
+
+  folderMap.set(
+    normalizePathKey(
+      DROPBOX_ARCHIVE_ROOT
+    ),
+    root
+  );
+
+
+  /*
+    Create all folder nodes first.
+  */
+
+  entries
+    .filter(
+      entry =>
         String(
           entry.type ?? ""
         )
-          .toLowerCase();
+          .toLowerCase() ===
+        "folder"
+    )
+    .sort(
+      (
+        entryA,
+        entryB
+      ) =>
+        getPathDepth(
+          getEntryPath(
+            entryA
+          )
+        ) -
+        getPathDepth(
+          getEntryPath(
+            entryB
+          )
+        )
+    )
+    .forEach(
+      entry => {
+        const folderPath =
+          getEntryPath(
+            entry
+          );
 
-      if (
-        entryType ===
+        if (
+          !folderPath
+        ) {
+          return;
+        }
+
+        ensureFolderNode(
+          folderPath,
+          folderMap,
+          root
+        );
+      }
+    );
+
+
+  /*
+    Add files to their parent folders.
+  */
+
+  entries
+    .filter(
+      entry =>
+        String(
+          entry.type ?? ""
+        )
+          .toLowerCase() ===
         "file"
-      ) {
-        files.push({
+    )
+    .forEach(
+      entry => {
+        const filePath =
+          getEntryPath(
+            entry
+          );
+
+        if (
+          !filePath
+        ) {
+          return;
+        }
+
+        const parentPath =
+          getParentPath(
+            filePath
+          );
+
+        const parentFolder =
+          ensureFolderNode(
+            parentPath,
+            folderMap,
+            root
+          );
+
+        parentFolder.files.push({
           type:
             "file",
 
           name:
             entry.name ||
             getFilename(
-              entry.path
+              filePath
             ),
 
           path:
-            entry.path ||
-            joinDropboxPath(
-              folderPath,
-              entry.name
-            ),
+            filePath,
 
           size:
             entry.size ??
             null
         });
       }
-
-      if (
-        entryType ===
-        "folder"
-      ) {
-        childFolders.push({
-          type:
-            "folder",
-
-          name:
-            entry.name ||
-            getFilename(
-              entry.path
-            ),
-
-          path:
-            entry.path ||
-            joinDropboxPath(
-              folderPath,
-              entry.name
-            )
-        });
-      }
-    }
-  );
-
-  const childResults =
-    await Promise.all(
-      childFolders.map(
-        folder =>
-          scanDropboxFolder(
-            folder.path
-          )
-      )
     );
 
-  return {
+
+  sortFolderTree(
+    root
+  );
+
+
+  return root;
+}
+
+
+/* =========================================================
+   FOLDER-TREE HELPERS
+========================================================= */
+
+function getEntryPath(
+  entry
+) {
+  return normalisePath(
+    entry.displayPath ||
+    entry.path ||
+    ""
+  );
+}
+
+
+function normalizePathKey(
+  path
+) {
+  return normalisePath(
+    path
+  )
+    .replace(
+      /\/+$/,
+      ""
+    )
+    .toLowerCase();
+}
+
+
+function getParentPath(
+  path
+) {
+  const cleanPath =
+    normalisePath(
+      path
+    )
+      .replace(
+        /\/+$/,
+        ""
+      );
+
+  const lastSlash =
+    cleanPath.lastIndexOf(
+      "/"
+    );
+
+  if (
+    lastSlash <= 0
+  ) {
+    return "";
+  }
+
+  return cleanPath.slice(
+    0,
+    lastSlash
+  );
+}
+
+
+function getPathDepth(
+  path
+) {
+  return trimSlashes(
+    path
+  )
+    .split("/")
+    .filter(
+      Boolean
+    )
+    .length;
+}
+
+
+function ensureFolderNode(
+  folderPath,
+  folderMap,
+  root
+) {
+  const cleanPath =
+    normalisePath(
+      folderPath
+    )
+      .replace(
+        /\/+$/,
+        ""
+      );
+
+  const key =
+    normalizePathKey(
+      cleanPath
+    );
+
+
+  if (
+    !cleanPath ||
+    key ===
+      normalizePathKey(
+        DROPBOX_ARCHIVE_ROOT
+      )
+  ) {
+    return root;
+  }
+
+
+  if (
+    folderMap.has(
+      key
+    )
+  ) {
+    return folderMap.get(
+      key
+    );
+  }
+
+
+  const parentPath =
+    getParentPath(
+      cleanPath
+    );
+
+
+  const parentFolder =
+    ensureFolderNode(
+      parentPath,
+      folderMap,
+      root
+    );
+
+
+  const folder = {
     name:
       getFilename(
-        folderPath
+        cleanPath
       ),
 
     path:
-      folderPath,
+      cleanPath,
 
     files:
-      files.sort(
-        (
-          fileA,
-          fileB
-        ) =>
-          compareNaturally(
-            fileA.name,
-            fileB.name
-          )
-      ),
+      [],
 
     folders:
-      childResults.sort(
-        (
-          folderA,
-          folderB
-        ) =>
-          compareNaturally(
-            folderA.name,
-            folderB.name
-          )
-      )
+      []
   };
+
+
+  parentFolder.folders.push(
+    folder
+  );
+
+
+  folderMap.set(
+    key,
+    folder
+  );
+
+
+  return folder;
+}
+
+
+function sortFolderTree(
+  folder
+) {
+  folder.files.sort(
+    (
+      fileA,
+      fileB
+    ) =>
+      compareNaturally(
+        fileA.name,
+        fileB.name
+      )
+  );
+
+
+  folder.folders.sort(
+    (
+      folderA,
+      folderB
+    ) =>
+      compareNaturally(
+        folderA.name,
+        folderB.name
+      )
+  );
+
+ 
+  folder.folders.forEach(
+    sortFolderTree
+  );
 }
 
 
@@ -832,55 +1126,66 @@ function createItemFromFile(
     );
 
   return {
-    title:
-      override.title ||
-      titleFromFilename(
-        file.name
-      ),
+  title:
+    override.title ||
+    titleFromFilename(
+      file.name
+    ),
 
-    author:
-      override.author ||
-      "",
+  author:
+    override.author ||
+    "",
 
-    year:
-      override.year ||
-      "",
+  year:
+    override.year ||
+    "",
 
-    description:
-      override.description ||
-      "",
+  description:
+    override.description ||
+    "",
 
-    url:
-      override.url ||
-      "",
+  url:
+    override.url ||
+    "",
 
-    type:
-      override.type ||
-      type,
+  order:
+    Number.isFinite(
+      Number(
+        override.order
+      )
+    )
+      ? Number(
+          override.order
+        )
+      : 9999,
 
-    file:
-      file.path,
+  type:
+    override.type ||
+    type,
 
-    image:
-      override.image ||
-      (
-        type === "image"
-          ? file.path
-          : ""
-      ),
+  file:
+    file.path,
 
-    quickViewImage:
-      override.quickViewImage ||
-      "",
+  image:
+    override.image ||
+    (
+      type === "image"
+        ? file.path
+        : ""
+    ),
 
-    label:
-      override.label ||
-      categoryLabel ||
-      "Archive",
+  quickViewImage:
+    override.quickViewImage ||
+    "",
 
-    sourcePath:
-      file.path
-  };
+  label:
+    override.label ||
+    categoryLabel ||
+    "Archive",
+
+  sourcePath:
+    file.path
+};
 }
 
 
@@ -1001,35 +1306,46 @@ function combineRelatedFiles(
           );
 
         items.push({
-          title:
-            firstOverride.title ||
-            displayTitle,
+  title:
+    firstOverride.title ||
+    displayTitle,
 
-          type:
-            "imageGallery",
+  order:
+    Number.isFinite(
+      Number(
+        firstOverride.order
+      )
+    )
+      ? Number(
+          firstOverride.order
+        )
+      : 9999,
 
-          image:
-            imageFiles[0].file.path,
+  type:
+    "imageGallery",
 
-          file:
-            imageFiles.map(
-              entry =>
-                entry.file.path
-            ),
+  image:
+    imageFiles[0].file.path,
 
-          label:
-            firstOverride.label ||
-            categoryLabel ||
-            "Images",
+  file:
+    imageFiles.map(
+      entry =>
+        entry.file.path
+    ),
 
-          year:
-            firstOverride.year ||
-            "",
+  label:
+    firstOverride.label ||
+    categoryLabel ||
+    "Images",
 
-          description:
-            firstOverride.description ||
-            ""
-        });
+  year:
+    firstOverride.year ||
+    "",
+
+  description:
+    firstOverride.description ||
+    ""
+});
 
         return;
       }
@@ -1130,15 +1446,45 @@ function combineRelatedFiles(
   );
 
   return items.sort(
-    (
-      itemA,
-      itemB
-    ) =>
-      compareNaturally(
-        itemA.title,
-        itemB.title
+  (
+    itemA,
+    itemB
+  ) => {
+    const orderA =
+      Number.isFinite(
+        Number(
+          itemA.order
+        )
       )
-  );
+        ? Number(
+            itemA.order
+          )
+        : 9999;
+
+    const orderB =
+      Number.isFinite(
+        Number(
+          itemB.order
+        )
+      )
+        ? Number(
+            itemB.order
+          )
+        : 9999;
+
+    if (
+      orderA !==
+      orderB
+    ) {
+      return orderA - orderB;
+    }
+
+    return compareNaturally(
+      itemA.title,
+      itemB.title
+    );
+  }
+);
 }
 
 
@@ -1496,10 +1842,13 @@ async function loadArchiveFromDropbox() {
   showArchiveLoading();
 
   try {
-    const rootTree =
-      await scanDropboxFolder(
-        DROPBOX_ARCHIVE_ROOT
-      );
+    const entries =
+  await fetchAllArchiveEntries();
+
+const rootTree =
+  buildArchiveFolderTree(
+    entries
+  );
 
     ARCHIVE_DATA =
       buildArchiveData(
@@ -1898,11 +2247,12 @@ function createCard(
           ? `
             <div class="card-thumbnail-wrap">
               <img
-                class="card-thumbnail"
-                src="${escapeHtml(thumbnailUrl)}"
-                alt="${escapeHtml(item.title || "")}"
-                loading="lazy"
-              >
+  class="card-thumbnail"
+  src="${escapeHtml(thumbnailUrl)}"
+  alt="${escapeHtml(item.title || "")}"
+  loading="lazy"
+  decoding="async"
+>
             </div>
           `
           : ""

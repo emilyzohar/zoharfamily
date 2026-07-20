@@ -833,3 +833,113 @@ body.modal-open {
     white-space: nowrap;
   }
 }
+
+/* ========================================
+   DYNAMIC MERCH STATUS
+======================================== */
+
+.merch-status {
+  min-height:
+    calc(100vh - 150px);
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    12px;
+
+  padding:
+    40px;
+
+  color:
+    #681116;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size:
+    1.4rem;
+
+  text-align:
+    center;
+}
+
+
+.merch-loading {
+  font-style:
+    italic;
+}
+
+
+.merch-loading::after {
+  content:
+    "";
+
+  width:
+    20px;
+
+  height:
+    20px;
+
+  border:
+    2px
+    solid
+    rgba(104, 17, 22, 0.25);
+
+  border-top-color:
+    #681116;
+
+  border-radius:
+    50%;
+
+  animation:
+    merch-loading-spin
+    0.8s
+    linear
+    infinite;
+}
+
+
+.merch-error strong {
+  font-size:
+    1.6rem;
+}
+
+
+.merch-error span {
+  max-width:
+    700px;
+
+  font-size:
+    1rem;
+
+  line-height:
+    1.5;
+}
+
+
+@keyframes merch-loading-spin {
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+[hidden] {
+  display:
+    none !important;
+}

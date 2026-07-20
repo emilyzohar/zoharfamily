@@ -1327,12 +1327,9 @@
 
   object-fit: contain;
 
-  background: #ffffff;
+  background: transparent;
 
-  border:
-    7px
-    solid
-    rgba(255, 255, 255, 0.92);
+  border: 0;
 
   box-sizing: border-box;
 
@@ -1960,4 +1957,27 @@ body.recipe-modal-open {
     transition: none;
   }
 
+}
+
+/* =========================================================
+   SPECIAL TRANSPARENT CHEESECAKE IMAGE
+========================================================= */
+
+.recipe-modal-image--transparent {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+
+/* Remove the tape */
+.recipe-modal-image-item--transparent::before {
+  display: none;
+}
+
+
+/* Optional: remove the tilted-photo effect */
+.recipe-modal-image-item--transparent {
+  transform: none !important;
+  padding-top: 0;
 }

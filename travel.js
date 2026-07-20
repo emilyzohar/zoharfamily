@@ -6,7 +6,7 @@ const PHOTO_API =
   "https://family-photo-api.emilyzohar.workers.dev";
 
 const TRAVEL_ROOT =
-  "/Travel";
+  "/Zohar Family/Travel";
 
 const TRIP_METADATA_FILE =
   "trip.txt";
