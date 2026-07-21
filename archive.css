@@ -3,31 +3,16 @@
 ======================================== */
 
 :root {
-
-  --background:
-    #f3f3f2;
-
-  --paper:
-    #fffefa;
-
-  --paper-border:
-    #dedbd3;
-
-  --text:
-    #301112;
-
-  --muted:
-    #756c69;
-
-  --accent:
-    #681116;
-
-  --accent-dark:
-    #470b0e;
-
-  --blue:
-    #245c99;
-
+  --background: #681116;
+  --paper: #fffefa;
+  --paper-border: #dedbd3;
+  --text: #301112;
+  --muted: #756c69;
+  --accent: #681116;
+  --accent-dark: #470b0e;
+  --archive-heading: #fbecd8;
+  --archive-heading-active: #fffefa;
+  --blue: #245c99;
 }
 
 
@@ -44,40 +29,43 @@ html {
 body {
   margin: 0;
 
-  background-color: #f3f3f2;
+  background-color: var(--background);
+  background-image: none;
 
-  background-image:
-    url("assets/sabba/file.png");
-
-  background-repeat:
-    no-repeat;
-
-  background-position:
-    center top;
-
-  background-size:
-    100% auto;
-
-  color:
-    var(--text);
+  color: var(--text);
 
   font-family:
     Georgia,
     "Times New Roman",
     serif;
 
-  overflow:
-    hidden;
+  overflow: hidden;
 }
 
-/* =========================================================
-   DYNAMIC ARCHIVE LOADING
-========================================================= */
+
+/* ========================================
+   PEEK MODE
+======================================== */
+
+body.peek-mode .top-nav {
+  display: none !important;
+}
+
+
+body.peek-mode .archive-main,
+body.peek-mode .archive-stage {
+  height: 100vh;
+}
+
+
+/* ========================================
+   ARCHIVE LOADING AND ERROR STATES
+======================================== */
 
 .archive-loading {
   position: fixed;
 
-  inset: 65px 0 0 0;
+  inset: 65px 0 0;
 
   z-index: 50;
 
@@ -88,7 +76,7 @@ body {
 
   padding: 30px;
 
-  color: var(--accent);
+  color: var(--archive-heading);
 
   font-family:
     "Cormorant Garamond",
@@ -105,6 +93,11 @@ body {
 }
 
 
+body.peek-mode .archive-loading {
+  inset: 0;
+}
+
+
 .archive-loading::after {
   content: "";
 
@@ -114,12 +107,11 @@ body {
   margin-left: 14px;
 
   border:
-    2px
-    solid
-    rgba(104, 17, 22, 0.25);
+    2px solid
+    rgba(251, 236, 216, 0.25);
 
   border-top-color:
-    var(--accent);
+    var(--archive-heading);
 
   border-radius: 50%;
 
@@ -131,7 +123,8 @@ body {
 }
 
 
-.archive-error {
+.archive-error,
+.archive-empty {
   flex-direction: column;
 
   gap: 12px;
@@ -140,24 +133,658 @@ body {
 }
 
 
-.archive-error::after {
+.archive-error::after,
+.archive-empty::after {
   display: none;
 }
 
 
-.archive-error h2 {
+.archive-error h2,
+.archive-empty h2 {
   margin: 0;
 
-  color: var(--accent);
+  color: var(--archive-heading);
 
   font-size: 2.6rem;
+  font-style: italic;
   font-weight: 600;
+}
+
+
+.archive-error p,
+.archive-empty p {
+  max-width: 700px;
+
+  margin: 0;
+
+  color: var(--archive-heading);
+
+  font-size: 1.15rem;
+  font-style: normal;
+  line-height: 1.5;
+}
+
+
+.archive-empty-link {
+  margin-top: 12px;
+
+  color: var(--archive-heading-active);
+
+  font-size: 1rem;
+  font-style: normal;
+  font-weight: 600;
+
+  text-decoration:
+    underline;
+
+  text-underline-offset:
+    4px;
+}
+
+
+@keyframes archive-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ========================================
+   SITE NAVIGATION
+======================================== */
+
+.top-nav {
+  position: relative;
+
+  z-index: 100;
+}
+
+
+.top-nav-inner {
+  min-height: 65px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 52px;
+
+  padding:
+    0
+    72px;
+}
+
+
+.top-nav-link {
+  color: var(--archive-heading);
+
+  text-decoration: none;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1.5rem;
+  font-weight: 400;
+}
+
+
+.top-nav-link:hover {
+  opacity: 0.65;
+}
+
+
+.top-nav-link.active {
   font-style: italic;
 }
 
-/* =========================================================
-   LIVE WEBSITE CARD PREVIEW
-========================================================= */
+
+/* ========================================
+   ARCHIVE PAGE
+======================================== */
+
+.archive-main {
+  position: relative;
+
+  width: 100%;
+  height: calc(100vh - 65px);
+
+  padding: 0;
+
+  overflow: hidden;
+
+  background: transparent;
+}
+
+
+.archive-stage {
+  position: relative;
+
+  width: 100%;
+  height: calc(100vh - 65px);
+
+  margin: 0;
+
+  overflow: hidden;
+
+  background: transparent;
+}
+
+
+/* ========================================
+   ARCHIVE CONTENT
+======================================== */
+
+.archive-stage-content {
+  position: absolute;
+
+  top: 140px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  z-index: 2;
+
+  padding:
+    40px
+    80px
+    100px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.archive-stage-content::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* ========================================
+   CATEGORY NAVIGATION
+======================================== */
+
+.archive-category-nav {
+  position: absolute;
+
+  top: 60px;
+  left: 0;
+
+  z-index: 20;
+
+  width: 100%;
+  height: 100px;
+}
+
+
+.archive-category-tab {
+  position: absolute;
+
+  padding: 0;
+
+  background: transparent;
+
+  border: none;
+
+  color: var(--archive-heading);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 27px;
+  font-style: italic;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  opacity: 0.55;
+
+  transition:
+    color
+    150ms
+    ease,
+    opacity
+    150ms
+    ease,
+    transform
+    150ms
+    ease;
+}
+
+
+.archive-category-tab:nth-child(1) {
+  top: 2px;
+  left: 12%;
+}
+
+
+.archive-category-tab:nth-child(2) {
+  top: 2px;
+  left: 30%;
+}
+
+
+.archive-category-tab:nth-child(3) {
+  top: 2px;
+  left: 47%;
+}
+
+
+.archive-category-tab:nth-child(4) {
+  top: 2px;
+  left: 64%;
+}
+
+
+.archive-category-tab:nth-child(5) {
+  top: 2px;
+  left: 83%;
+}
+
+
+.archive-category-tab:hover {
+  color: var(--archive-heading-active);
+
+  opacity: 0.8;
+}
+
+
+.archive-category-tab.active {
+  color: var(--archive-heading-active);
+
+  opacity: 1;
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* ========================================
+   GROUPS
+======================================== */
+
+.archive-group {
+  margin-bottom: 52px;
+}
+
+
+.archive-group:last-child {
+  margin-bottom: 0;
+}
+
+
+.archive-group-title {
+  margin:
+    0
+    0
+    15px
+    10px;
+
+  color: var(--archive-heading);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 34px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+
+/* ========================================
+   CAROUSEL
+======================================== */
+
+.carousel-wrapper {
+  position: relative;
+
+  width: 100%;
+}
+
+
+.archive-carousel {
+  display: flex;
+
+  gap: 25px;
+
+  width: calc(100% - 10px);
+
+  margin-left: 10px;
+
+  padding:
+    10px
+    5px
+    24px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+
+  scrollbar-width: none;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+
+.archive-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+
+.archive-carousel .archive-card {
+  flex:
+    0
+    0
+    min(
+      350px,
+      calc(100vw - 80px)
+    );
+
+  scroll-snap-align: start;
+}
+
+
+/* ========================================
+   CAROUSEL ARROWS
+======================================== */
+
+.carousel-button {
+  position: absolute;
+
+  top: 50%;
+
+  z-index: 30;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 52px;
+  height: 52px;
+
+  padding: 0;
+
+  background:
+    rgba(255, 255, 255, 0.88);
+
+  border:
+    1px solid
+    rgba(70, 55, 55, 0.18);
+
+  border-radius: 50%;
+
+  box-shadow:
+    0
+    8px
+    20px
+    rgba(0, 0, 0, 0.1);
+
+  color: var(--accent);
+
+  font-size: 25px;
+
+  cursor: pointer;
+
+  transform:
+    translateY(-50%);
+
+  transition:
+    background
+    150ms
+    ease,
+    transform
+    150ms
+    ease;
+}
+
+
+.carousel-button:hover {
+  background: white;
+
+  transform:
+    translateY(-50%)
+    scale(1.05);
+}
+
+
+.carousel-button-left {
+  left: -5px;
+}
+
+
+.carousel-button-right {
+  right: 15px;
+}
+
+
+/* ========================================
+   ARCHIVE CARDS
+======================================== */
+
+.archive-card {
+  position: relative;
+
+  display: flex;
+
+  min-height: 300px;
+
+  padding:
+    34px
+    32px
+    27px;
+
+  overflow: hidden;
+
+  background: var(--paper);
+
+  border:
+    1px solid
+    var(--paper-border);
+
+  box-shadow:
+    5px
+    10px
+    20px
+    rgba(0, 0, 0, 0.12);
+
+  cursor: pointer;
+
+  transform:
+    rotate(-0.2deg);
+
+  transition:
+    transform
+    170ms
+    ease,
+    box-shadow
+    170ms
+    ease;
+}
+
+
+.archive-card:nth-child(even) {
+  transform:
+    rotate(0.25deg);
+}
+
+
+.archive-card:hover {
+  transform:
+    translateY(-5px)
+    rotate(0);
+
+  box-shadow:
+    7px
+    17px
+    27px
+    rgba(0, 0, 0, 0.16);
+}
+
+
+/* ========================================
+   ARCHIVE CARD CONTENT
+======================================== */
+
+.archive-card-content {
+  display: flex;
+
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+}
+
+
+.item-type {
+  align-self: flex-start;
+
+  margin-bottom: 22px;
+
+  color: var(--accent);
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  text-transform: uppercase;
+}
+
+
+.item-main-row {
+  display: flex;
+
+  flex: 1;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+
+.item-main-text {
+  flex: 1;
+
+  min-width: 0;
+
+  align-self: flex-start;
+}
+
+
+.item-title {
+  margin:
+    0
+    0
+    15px;
+
+  color: var(--text);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 31px;
+  font-weight: 600;
+
+  line-height: 1;
+}
+
+
+.item-author {
+  margin: 0;
+
+  color: var(--muted);
+}
+
+
+.item-footer {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  width: 100%;
+
+  margin-top: 25px;
+}
+
+
+.item-meta {
+  color: var(--muted);
+
+  font-size: 12px;
+}
+
+
+.item-action {
+  margin-left: auto;
+
+  color: var(--accent);
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+
+/* ========================================
+   CARD THUMBNAILS
+======================================== */
+
+.card-thumbnail-wrap {
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: flex-end;
+
+  height: 115px;
+}
+
+
+.card-thumbnail {
+  display: block;
+
+  width: auto;
+  height: 115px;
+  max-width: 105px;
+
+  object-fit: contain;
+
+  box-shadow:
+    3px
+    7px
+    13px
+    rgba(0, 0, 0, 0.18);
+}
+
+
+/* ========================================
+   WEBSITE PREVIEW
+======================================== */
 
 .website-preview-wrap {
   position: relative;
@@ -175,22 +802,22 @@ body {
   top: 0;
   left: 0;
 
+  z-index: 2;
+
   width: 400%;
   height: 400%;
 
   border: 0;
+
+  background: transparent;
+
+  pointer-events: none;
 
   transform:
     scale(0.25);
 
   transform-origin:
     top left;
-
-  pointer-events: none;
-
-  background: transparent;
-
-  z-index: 2;
 }
 
 
@@ -198,6 +825,8 @@ body {
   position: absolute;
 
   inset: 0;
+
+  z-index: 1;
 
   display: flex;
 
@@ -217,945 +846,65 @@ body {
   font-style: italic;
 
   text-align: center;
-
-  z-index: 1;
-}
-.archive-error p {
-  max-width: 700px;
-
-  margin: 0;
-
-  color: var(--accent);
-
-  font-size: 1.15rem;
-  font-style: normal;
-  line-height: 1.5;
-}
-
-
-@keyframes archive-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-
-
-/* ========================================
-   SITE NAVIGATION
-======================================== */
-
-
-
-
-.top-nav {
-
-  position:
-    relative;
-
-  z-index:
-    100;
-
-}
-
-
-.top-nav-inner {
-
-  min-height:
-    65px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  gap:
-    52px;
-
-  padding:
-    0
-    72px;
-
-}
-
-
-.top-nav-link {
-
-  color:
-    #fbecd8;
-
-  text-decoration:
-    none;
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  font-size:
-    1.5rem;
-
-  font-weight:
-    400;
-
-}
-
-
-.top-nav-link:hover {
-
-  opacity:
-    0.65;
-
-}
-
-
-.top-nav-link.active {
-
-  font-style:
-    italic;
-
-}
-
-
-
-/* ========================================
-   ARCHIVE PAGE
-======================================== */
-
-/* ========================================
-   ARCHIVE PAGE
-======================================== */
-
-.archive-main {
-  position: relative;
-  width: 100%;
-  height: calc(100vh - 65px);
-
-  padding: 0;
-
-  overflow: hidden;
-
-  background: transparent;
 }
 
 
 /* ========================================
-   FIXED FOLDER BACKGROUND
-======================================== */
-
-.archive-stage {
-  position: relative;
-
-  width: 100%;
-  height: calc(100vh - 65px);
-
-  margin: 0;
-
-  overflow: hidden;
-
-  background: transparent;
-}
-
-
-/* ========================================
-   SCROLLING CONTENT INSIDE FOLDER
-======================================== */
-
-.archive-stage-content {
-  position: absolute;
-
-  /*
-     THIS CONTROLS WHERE THE CONTENT
-     STARTS INSIDE THE FOLDER.
-  */
-  top: 140px;
-
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  z-index: 2;
-
-  padding:
-    40px
-    80px
-    100px;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-
-  /*
-     Smooth scrolling on mobile.
-  */
-  -webkit-overflow-scrolling: touch;
-
-  scrollbar-width: none;
-}
-
-
-.archive-stage-content::-webkit-scrollbar {
-  display: none;
-}
-
-
-/* ========================================
-   CATEGORY NAVIGATION
-
-   These are simple controls.
-   The PNG itself supplies the folder design.
-======================================== */
-
-.archive-category-nav {
-  position: absolute;
-
-  top: 60px;   /* overall tab row height */
-  left: 0;
-
-  width: 100%;
-  height: 100px;
-
-  z-index: 20;
-}
-
-
-.archive-category-tab {
-  position: absolute;
-
-  padding: 0;
-
-  background: transparent;
-  border: none;
-
-  color: var(--accent);
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  font-size: 27px;
-  font-style: italic;
-  font-weight: 500;
-
-  cursor: pointer;
-
-  opacity: 0.55;
-}
-
-
-.archive-category-tab.active {
-  opacity: 1;
-}
-
-.archive-category-tab:nth-child(1) {
-  left: 12%;
-  top: 2px;
-}
-
-.archive-category-tab:nth-child(2) {
-  left: 30%;
-  top: 2px;
-}
-
-.archive-category-tab:nth-child(3) {
-  left: 47%;
-  top: 2px;
-}
-
-.archive-category-tab:nth-child(4) {
-  left: 64%;
-  top: 2px;
-}
-
-.archive-category-tab:nth-child(5) {
-  left: 83%;
-  top: 2px;
-}
-
-
-.archive-category-tab:hover {
-
-  opacity:
-    0.8;
-
-}
-
-
-.archive-category-tab.active {
-
-  opacity:
-    1;
-
-  transform:
-    translateY(
-      -1px
-    );
-
-}
-
-
-
-/* ========================================
-   CATEGORY BACKGROUND
-
-   NO FOLDER IS CREATED WITH CSS.
-
-   The PNG itself is the visual background.
-======================================== */
-
-
-
-
-
-
-
-/* ========================================
-   GROUPS
-
-   Used for Articles and Lectures.
-======================================== */
-
-.archive-group {
-
-  margin-bottom:
-    52px;
-
-}
-
-
-.archive-group:last-child {
-
-  margin-bottom:
-    0;
-
-}
-
-
-.archive-group-title {
-  margin:
-    0
-    0
-    15px;
-
-  margin-left:
-    70px;
-
-  color:
-    var(--accent);
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  font-size:
-    34px;
-
-  font-style:
-    italic;
-
-  font-weight:
-    600;
-}
-
-
-
-/* ========================================
-   CAROUSEL
-======================================== */
-
-.carousel-wrapper {
-
-  position:
-    relative;
-
-  width:
-    100%;
-
-}
-
-
-.archive-carousel {
-  display: flex;
-
-  gap: 25px;
-
-  /* LEFT starting point */
-  margin-left: 25px;
-
-  /* 100% minus left space minus right space */
-  width: calc(100% - 20px - 50px);
-
-  overflow-x: auto;
-  overflow-y: hidden;
-
-  padding:
-    10px
-    5px
-    24px;
-
-  scroll-behavior: smooth;
-  scroll-snap-type: x mandatory;
-
-  scrollbar-width: none;
-
-  -webkit-overflow-scrolling: touch;
-}
-
-
-.archive-carousel::-webkit-scrollbar {
-
-  display:
-    none;
-
-}
-
-
-.archive-carousel
-.archive-card {
-
-  flex:
-    0
-    0
-    min(
-      350px,
-      calc(
-        100vw
-        -
-        80px
-      )
-    );
-
-  scroll-snap-align:
-    start;
-
-}
-
-
-
-/* ========================================
-   CAROUSEL ARROWS
-======================================== */
-
-.carousel-button {
-
-  position:
-    absolute;
-
-  top:
-    50%;
-
-  z-index:
-    30;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  width:
-    52px;
-
-  height:
-    52px;
-
-  padding:
-    0;
-
-  background:
-    rgba(
-      255,
-      255,
-      255,
-      0.88
-    );
-
-  border:
-    1px
-    solid
-    rgba(
-      70,
-      55,
-      55,
-      0.18
-    );
-
-  border-radius:
-    50%;
-
-  box-shadow:
-    0
-    8px
-    20px
-    rgba(
-      0,
-      0,
-      0,
-      0.1
-    );
-
-  color:
-    var(--accent);
-
-  font-size:
-    25px;
-
-  cursor:
-    pointer;
-
-  transform:
-    translateY(
-      -50%
-    );
-
-}
-
-
-.carousel-button:hover {
-
-  background:
-    white;
-
-}
-
-
-.carousel-button-left {
-
-  left:
-    -5px;
-
-}
-
-
-.carousel-button-right {
-  right: 15px;
-}
-
-
-
-/* ========================================
-   PAPER CARDS
-======================================== */
-
-.archive-card {
-
-  position:
-    relative;
-
-  display:
-    flex;
-
-  min-height:
-    300px;
-
-  padding:
-    34px
-    32px
-    27px;
-
-  overflow:
-    hidden;
-
-  background:
-    var(--paper);
-
-  border:
-    1px
-    solid
-    var(--paper-border);
-
-  box-shadow:
-    5px
-    10px
-    20px
-    rgba(
-      0,
-      0,
-      0,
-      0.12
-    );
-
-  cursor:
-    pointer;
-
-  transform:
-    rotate(
-      -0.2deg
-    );
-
-  transition:
-    transform
-    170ms
-    ease,
-    box-shadow
-    170ms
-    ease;
-
-}
-
-
-.archive-card:nth-child(
-  even
-) {
-
-  transform:
-    rotate(
-      0.25deg
-    );
-
-}
-
-
-.archive-card:hover {
-
-  transform:
-    translateY(
-      -5px
-    )
-    rotate(
-      0
-    );
-
-  box-shadow:
-    7px
-    17px
-    27px
-    rgba(
-      0,
-      0,
-      0,
-      0.16
-    );
-
-}
-
-
-
-/* ========================================
-   PAPER CONTENT
-======================================== */
-
-.archive-card-content {
-
-  display:
-    flex;
-
-  flex-direction:
-    column;
-
-  width:
-    100%;
-
-  height:
-    100%;
-
-}
-
-
-.item-type {
-
-  align-self:
-    flex-start;
-
-  margin-bottom:
-    22px;
-
-  color:
-    var(--accent);
-
-  font-family:
-    Arial,
-    Helvetica,
-    sans-serif;
-
-  font-size:
-    11px;
-
-  font-weight:
-    700;
-
-  letter-spacing:
-    0.1em;
-
-  text-transform:
-    uppercase;
-
-}
-
-
-.item-main-row {
-
-  display:
-    flex;
-
-  align-items:
-    flex-end;
-
-  justify-content:
-    space-between;
-
-  gap:
-    20px;
-
-  flex:
-    1;
-
-}
-
-
-.item-main-text {
-
-  flex:
-    1;
-
-  min-width:
-    0;
-
-  align-self:
-    flex-start;
-
-}
-
-
-.item-title {
-
-  margin:
-    0
-    0
-    15px;
-
-  color:
-    var(--text);
-
-  font-family:
-    "Cormorant Garamond",
-    Georgia,
-    serif;
-
-  font-size:
-    31px;
-
-  font-weight:
-    600;
-
-  line-height:
-    1;
-
-}
-
-
-.item-author {
-
-  margin:
-    0;
-
-  color:
-    var(--muted);
-
-}
-
-
-.item-footer {
-
-  display:
-    flex;
-
-  align-items:
-    flex-end;
-
-  justify-content:
-    space-between;
-
-  gap:
-    15px;
-
-  width:
-    100%;
-
-  margin-top:
-    25px;
-
-}
-
-
-.item-meta {
-
-  color:
-    var(--muted);
-
-  font-size:
-    12px;
-
-}
-
-
-.item-action {
-
-  margin-left:
-    auto;
-
-  color:
-    var(--accent);
-
-  font-family:
-    Georgia,
-    serif;
-
-  font-size:
-    14px;
-
-  font-weight:
-    700;
-
-}
-
-
-
-/* ========================================
-   CARD THUMBNAILS
-======================================== */
-
-.card-thumbnail-wrap {
-
-  display:
-    flex;
-
-  align-items:
-    flex-end;
-
-  justify-content:
-    flex-end;
-
-  height:
-    115px;
-
-}
-
-
-.card-thumbnail {
-
-  display:
-    block;
-
-  width:
-    auto;
-
-  height:
-    115px;
-
-  max-width:
-    105px;
-
-  object-fit:
-    contain;
-
-  box-shadow:
-    3px
-    7px
-    13px
-    rgba(
-      0,
-      0,
-      0,
-      0.18
-    );
-
-}
-
-
-
-/* ========================================
-   BLURB CARD
+   BLURB CARDS
 ======================================== */
 
 .blurb-carousel-card {
+  flex-direction: column;
 
-  flex-direction:
-    column;
+  background: #f8f7f3;
 
-  background:
-    #f8f7f3;
-
-  cursor:
-    default;
-
+  cursor: default;
 }
 
 
 .blurb-carousel-card:hover {
-
   transform:
-    rotate(
-      0
-    );
-
+    rotate(0);
 }
 
 
 .blurb-carousel-text {
+  display: -webkit-box;
 
-  display:
-    -webkit-box;
+  overflow: hidden;
 
-  overflow:
-    hidden;
+  color: #504848;
 
-  color:
-    #504848;
+  font-size: 16px;
 
-  font-size:
-    16px;
+  line-height: 1.65;
 
-  line-height:
-    1.65;
-
-  -webkit-box-orient:
-    vertical;
-
-  -webkit-line-clamp:
-    8;
-
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
 }
 
 
 .blurb-read-more {
+  align-self: flex-end;
 
-  align-self:
-    flex-end;
-
-  margin-top:
-    auto;
+  margin-top: auto;
 
   padding:
     24px
     0
     0;
 
-  background:
-    transparent;
+  background: transparent;
 
-  border:
-    none;
+  border: none;
 
-  color:
-    var(--accent);
+  color: var(--accent);
 
-  font-size:
-    14px;
+  font-size: 14px;
+  font-weight: 700;
 
-  font-weight:
-    700;
-
-  cursor:
-    pointer;
-
+  cursor: pointer;
 }
-
 
 
 /* ========================================
@@ -1163,83 +912,49 @@ body {
 ======================================== */
 
 .modal {
+  position: fixed;
 
-  position:
-    fixed;
+  inset: 0;
 
-  inset:
-    0;
+  z-index: 1000;
 
-  z-index:
-    1000;
+  display: none;
 
-  display:
-    none;
+  align-items: center;
+  justify-content: center;
 
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  padding:
-    30px;
-
+  padding: 30px;
 }
 
 
 .modal.is-open {
-
-  display:
-    flex;
-
+  display: flex;
 }
 
 
 .modal-backdrop {
+  position: absolute;
 
-  position:
-    absolute;
-
-  inset:
-    0;
+  inset: 0;
 
   background:
-    rgba(
-      20,
-      18,
-      15,
-      0.58
-    );
+    rgba(20, 18, 15, 0.58);
 
   backdrop-filter:
-    blur(
-      5px
-    );
-
+    blur(5px);
 }
 
 
 .dark-backdrop {
-
   background:
-    rgba(
-      0,
-      0,
-      0,
-      0.88
-    );
-
+    rgba(0, 0, 0, 0.88);
 }
 
 
 .modal-window {
+  position: relative;
 
-  position:
-    relative;
-
-  z-index:
-    2;
+  z-index: 2;
 
   width:
     min(
@@ -1247,63 +962,40 @@ body {
       95vw
     );
 
-  max-height:
-    92vh;
+  max-height: 92vh;
 
-  overflow:
-    auto;
+  overflow: auto;
 
-  background:
-    var(--paper);
+  background: var(--paper);
 
   box-shadow:
     0
     40px
     100px
-    rgba(
-      0,
-      0,
-      0,
-      0.3
-    );
-
+    rgba(0, 0, 0, 0.3);
 }
 
 
 .modal-close {
+  position: absolute;
 
-  position:
-    absolute;
+  top: 20px;
+  right: 24px;
 
-  top:
-    20px;
+  z-index: 30;
 
-  right:
-    24px;
+  padding: 0;
 
-  z-index:
-    30;
+  background: transparent;
 
-  padding:
-    0;
+  border: none;
 
-  background:
-    transparent;
+  color: var(--text);
 
-  border:
-    none;
+  font-size: 38px;
 
-  color:
-    var(--text);
-
-  font-size:
-    38px;
-
-  cursor:
-    pointer;
-
+  cursor: pointer;
 }
-
 
 
 /* ========================================
@@ -1311,96 +1003,63 @@ body {
 ======================================== */
 
 .quick-view-window {
-
-  padding:
-    60px;
-
+  padding: 60px;
 }
 
 
 .quick-view-layout {
-
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
-    minmax(
-      0,
-      0.75fr
-    )
-    minmax(
-      0,
-      1.25fr
-    );
+    minmax(0, 0.75fr)
+    minmax(0, 1.25fr);
 
-  gap:
-    55px;
-
+  gap: 55px;
 }
 
 
 .quick-view-image-container {
-
-  display:
-    none;
-
+  display: none;
 }
 
 
 .quick-view-image-container.visible {
-
-  display:
-    block;
-
+  display: block;
 }
 
 
 .quick-view-image {
+  width: 100%;
 
-  width:
-    100%;
+  max-height: 600px;
 
-  max-height:
-    600px;
-
-  object-fit:
-    contain;
-
+  object-fit: contain;
 }
 
 
 .quick-view-category {
-
   margin:
     0
     0
     18px;
 
-  color:
-    var(--accent);
+  color: var(--accent);
 
   font-family:
     Arial,
     Helvetica,
     sans-serif;
 
-  font-size:
-    13px;
+  font-size: 13px;
+  font-weight: 700;
 
-  font-weight:
-    700;
+  letter-spacing: 0.1em;
 
-  letter-spacing:
-    0.1em;
-
-  text-transform:
-    uppercase;
-
+  text-transform: uppercase;
 }
 
 
 .quick-view-content h2 {
-
   margin:
     0
     0
@@ -1418,139 +1077,419 @@ body {
       70px
     );
 
-  line-height:
-    0.95;
-
+  line-height: 0.95;
 }
 
 
 .quick-view-description {
+  color: #514a43;
 
-  color:
-    #514a43;
+  font-size: 18px;
 
-  font-size:
-    18px;
-
-  line-height:
-    1.65;
-
+  line-height: 1.65;
 }
 
 
 .quick-view-actions {
-
-  margin-top:
-    35px;
-
+  margin-top: 35px;
 }
 
 
-.quick-view-window.blurb-view {
+/* ========================================
+   BLURB QUICK VIEW
+======================================== */
 
+.quick-view-window.blurb-view {
   width:
     min(
       1200px,
       95vw
     );
-
 }
 
 
 .quick-view-window.blurb-view
 .quick-view-layout {
-
-  display:
-    block;
-
+  display: block;
 }
 
 
 .quick-view-window.blurb-view
 .quick-view-description p {
+  font-size: 20px;
 
-  font-size:
-    20px;
-
-  line-height:
-    1.65;
-
+  line-height: 1.65;
 }
-
 
 
 /* ========================================
-   COLLECTION LIST
+   ARTICLE COLLECTION MODAL
 ======================================== */
 
-.article-list {
-
-  border-top:
-    1px
-    solid
-    var(--paper-border);
-
-}
-
-
-.article-list-item {
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    space-between;
-
-  gap:
-    30px;
+.quick-view-window.article-collection-view {
+  width:
+    min(
+      1400px,
+      96vw
+    );
 
   padding:
-    22px
-    0;
-
-  border-bottom:
-    1px
-    solid
-    var(--paper-border);
-
-  cursor:
-    pointer;
-
+    60px
+    70px
+    55px;
 }
 
 
-.article-list-text h3 {
+.article-collection-view
+.quick-view-layout {
+  display: block;
+}
+
+
+.article-collection-view
+.quick-view-content {
+  width: 100%;
+}
+
+
+.article-collection-view
+.quick-view-content h2 {
+  margin:
+    0
+    0
+    18px;
+
+  color: var(--accent-dark);
+
+  font-size:
+    clamp(
+      42px,
+      6vw,
+      68px
+    );
+}
+
+
+.article-collection-view
+.quick-view-description {
+  width: 100%;
 
   margin:
     0
     0
-    5px;
+    34px;
 
-  font-size:
-    23px;
+  color: var(--muted);
 
-  font-weight:
-    500;
-
+  font-size: 16px;
 }
 
+
+/* ========================================
+   COLLECTION BLURB AND LINKS LAYOUT
+======================================== */
+
+.collection-detail-layout {
+  width: 100%;
+}
+
+
+.collection-detail-layout.has-blurb {
+  display: grid;
+
+  grid-template-columns:
+    minmax(800px, 1.2fr)
+    minmax(350px, 1.8fr);
+
+  gap: 56px;
+
+  width: 100%;
+
+  align-items: start;
+}
+
+
+.collection-detail-blurb {
+  position: sticky;
+
+  top: 0;
+
+  padding-right: 40px;
+
+  border-right:
+    1px solid
+    rgba(104, 17, 22, 0.2);
+
+  color: #514a43;
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: 17px;
+
+  line-height: 1.65;
+}
+
+
+.collection-detail-blurb p {
+  margin:
+    0
+    0
+    18px;
+}
+
+
+.collection-detail-blurb p:last-child {
+  margin-bottom: 0;
+}
+
+
+.collection-detail-layout.has-blurb
+.article-list {
+  width: 100%;
+
+  min-width: 0;
+
+  margin-top: 0;
+}
+
+
+/* ========================================
+   COLLECTION LINKS
+======================================== */
+
+.article-list {
+  width: 100%;
+
+  margin-top: 30px;
+
+  border-top:
+    1px solid
+    rgba(104, 17, 22, 0.22);
+}
+
+
+.article-list-item {
+  position: relative;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+
+  width: 100%;
+
+  min-height: 120px;
+
+  padding:
+    28px
+    8px;
+
+  background: transparent;
+
+  border: none;
+
+  border-bottom:
+    1px solid
+    rgba(104, 17, 22, 0.22);
+
+  border-radius: 0;
+
+  box-shadow: none;
+
+  cursor: pointer;
+
+  transition:
+    padding-left
+    180ms
+    ease,
+    background-color
+    180ms
+    ease;
+}
+
+
+.article-list-item:hover {
+  padding-left: 18px;
+
+  background:
+    rgba(104, 17, 22, 0.035);
+
+  transform: none;
+
+  box-shadow: none;
+}
+
+
+.article-list-text {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
+.article-list-text h3 {
+  margin:
+    0
+    0
+    6px;
+
+  color: var(--text);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 28px;
+  font-weight: 600;
+
+  line-height: 1.15;
+
+  white-space: normal;
+
+  transition:
+    color
+    180ms
+    ease;
+}
+
+
+.article-list-item:hover
+.article-list-text h3 {
+  color: var(--accent);
+}
+
+
+.article-list-text p {
+  margin: 0;
+
+  overflow: hidden;
+
+  color: var(--muted);
+
+  font-size: 13px;
+
+  line-height: 1.45;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* ========================================
+   COLLECTION LINK ARROW
+======================================== */
 
 .article-list-arrow {
+  position: relative;
 
-  color:
-    var(--accent);
+  flex:
+    0
+    0
+    42px;
 
-  font-size:
-    13px;
+  display: flex;
 
-  font-weight:
-    700;
+  align-items: center;
+  justify-content: center;
 
+  width: 42px;
+  height: 42px;
+
+  overflow: hidden;
+
+  color: transparent;
+
+  font-size: 0;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius: 50%;
+
+  transition:
+    transform
+    180ms
+    ease,
+    background-color
+    180ms
+    ease,
+    border-color
+    180ms
+    ease;
 }
 
+
+.article-list-arrow::before {
+  content: "→";
+
+  color: var(--accent);
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 22px;
+
+  line-height: 1;
+
+  transition:
+    color
+    180ms
+    ease,
+    font-size
+    180ms
+    ease,
+    transform
+    180ms
+    ease;
+}
+
+
+.article-list-item:hover
+.article-list-arrow {
+  transform:
+    translateX(5px);
+}
+
+
+.article-list-item:hover
+.article-list-arrow::before {
+  font-size: 26px;
+
+  transform:
+    translateX(1px);
+}
+
+
+.article-list-item:focus-visible {
+  outline:
+    2px solid
+    var(--accent);
+
+  outline-offset: 4px;
+}
+
+
+.article-list-item:focus-visible
+.article-list-arrow {
+  background: var(--accent);
+
+  border-color: var(--accent);
+}
+
+
+.article-list-item:focus-visible
+.article-list-arrow::before {
+  color: #fffefa;
+}
 
 
 /* ========================================
@@ -1559,9 +1498,7 @@ body {
 
 .primary-button,
 .secondary-button {
-
-  display:
-    inline-block;
+  display: inline-block;
 
   padding:
     13px
@@ -1572,54 +1509,37 @@ body {
     Helvetica,
     sans-serif;
 
-  font-size:
-    14px;
+  font-size: 14px;
+  font-weight: 700;
 
-  font-weight:
-    700;
-
-  text-decoration:
-    none;
-
+  text-decoration: none;
 }
 
 
 .primary-button {
+  background: var(--accent);
 
-  background:
-    var(--accent);
-
-  color:
-    white;
-
+  color: white;
 }
 
 
 .secondary-button {
-
   border:
-    1px
-    solid
+    1px solid
     var(--paper-border);
 
-  color:
-    var(--accent);
-
+  color: var(--accent);
 }
 
 
-
 /* ========================================
-   PDF
+   PDF VIEWER
 ======================================== */
 
 .pdf-window {
+  display: flex;
 
-  display:
-    flex;
-
-  flex-direction:
-    column;
+  flex-direction: column;
 
   width:
     min(
@@ -1627,115 +1547,75 @@ body {
       96vw
     );
 
-  height:
-    94vh;
+  height: 94vh;
 
-  overflow:
-    hidden;
-
+  overflow: hidden;
 }
 
 
 .pdf-toolbar {
+  display: flex;
 
-  display:
-    flex;
+  align-items: center;
+  justify-content: space-between;
 
-  align-items:
-    center;
-
-  justify-content:
-    space-between;
-
-  gap:
-    20px;
+  gap: 20px;
 
   padding:
     18px
     25px;
 
-  background:
-    white;
-
+  background: white;
 }
 
 
 .pdf-label {
+  margin: 0;
 
-  margin:
-    0;
+  color: var(--accent);
 
-  color:
-    var(--accent);
-
-  font-size:
-    11px;
-
-  font-weight:
-    700;
-
+  font-size: 11px;
+  font-weight: 700;
 }
 
 
 .pdf-toolbar h2 {
-
   margin:
     3px
     0
     0;
-
 }
 
 
 .pdf-toolbar-actions {
+  display: flex;
 
-  display:
-    flex;
+  align-items: center;
 
-  align-items:
-    center;
-
-  gap:
-    15px;
-
+  gap: 15px;
 }
 
 
 .pdf-close {
-
-  position:
-    static;
-
+  position: static;
 }
 
 
 .pdf-frame-container {
+  flex: 1;
 
-  flex:
-    1;
+  min-height: 0;
 
-  min-height:
-    0;
-
-  background:
-    #444;
-
+  background: #444;
 }
 
 
 .pdf-frame {
+  width: 100%;
+  height: 100%;
 
-  width:
-    100%;
-
-  height:
-    100%;
-
-  border:
-    none;
-
+  border: none;
 }
-
 
 
 /* ========================================
@@ -1743,93 +1623,69 @@ body {
 ======================================== */
 
 .image-modal-window {
+  position: relative;
 
-  position:
-    relative;
+  z-index: 2;
 
-  z-index:
-    2;
+  display: flex;
 
-  display:
-    flex;
+  flex-direction: column;
 
-  flex-direction:
-    column;
+  align-items: center;
 
-  align-items:
-    center;
-
-  max-width:
-    98vw;
-
-  max-height:
-    96vh;
-
+  max-width: 98vw;
+  max-height: 96vh;
 }
 
 
 .lightbox-image {
+  max-width: 96vw;
+  max-height: 88vh;
 
-  max-width:
-    96vw;
+  object-fit: contain;
 
-  max-height:
-    88vh;
+  transition:
+    opacity
+    150ms
+    ease;
+}
 
-  object-fit:
-    contain;
 
+.lightbox-image.is-loading {
+  opacity: 0.25;
 }
 
 
 .image-close {
+  position: fixed;
 
-  position:
-    fixed;
+  top: 24px;
+  right: 34px;
 
-  top:
-    24px;
-
-  right:
-    34px;
-
-  color:
-    white;
-
+  color: white;
 }
 
 
 .image-caption {
+  padding: 15px;
 
-  padding:
-    15px;
+  color: white;
 
-  color:
-    white;
-
-  text-align:
-    center;
-
+  text-align: center;
 }
 
 
 .image-caption h2 {
-
   margin:
     0
     0
     5px;
-
 }
 
 
 .image-caption p {
-
-  margin:
-    0;
-
+  margin: 0;
 }
-
 
 
 /* ========================================
@@ -1848,41 +1704,30 @@ body {
 
   padding: 0;
 
-  transform:
-    translateY(-50%);
-
   background:
-    rgba(
-      255,
-      255,
-      255,
-      0.15
-    );
+    rgba(255, 255, 255, 0.15);
 
   border:
-    1px
-    solid
-    rgba(
-      255,
-      255,
-      255,
-      0.4
-    );
+    1px solid
+    rgba(255, 255, 255, 0.4);
 
   border-radius: 50%;
 
-  /* Hide original text arrow */
   color: transparent;
+
   font-size: 0;
 
   cursor: pointer;
 
+  transform:
+    translateY(-50%);
+
   transition:
-    background 160ms ease;
+    background
+    160ms
+    ease;
 }
 
-
-/* Draw matching chevron */
 
 .image-gallery-arrow::before {
   content: "";
@@ -1895,18 +1740,14 @@ body {
   height: 14px;
 
   border-top:
-    4px
-    solid
+    4px solid
     white;
 
   border-right:
-    4px
-    solid
+    4px solid
     white;
 }
 
-
-/* Left arrow */
 
 .image-gallery-arrow-left {
   left: 30px;
@@ -1921,8 +1762,6 @@ body {
     rotate(-135deg);
 }
 
-
-/* Right arrow */
 
 .image-gallery-arrow-right {
   right: 30px;
@@ -1940,22 +1779,13 @@ body {
 
 .image-gallery-arrow:hover {
   background:
-    rgba(
-      255,
-      255,
-      255,
-      0.25
-    );
+    rgba(255, 255, 255, 0.25);
 }
+
 
 /* ========================================
-   IMAGE GALLERY LOADING INDICATOR
+   IMAGE GALLERY LOADER
 ======================================== */
-
-.image-modal-window {
-  position: relative;
-}
-
 
 .image-gallery-loader {
   position: absolute;
@@ -1970,36 +1800,24 @@ body {
   width: 34px;
   height: 34px;
 
-  transform:
-    translate(
-      -50%,
-      -50%
-    );
-
   border:
-    3px
-    solid
-    rgba(
-      255,
-      255,
-      255,
-      0.25
-    );
+    3px solid
+    rgba(255, 255, 255, 0.25);
 
-  border-top-color:
-    white;
+  border-top-color: white;
 
-  border-radius:
-    50%;
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  transform:
+    translate(-50%, -50%);
 
   animation:
     image-gallery-spin
     0.75s
     linear
     infinite;
-
-  pointer-events:
-    none;
 }
 
 
@@ -2011,186 +1829,365 @@ body {
 @keyframes image-gallery-spin {
   to {
     transform:
-      translate(
-        -50%,
-        -50%
-      )
-      rotate(
-        360deg
-      );
+      translate(-50%, -50%)
+      rotate(360deg);
   }
 }
 
 
-/* Fade image slightly while next image loads */
+/* ========================================
+   TABLET
+======================================== */
 
-.lightbox-image.is-loading {
-  opacity: 0.25;
+@media (
+  max-width: 1050px
+) {
+  .quick-view-window.article-collection-view {
+    width: 96vw;
+
+    padding:
+      55px
+      45px
+      45px;
+  }
+
+
+  .collection-detail-layout.has-blurb {
+    grid-template-columns:
+      minmax(220px, 0.75fr)
+      minmax(380px, 1.8fr);
+
+    gap: 42px;
+  }
+
+
+  .collection-detail-blurb {
+    padding-right: 28px;
+  }
 }
 
-
-.lightbox-image {
-  transition:
-    opacity
-    150ms
-    ease;
-}
 
 /* ========================================
    MOBILE
 ======================================== */
 
 @media (
-  max-width:
-    850px
+  max-width: 850px
 ) {
+  body {
+    overflow: auto;
+  }
+
 
   .top-nav-inner {
-
-    gap:
-      22px;
+    gap: 22px;
 
     padding:
       0
       22px;
 
-    overflow-x:
-      auto;
-
+    overflow-x: auto;
   }
 
 
   .top-nav-link {
+    font-size: 1.2rem;
 
-    font-size:
-      1.2rem;
-
-    white-space:
-      nowrap;
-
+    white-space: nowrap;
   }
 
 
   .archive-main {
+    min-height:
+      calc(100vh - 65px);
 
-    padding:
-      35px
-      15px
-      70px;
+    height: auto;
+  }
 
+
+  .archive-stage {
+    min-height:
+      calc(100vh - 65px);
+
+    height: auto;
+
+    padding: 0;
   }
 
 
   .archive-category-nav {
+    top: 24px;
 
-    justify-content:
-      flex-start;
+    display: flex;
 
-    flex-wrap:
-      nowrap;
+    gap: 24px;
 
-    overflow-x:
-      auto;
+    width: 100%;
+    height: auto;
 
+    padding:
+      0
+      22px;
+
+    overflow-x: auto;
   }
 
 
   .archive-category-tab {
+    position: static;
 
     flex:
       0
       0
       auto;
 
-    font-size:
-      23px;
+    font-size: 23px;
 
+    white-space: nowrap;
   }
 
 
- .archive-stage {
-  position: relative;
+  .archive-stage-content {
+    position: relative;
 
-  width: 100%;
-  min-height: calc(100vh - 65px);
+    top: auto;
+    right: auto;
+    bottom: auto;
+    left: auto;
 
-  margin: 0;
+    min-height:
+      calc(100vh - 65px);
 
-  padding:
-    150px
-    80px
-    80px;
+    padding:
+      110px
+      20px
+      70px;
 
-  background-position:
-    center top;
+    overflow: visible;
+  }
 
-  background-repeat:
-    no-repeat;
 
-  /* Keeps the image at its original dimensions */
-  background-size:
-    auto;
+  .archive-group-title {
+    margin-left: 5px;
 
-  /* Positions background relative to browser viewport */
-  background-attachment:
-    fixed;
-}
+    font-size: 30px;
+  }
+
+
+  .archive-carousel {
+    width: 100%;
+
+    margin-left: 0;
+
+    padding-right: 0;
+  }
 
 
   .archive-carousel
   .archive-card {
-
     flex:
       0
       0
-      calc(
-        100vw
-        -
-        85px
-      );
-
+      calc(100vw - 70px);
   }
 
 
   .carousel-button {
-
-    display:
-      none;
-
+    display: none;
   }
 
 
   .quick-view-layout {
-
-    grid-template-columns:
-      1fr;
-
+    grid-template-columns: 1fr;
   }
 
 
   .quick-view-window {
+    width: 95vw;
 
     padding:
       55px
       25px
       30px;
+  }
 
+
+  .quick-view-window.article-collection-view {
+    width: 96vw;
+
+    padding:
+      52px
+      30px
+      35px;
+  }
+
+
+  .collection-detail-layout.has-blurb {
+    display: block;
+  }
+
+
+  .collection-detail-blurb {
+    position: static;
+
+    margin-bottom: 30px;
+
+    padding:
+      0
+      0
+      28px;
+
+    border-right: 0;
+
+    border-bottom:
+      1px solid
+      rgba(104, 17, 22, 0.2);
+  }
+
+
+  .article-list {
+    margin-top: 0;
+  }
+
+
+  .article-list-item {
+    min-height: 92px;
+
+    gap: 18px;
+
+    padding:
+      20px
+      2px;
+  }
+
+
+  .article-list-item:hover {
+    padding-left: 8px;
+  }
+
+
+  .article-list-text h3 {
+    font-size: 23px;
+  }
+
+
+  .article-list-text p {
+    white-space: normal;
+  }
+
+
+  .article-list-arrow {
+    flex-basis: 36px;
+
+    width: 36px;
+    height: 36px;
+  }
+
+
+  .article-list-arrow::before {
+    font-size: 19px;
   }
 
 
   .image-gallery-arrow-left {
-
-    left:
-      8px;
-
+    left: 8px;
   }
 
 
   .image-gallery-arrow-right {
+    right: 8px;
+  }
+}
 
-    right:
-      8px;
 
+/* ========================================
+   SMALL MOBILE
+======================================== */
+
+@media (
+  max-width: 520px
+) {
+  .modal {
+    padding: 10px;
   }
 
+
+  .quick-view-window,
+  .quick-view-window.article-collection-view {
+    width: 100%;
+
+    max-height: 96vh;
+
+    padding:
+      50px
+      18px
+      24px;
+  }
+
+
+  .quick-view-content h2,
+  .article-collection-view
+  .quick-view-content h2 {
+    font-size:
+      clamp(
+        38px,
+        13vw,
+        54px
+      );
+  }
+
+
+  .archive-stage-content {
+    padding:
+      105px
+      12px
+      50px;
+  }
+
+
+  .archive-carousel
+  .archive-card {
+    flex:
+      0
+      0
+      calc(100vw - 42px);
+  }
+
+
+  .archive-card {
+    min-height: 270px;
+
+    padding:
+      28px
+      25px
+      24px;
+  }
+
+
+  .item-title {
+    font-size: 28px;
+  }
+
+
+  .collection-detail-blurb {
+    font-size: 16px;
+  }
+
+
+  .article-list-item {
+    min-height: 82px;
+  }
+
+
+  .article-list-text h3 {
+    font-size: 21px;
+  }
+
+
+  .modal-close {
+    top: 12px;
+    right: 16px;
+
+    font-size: 34px;
+  }
 }

@@ -29,6 +29,19 @@ const archiveParameters =
     window.location.search
   );
 
+  const isPeekMode =
+  archiveParameters.get("peek") === "true";
+
+  function applyPeekMode() {
+  if (!isPeekMode) {
+    return;
+  }
+
+  document.body.classList.add("peek-mode");
+}
+
+applyPeekMode();
+
 const requestedPersonParameter =
   archiveParameters
     .get("person")
@@ -109,20 +122,17 @@ const ARCHIVE_BACKGROUND_IMAGE =
   "assets/sabba/file.png";
 
 
+/* =========================================================
+   ARCHIVE BACKGROUND
+========================================================= */
+
 function applyArchiveBackground() {
   document.body.style.backgroundImage =
-    `url("${ARCHIVE_BACKGROUND_IMAGE}")`;
+    "none";
 
-  document.body.style.backgroundRepeat =
-    "no-repeat";
-
-  document.body.style.backgroundPosition =
-    "center top";
-
-  document.body.style.backgroundSize =
-    "100% auto";
+  document.body.style.backgroundColor =
+    "#681116";
 }
-
 
 applyArchiveBackground();
 
@@ -862,11 +872,25 @@ function getDropboxFileUrl(
    FETCH DROPBOX TEXT FILE
 ========================================================= */
 
+const dropboxTextCache =
+  new Map();
+
+
 async function fetchDropboxText(
   path
 ) {
-  const response =
-    await fetch(
+  if (
+    dropboxTextCache.has(
+      path
+    )
+  ) {
+    return dropboxTextCache.get(
+      path
+    );
+  }
+
+  const request =
+    fetch(
       buildDropboxApiUrl(
         "/text",
         {
@@ -882,20 +906,39 @@ async function fetchDropboxText(
             "text/plain"
         }
       }
-    );
+    )
+      .then(
+        async response => {
+          if (
+            !response.ok
+          ) {
+            const errorText =
+              await response.text();
 
-  if (
-    !response.ok
-  ) {
-    const errorText =
-      await response.text();
+            throw new Error(
+              `Could not load ${path}. HTTP ${response.status}. ${errorText}`
+            );
+          }
 
-    throw new Error(
-      `Could not load ${path}. HTTP ${response.status}. ${errorText}`
-    );
-  }
+          return response.text();
+        }
+      )
+      .catch(
+        error => {
+          dropboxTextCache.delete(
+            path
+          );
 
-  return response.text();
+          throw error;
+        }
+      );
+
+  dropboxTextCache.set(
+    path,
+    request
+  );
+
+  return request;
 }
 
 
@@ -1358,16 +1401,24 @@ async function identifyWebsiteLinkFiles(
   ) {
     folder.files.forEach(
       file => {
-        if (
-          getExtension(
-            file.name
-          ) ===
-          "txt"
-        ) {
-          textFiles.push(
-            file
-          );
-        }
+        const lowerName =
+  String(
+    file.name ?? ""
+  )
+    .trim()
+    .toLowerCase();
+
+if (
+  getExtension(
+    file.name
+  ) === "txt"
+  &&
+  lowerName !== "blurb.txt"
+) {
+  textFiles.push(
+    file
+  );
+}
       }
     );
 
@@ -1509,6 +1560,7 @@ function getGroupingStem(
 function getDisplayStem(
   filename
 ) {
+  
   return removeExtension(
     filename
   )
@@ -2104,6 +2156,11 @@ function getDisplayableFiles(
           file.name ?? ""
         )
           .toLowerCase();
+        if (
+  lowerName === "blurb.txt"
+) {
+  return false;
+}
 
       if (
         lowerName.startsWith(
@@ -2156,31 +2213,79 @@ function flattenFolderFiles(
 /* =========================================================
    BUILD ONE CATEGORY
 ========================================================= */
+function isBlurbFile(file) {
+  return String(file?.name ?? "")
+    .trim()
+    .toLowerCase() === "blurb.txt";
+}
 
-function buildCategoryFromFolder(
+
+async function createBlurbItemFromFolder(
+  folder,
+  fallbackTitle = "Introduction"
+) {
+  const blurbFile =
+    folder.files.find(
+      isBlurbFile
+    );
+
+  if (!blurbFile) {
+    return null;
+  }
+
+  try {
+    const text =
+      await fetchDropboxText(
+        blurbFile.path
+      );
+
+    const cleanText =
+      String(text ?? "").trim();
+
+    if (!cleanText) {
+      return null;
+    }
+
+    return {
+      type:
+        "blurb",
+
+      title:
+        fallbackTitle,
+
+      text:
+        cleanText,
+
+      order:
+        -1
+    };
+
+  } catch (error) {
+    console.warn(
+      `Could not load blurb from ${blurbFile.path}:`,
+      error
+    );
+
+    return null;
+  }
+}
+async function buildCategoryFromFolder(
   categoryFolder
 ) {
   const categoryKey =
-    categoryFolder.name
-      .toLowerCase();
+    categoryFolder.name.toLowerCase();
 
   const settings =
-    CATEGORY_SETTINGS[
-      categoryKey
-    ]
-    ||
-    {};
+    CATEGORY_SETTINGS[categoryKey] || {};
 
   const sectionTitle =
-    settings.title
-    ||
+    settings.title ||
     titleFromFolder(
       categoryFolder.name
     );
 
   const categoryLabel =
-    settings.label
-    ||
+    settings.label ||
     sectionTitle.replace(
       /s$/i,
       ""
@@ -2191,10 +2296,31 @@ function buildCategoryFromFolder(
       categoryFolder
     );
 
+  const categoryBlurb =
+    await createBlurbItemFromFolder(
+      categoryFolder,
+      `About ${sectionTitle}`
+    );
 
+
+  /*
+    Category has no subfolders.
+  */
   if (
     categoryFolder.folders.length === 0
   ) {
+    const items =
+      combineRelatedFiles(
+        directFiles,
+        categoryLabel
+      );
+
+    if (categoryBlurb) {
+      items.unshift(
+        categoryBlurb
+      );
+    }
+
     return {
       section:
         sectionTitle,
@@ -2204,56 +2330,192 @@ function buildCategoryFromFolder(
           settings.order
         ),
 
-      items:
-        combineRelatedFiles(
-          directFiles,
-          categoryLabel
-        )
+      items
     };
   }
 
 
-  const groups =
-    [];
+  const groups = [];
 
 
+  /*
+    Files and blurb directly inside the category folder.
+  */
   if (
-    directFiles.length > 0
+    directFiles.length > 0 ||
+    categoryBlurb
   ) {
+    const otherItems =
+      combineRelatedFiles(
+        directFiles,
+        categoryLabel
+      );
+
+    if (categoryBlurb) {
+      otherItems.unshift(
+        categoryBlurb
+      );
+    }
+
     groups.push({
       title:
         "Other",
 
       items:
-        combineRelatedFiles(
-          directFiles,
-          categoryLabel
-        )
+        otherItems
     });
   }
 
 
-  categoryFolder.folders.forEach(
-    groupFolder => {
-      const groupFiles =
-        flattenFolderFiles(
-          groupFolder
-        );
+  const groupResults =
+  await Promise.all(
+    categoryFolder.folders.map(
+      async groupFolder => {
+        const groupItems = [];
 
-      groups.push({
-        title:
+        const groupTitle =
           titleFromFolder(
             groupFolder.name
-          ),
+          );
 
-        items:
-          combineRelatedFiles(
-            groupFiles,
+        const groupBlurb =
+          await createBlurbItemFromFolder(
+            groupFolder,
+            `About ${groupTitle}`
+          );
+
+        if (
+          groupBlurb
+        ) {
+          groupItems.push(
+            groupBlurb
+          );
+        }
+
+        const groupDirectFiles =
+          getDisplayableFiles(
+            groupFolder
+          );
+
+        groupItems.push(
+          ...combineRelatedFiles(
+            groupDirectFiles,
             categoryLabel
           )
-      });
-    }
+        );
+
+        for (
+  const collectionFolder
+  of groupFolder.folders
+) {
+  const collectionFiles =
+    flattenFolderFiles(
+      collectionFolder
+    );
+
+  const collectionArticles =
+    combineRelatedFiles(
+      collectionFiles,
+      categoryLabel
+    );
+
+  const collectionBlurb =
+    await createBlurbItemFromFolder(
+      collectionFolder,
+      titleFromFolder(
+        collectionFolder.name
+      )
+    );
+
+  if (
+    collectionArticles.length === 0
+    &&
+    !collectionBlurb
+  ) {
+    continue;
+  }
+
+  groupItems.push({
+    title:
+      titleFromFolder(
+        collectionFolder.name
+      ),
+
+    label:
+      "Article collection",
+
+    type:
+      "articleCollection",
+
+    articles:
+      collectionArticles,
+
+    blurb:
+      collectionBlurb?.text || "",
+
+    description:
+      `${collectionArticles.length} ${
+        collectionArticles.length === 1
+          ? "item"
+          : "items"
+      }`,
+
+    order:
+      9999,
+
+    year:
+      ""
+  });
+}
+
+        if (
+          groupItems.length === 0
+        ) {
+          return null;
+        }
+
+        const blurbs =
+          groupItems.filter(
+            item =>
+              item.type === "blurb"
+          );
+
+        const normalItems =
+          groupItems
+            .filter(
+              item =>
+                item.type !== "blurb"
+            )
+            .sort(
+              (
+                itemA,
+                itemB
+              ) =>
+                compareNaturally(
+                  itemA.title,
+                  itemB.title
+                )
+            );
+
+        return {
+          title:
+            groupTitle,
+
+          items: [
+            ...blurbs,
+            ...normalItems
+          ]
+        };
+      }
+    )
   );
+
+
+groups.push(
+  ...groupResults.filter(
+    Boolean
+  )
+);
 
 
   return {
@@ -2265,48 +2527,41 @@ function buildCategoryFromFolder(
         settings.order
       ),
 
-    groups:
-      groups.filter(
-        group =>
-          group.items.length > 0
-      )
+    groups
   };
 }
-
-
-/* =========================================================
-   BUILD ARCHIVE DATA
-========================================================= */
-
-function buildArchiveData(
+async function buildArchiveData(
   rootTree
 ) {
-  const categories =
-    rootTree.folders
-      .map(
+  const categoryResults =
+    await Promise.all(
+      rootTree.folders.map(
         buildCategoryFromFolder
       )
-      .filter(
-        section => {
-          if (
-            Array.isArray(
-              section.items
-            )
-          ) {
-            return section.items.length > 0;
-          }
+    );
 
-          if (
-            Array.isArray(
-              section.groups
-            )
-          ) {
-            return section.groups.length > 0;
-          }
-
-          return false;
+  const categories =
+    categoryResults.filter(
+      section => {
+        if (
+          Array.isArray(
+            section.items
+          )
+        ) {
+          return section.items.length > 0;
         }
-      );
+
+        if (
+          Array.isArray(
+            section.groups
+          )
+        ) {
+          return section.groups.length > 0;
+        }
+
+        return false;
+      }
+    );
 
 
   categories.sort(
@@ -2325,8 +2580,7 @@ function buildArchiveData(
         );
 
       if (
-        orderA !==
-        orderB
+        orderA !== orderB
       ) {
         return orderA - orderB;
       }
@@ -2341,7 +2595,6 @@ function buildArchiveData(
 
   return categories;
 }
-
 
 /* =========================================================
    LOADING / EMPTY / ERROR STATES
@@ -2508,9 +2761,9 @@ async function loadArchiveFromDropbox() {
 
 
     ARCHIVE_DATA =
-      buildArchiveData(
-        rootTree
-      );
+  await buildArchiveData(
+    rootTree
+  );
 
 
     if (
@@ -2919,32 +3172,26 @@ function getCardPreviewHtml(
 
 
   if (
-    item.type ===
-      "link"
-    &&
-    item.url
-  ) {
-    return `
-      <div
-        class="card-thumbnail-wrap website-preview-wrap"
-        aria-hidden="true"
-      >
-        <iframe
-          class="website-live-preview"
-          src="${escapeHtml(
-            item.url
-          )}"
-          title=""
-          loading="lazy"
-          tabindex="-1"
-        ></iframe>
-
-        <div class="website-preview-fallback">
-          Website
-        </div>
+  item.type === "link"
+  &&
+  item.url
+) {
+  /*
+    Many websites, including Substack, block third-party iframe
+    embedding through Content-Security-Policy. Use a neutral card
+    preview instead. Clicking the card still opens the website.
+  */
+  return `
+    <div
+      class="card-thumbnail-wrap website-preview-wrap"
+      aria-hidden="true"
+    >
+      <div class="website-preview-fallback">
+        Website
       </div>
-    `;
-  }
+    </div>
+  `;
+}
 
 
   if (
@@ -3434,7 +3681,59 @@ function openBlurbQuickView(
   );
 }
 
+/* =========================================================
+   TELL PARENT WHEN AN ARCHIVE PREVIEW IS OPEN
+========================================================= */
 
+function reportPreviewState() {
+  const previewIsOpen =
+    Boolean(
+      document.querySelector(
+        ".modal.is-open"
+      )
+    );
+
+  if (window.parent !== window) {
+    window.parent.postMessage(
+      {
+        type:
+          "archive-preview-state",
+
+        isOpen:
+          previewIsOpen
+      },
+      window.location.origin
+    );
+  }
+}
+
+
+const previewStateObserver =
+  new MutationObserver(
+    reportPreviewState
+  );
+
+
+document
+  .querySelectorAll(".modal")
+  .forEach(
+    modal => {
+      previewStateObserver.observe(
+        modal,
+        {
+          attributes:
+            true,
+
+          attributeFilter: [
+            "class"
+          ]
+        }
+      );
+    }
+  );
+
+
+reportPreviewState();
 /* =========================================================
    ARTICLE COLLECTION
 ========================================================= */
@@ -3453,20 +3752,22 @@ function openArticleCollection(
     return;
   }
 
-
-  modal
-    .querySelector(
+  const windowElement =
+    modal.querySelector(
       ".quick-view-window"
-    )
-    ?.classList.remove(
-      "blurb-view"
     );
 
+  windowElement?.classList.remove(
+    "blurb-view"
+  );
+
+  windowElement?.classList.add(
+    "article-collection-view"
+  );
 
   fillCollectionHeader(
     item
   );
-
 
   const description =
     document.getElementById(
@@ -3476,6 +3777,57 @@ function openArticleCollection(
   description.innerHTML =
     "";
 
+  const layout =
+    document.createElement(
+      "div"
+    );
+
+  layout.className =
+    item.blurb
+      ? "collection-detail-layout has-blurb"
+      : "collection-detail-layout";
+
+  if (
+    item.blurb
+  ) {
+    const blurb =
+      document.createElement(
+        "aside"
+      );
+
+    blurb.className =
+      "collection-detail-blurb";
+
+    String(
+      item.blurb
+    )
+      .split(
+        /\n\s*\n/
+      )
+      .filter(
+        paragraph =>
+          paragraph.trim()
+      )
+      .forEach(
+        paragraphText => {
+          const paragraph =
+            document.createElement(
+              "p"
+            );
+
+          paragraph.textContent =
+            paragraphText.trim();
+
+          blurb.appendChild(
+            paragraph
+          );
+        }
+      );
+
+    layout.appendChild(
+      blurb
+    );
+  }
 
   const list =
     document.createElement(
@@ -3485,14 +3837,12 @@ function openArticleCollection(
   list.className =
     "article-list";
 
-
   const articles =
     Array.isArray(
       item.articles
     )
       ? item.articles
       : [];
-
 
   articles.forEach(
     article => {
@@ -3520,7 +3870,7 @@ function openArticleCollection(
 
             } else if (
               article.type ===
-              "link"
+                "link"
               &&
               article.url
             ) {
@@ -3541,20 +3891,20 @@ function openArticleCollection(
     }
   );
 
-
-  description.appendChild(
+  layout.appendChild(
     list
   );
 
+  description.appendChild(
+    layout
+  );
 
   clearQuickViewImage();
-
 
   document.getElementById(
     "quickViewActions"
   ).innerHTML =
     "";
-
 
   openModal(
     modal

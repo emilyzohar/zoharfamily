@@ -944,17 +944,7 @@ async function loadMerch() {
       Load secondary pictures after the page is usable.
     */
 
-    window.setTimeout(
-      () => {
-        merchItems.forEach(
-          item =>
-            preloadImages(
-              item.images
-            )
-        );
-      },
-      150
-    );
+    
 
   } catch (
     error
@@ -1178,7 +1168,8 @@ function createMerchCard(
         src="${escapeHtml(item.images[0])}"
         alt="${escapeHtml(item.name)}"
         loading="lazy"
-        decoding="async"
+decoding="async"
+fetchpriority="low"
       >
 
     </div>

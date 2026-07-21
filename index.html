@@ -5,6 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Zohar Family</title>
   <link rel="stylesheet" href="styles.css" />
+  <style>
+    .archive-peek-close {
+  transition:
+    opacity 160ms ease,
+    visibility 160ms ease,
+    transform 160ms ease;
+}
+
+.archive-peek-close.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(0.85);
+}
+    .archive-peek {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .archive-peek.is-open {
+      display: flex;
+    }
+
+    .archive-peek-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(28, 5, 7, 0.72);
+      backdrop-filter: blur(5px);
+    }
+
+    .archive-peek-window {
+      position: relative;
+      z-index: 1;
+      width: min(1180px, 94vw);
+      height: min(860px, 92vh);
+      overflow: hidden;
+      background: #681116;
+      border: 1px solid rgba(251, 236, 216, 0.55);
+      border-radius: 18px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
+    }
+
+    .archive-peek-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: #681116;
+    }
+
+    .archive-peek-close {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      z-index: 2;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      border: 1px solid rgba(251, 236, 216, 0.65);
+      border-radius: 50%;
+      background: #681116;
+      color: #fbecd8;
+      font-size: 30px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    body.archive-peek-open {
+      overflow: hidden;
+    }
+
+    @media (max-width: 700px) {
+      .archive-peek { padding: 10px; }
+      .archive-peek-window { width: 100%; height: 94vh; border-radius: 12px; }
+    }
+  </style>
 </head>
 <body>
 
@@ -134,32 +214,63 @@
     </section>
   </main>
 
+
+  <div id="archivePeek" class="archive-peek" aria-hidden="true">
+    <div class="archive-peek-backdrop" data-close-archive-peek></div>
+    <div class="archive-peek-window" role="dialog" aria-modal="true" aria-label="Family archive preview">
+      <button class="archive-peek-close" type="button" aria-label="Close archive" data-close-archive-peek>×</button>
+      <iframe id="archivePeekFrame" class="archive-peek-frame" title="Family archive"></iframe>
+    </div>
+  </div>
+
   <script src="data.js"></script>
   
-  <script>
-  const menuToggle = document.querySelector(".menu-toggle");
-  const mobileMenu = document.querySelector(".mobile-menu");
-  const paperSection = document.querySelector(".paper-section");
+<script>
+  const menuToggle =
+    document.querySelector(".menu-toggle");
 
-  // Open and close menu
-  menuToggle.addEventListener("click", () => {
-    const isOpen = mobileMenu.classList.toggle("open");
+  const mobileMenu =
+    document.querySelector(".mobile-menu");
 
-    menuToggle.setAttribute(
-      "aria-expanded",
-      isOpen
+  const paperSection =
+    document.querySelector(".paper-section");
+
+
+  if (menuToggle && mobileMenu) {
+    menuToggle.addEventListener(
+      "click",
+      () => {
+        const isOpen =
+          mobileMenu.classList.toggle("open");
+
+        menuToggle.setAttribute(
+          "aria-expanded",
+          String(isOpen)
+        );
+      }
     );
-  });
+  }
 
-  // Change hamburger colour depending on background
+
   function updateMenuColor() {
-    const menuRect = menuToggle.getBoundingClientRect();
-    const paperRect = paperSection.getBoundingClientRect();
+    /*
+      This page currently does not contain a menu toggle.
+      Stop immediately if either required element is absent.
+    */
+    if (!menuToggle || !paperSection) {
+      return;
+    }
+
+    const menuRect =
+      menuToggle.getBoundingClientRect();
+
+    const paperRect =
+      paperSection.getBoundingClientRect();
 
     const menuCenter =
-      menuRect.top + menuRect.height / 2;
+      menuRect.top +
+      menuRect.height / 2;
 
-    // Has the paper section moved behind the hamburger?
     if (paperRect.top <= menuCenter) {
       menuToggle.classList.add("menu-dark");
       menuToggle.classList.remove("menu-light");
@@ -169,10 +280,20 @@
     }
   }
 
-  window.addEventListener("scroll", updateMenuColor);
-  window.addEventListener("resize", updateMenuColor);
 
-  updateMenuColor();
+  if (menuToggle && paperSection) {
+    window.addEventListener(
+      "scroll",
+      updateMenuColor
+    );
+
+    window.addEventListener(
+      "resize",
+      updateMenuColor
+    );
+
+    updateMenuColor();
+  }
 
 
 </script>
@@ -314,9 +435,9 @@
           }
 
           personElement.href =
-            `archive.html?person=${encodeURIComponent(
-              matchingFolderName
-            )}`;
+  `archive.html?person=${encodeURIComponent(
+    matchingFolderName
+  )}&peek=true`;
 
           personElement.classList.add(
             "has-page"
@@ -340,6 +461,102 @@
 
 
   connectWorksFoldersToTree();
+
+  const archivePeek = document.getElementById("archivePeek");
+  const archivePeekFrame = document.getElementById("archivePeekFrame");
+
+  const archivePeekClose =
+  document.querySelector(
+    ".archive-peek-close"
+  );
+
+
+window.addEventListener(
+  "message",
+  event => {
+    /*
+      Only accept messages from this website.
+    */
+    if (
+      event.origin !==
+      window.location.origin
+    ) {
+      return;
+    }
+
+    if (
+      event.data?.type !==
+      "archive-preview-state"
+    ) {
+      return;
+    }
+
+    archivePeekClose?.classList.toggle(
+      "is-hidden",
+      Boolean(
+        event.data.isOpen
+      )
+    );
+  }
+);
+
+  function openArchivePeek(url, personName) {
+    if (!archivePeek || !archivePeekFrame) return;
+
+    archivePeekFrame.src = url;
+    archivePeekFrame.title = `${personName || "Family"} archive`;
+    archivePeek.classList.add("is-open");
+    archivePeek.setAttribute("aria-hidden", "false");
+    document.body.classList.add("archive-peek-open");
+  }
+
+  function closeArchivePeek() {
+  if (
+    !archivePeek ||
+    !archivePeekFrame
+  ) {
+    return;
+  }
+
+  archivePeek.classList.remove(
+    "is-open"
+  );
+
+  archivePeek.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.classList.remove(
+    "archive-peek-open"
+  );
+
+  archivePeekClose?.classList.remove(
+    "is-hidden"
+  );
+
+  archivePeekFrame.src =
+    "about:blank";
+}
+  document.addEventListener("click", event => {
+    const personLink = event.target.closest(".tree-person.has-page");
+
+    if (personLink) {
+      event.preventDefault();
+      openArchivePeek(personLink.href, personLink.dataset.person);
+      return;
+    }
+
+    if (event.target.closest("[data-close-archive-peek]")) {
+      closeArchivePeek();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && archivePeek?.classList.contains("is-open")) {
+      closeArchivePeek();
+    }
+  });
 </script>
 
 <script>
