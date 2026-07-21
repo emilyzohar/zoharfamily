@@ -107,10 +107,6 @@ body.memories-page {
 
 /* =========================================================
    PAGE HEADING AREA
-
-   Hide the large page title.
-
-   Only the small instruction remains.
 ========================================================= */
 
 .memories-heading-section {
@@ -138,21 +134,10 @@ body.memories-page {
 }
 
 
-/*
-  Hide the large Memories / folder title.
-*/
-
 .memories-page-title {
   display: none;
 }
 
-
-/*
-  This will display:
-  "Press on an album"
-
-  Change the text itself in memories.html or memories.js.
-*/
 
 .memories-page-subtitle {
   margin:
@@ -349,7 +334,7 @@ body.memories-page {
 
 
 /* =========================================================
-   POLAROID FOLDER LANDING PAGE
+   LARGE POLAROID LANDING PAGE
 ========================================================= */
 
 .memory-folder-stage {
@@ -379,9 +364,7 @@ body.memories-page {
 
 
 /* =========================================================
-   POLAROID FOLDER CARD
-
-   The card itself handles natural pile rotation.
+   LARGE POLAROID FOLDER CARD
 ========================================================= */
 
 .memory-folder-card {
@@ -494,10 +477,6 @@ body.memories-page {
 
 /* =========================================================
    POLAROID
-
-   The Dropbox image sits underneath.
-
-   The PNG Polaroid frame sits above it using ::after.
 ========================================================= */
 
 .memory-polaroid {
@@ -563,7 +542,8 @@ body.memories-page {
 
   overflow: hidden;
 
-  background: #eceae5;
+  background:
+    #eceae5;
 
   z-index: 1;
 }
@@ -579,6 +559,7 @@ body.memories-page {
 
   object-position: center;
 }
+
 
 /* =========================================================
    MISSING COVER PLACEHOLDER
@@ -660,12 +641,152 @@ body.memories-page {
 
   font-weight: 400;
 
-  letter-spacing: -0.02em;
+  letter-spacing:
+    -0.02em;
 
   color:
     var(--memories-ink);
 
-  pointer-events: none;
+  pointer-events:
+    none;
+}
+
+
+/* =========================================================
+   SUBFOLDERS ABOVE PHOTOS
+
+   These selectors only affect cards inside the subfolder row.
+   The main landing page keeps the large cards above.
+========================================================= */
+
+.memory-subfolder-section {
+  width:
+    100%;
+
+  margin-bottom:
+    48px;
+}
+
+
+.memory-subfolder-row {
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    24px;
+
+  width:
+    100%;
+
+  padding:
+    20px
+    12px
+    36px;
+
+  overflow-x:
+    auto;
+
+  overflow-y:
+    visible;
+
+  box-sizing:
+    border-box;
+
+  scrollbar-width:
+    thin;
+}
+
+
+.memory-subfolder-row
+.memory-folder-card {
+  flex:
+    0
+    0
+    clamp(
+      190px,
+      18vw,
+      250px
+    );
+
+  width:
+    clamp(
+      190px,
+      18vw,
+      250px
+    );
+
+  margin:
+    0;
+
+  transform:
+    rotate(
+      var(--folder-rotation)
+    );
+}
+
+
+.memory-subfolder-row
+.memory-folder-card:hover,
+.memory-subfolder-row
+.memory-folder-card:focus-visible {
+  transform:
+    translateY(
+      -12px
+    )
+    rotate(
+      0deg
+    )
+    scale(
+      1.025
+    );
+
+  z-index:
+    100;
+}
+
+
+/* =========================================================
+   PHOTOS BELOW SUBFOLDERS
+========================================================= */
+
+.memory-media-section {
+  width:
+    100%;
+}
+
+
+.memory-media-heading {
+  margin:
+    0
+    0
+    20px;
+
+  text-align:
+    left;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    clamp(
+      1.5rem,
+      2.5vw,
+      2rem
+    );
+
+  font-weight:
+    400;
+
+  font-style:
+    italic;
+
+  color:
+    var(--memories-blue);
 }
 
 
@@ -815,9 +936,11 @@ body.memories-page {
   top:
     17px;
 
-  width: 0;
+  width:
+    0;
 
-  height: 0;
+  height:
+    0;
 
   border-top:
     12px
@@ -921,7 +1044,8 @@ body.memories-page {
   z-index:
     2;
 
-  display: flex;
+  display:
+    flex;
 
   flex-direction:
     column;
@@ -955,7 +1079,8 @@ body.memories-page {
 ========================================================= */
 
 .memory-lightbox-media {
-  display: flex;
+  display:
+    flex;
 
   align-items:
     center;
@@ -1019,8 +1144,11 @@ video {
 
 
 .memory-lightbox-title {
-    display:none;
-  margin: 0;
+  display:
+    none;
+
+  margin:
+    0;
 
   font-family:
     "Cormorant Garamond",
@@ -1077,9 +1205,11 @@ video {
   height:
     50px;
 
-  padding: 0;
+  padding:
+    0;
 
-  border: 0;
+  border:
+    0;
 
   background:
     transparent;
@@ -1116,86 +1246,141 @@ video {
 ========================================================= */
 
 .memory-lightbox-arrow {
-  position: fixed;
-  z-index: 10020;
+  position:
+    fixed;
 
-  top: 50%;
+  z-index:
+    10020;
 
-  width: 64px;
-  height: 64px;
+  top:
+    50%;
 
-  transform: translateY(-50%);
+  width:
+    64px;
 
-  padding: 0;
+  height:
+    64px;
 
-  border: 0;
-  border-radius: 50%;
+  transform:
+    translateY(
+      -50%
+    );
 
-  background: rgba(239, 230, 212, 0.72);
+  padding:
+    0;
 
-  cursor: pointer;
+  border:
+    0;
 
-  opacity: 1;
+  border-radius:
+    50%;
+
+  background:
+    rgba(
+      239,
+      230,
+      212,
+      0.72
+    );
+
+  cursor:
+    pointer;
+
+  opacity:
+    1;
+
+  font-size:
+    0;
+
+  color:
+    transparent;
 
   transition:
-    transform 160ms ease,
-    background 160ms ease;
+    transform
+    160ms
+    ease,
+    background
+    160ms
+    ease;
 }
 
 
-/* remove any text-based arrow styling */
-.memory-lightbox-arrow {
-  font-size: 0;
-  color: transparent;
-}
-
-
-/* draw the chevron */
 .memory-lightbox-arrow::before {
-  content: "";
+  content:
+    "";
 
-  position: absolute;
+  position:
+    absolute;
 
-  top: 50%;
+  top:
+    50%;
 
-  width: 18px;
-  height: 18px;
+  width:
+    18px;
 
-  border-top: 4px solid #6f0f14;
-  border-right: 4px solid #6f0f14;
+  height:
+    18px;
+
+  border-top:
+    4px
+    solid
+    #6f0f14;
+
+  border-right:
+    4px
+    solid
+    #6f0f14;
 }
 
 
 .memory-lightbox-arrow-left::before {
-  left: 23px;
+  left:
+    23px;
 
   transform:
-    translateY(-50%)
-    rotate(-135deg);
+    translateY(
+      -50%
+    )
+    rotate(
+      -135deg
+    );
 }
 
 
 .memory-lightbox-arrow-right::before {
-  right: 23px;
+  right:
+    23px;
 
   transform:
-    translateY(-50%)
-    rotate(45deg);
+    translateY(
+      -50%
+    )
+    rotate(
+      45deg
+    );
 }
 
 
 .memory-lightbox-arrow:hover {
-  background: rgba(239, 230, 212, 0.95);
+  background:
+    rgba(
+      239,
+      230,
+      212,
+      0.95
+    );
 }
 
 
 .memory-lightbox-arrow-left {
-  left: 28px;
+  left:
+    28px;
 }
 
 
 .memory-lightbox-arrow-right {
-  right: 28px;
+  right:
+    28px;
 }
 
 
@@ -1225,6 +1410,29 @@ video {
     margin:
       -18px
       -25px;
+  }
+
+
+  .memory-subfolder-row
+  .memory-folder-card {
+    flex:
+      0
+      0
+      clamp(
+        180px,
+        25vw,
+        230px
+      );
+
+    width:
+      clamp(
+        180px,
+        25vw,
+        230px
+      );
+
+    margin:
+      0;
   }
 
 
@@ -1272,6 +1480,10 @@ video {
   }
 
 
+  /*
+    Large landing-page cards remain large on mobile.
+  */
+
   .memory-folder-card {
     width:
       min(
@@ -1286,34 +1498,90 @@ video {
 
 
   .memory-folder-card:hover,
-.memory-folder-card:focus-visible {
-  transform:
-    translate(
-      var(--folder-x),
-      calc(
-        var(--folder-y) - 12px
+  .memory-folder-card:focus-visible {
+    transform:
+      translate(
+        var(--folder-x),
+        calc(
+          var(--folder-y) - 12px
+        )
       )
-    )
-    rotate(
-      calc(
-        var(--folder-rotation) * 0.35
+      rotate(
+        calc(
+          var(--folder-rotation) * 0.35
+        )
       )
-    )
-    scale(
-      .2
-    );
+      scale(
+        1.02
+      );
 
-  z-index:
-    100;
-}
+    z-index:
+      100;
+  }
 
 
   .memory-polaroid-title {
     font-size:
       0.92rem;
+  }
 
-    bottom:
-      6%;
+
+  /*
+    Smaller cards only inside the subfolder row.
+  */
+
+  .memory-subfolder-section {
+    margin-bottom:
+      28px;
+  }
+
+
+  .memory-subfolder-row {
+    gap:
+      14px;
+
+    padding:
+      12px
+      4px
+      24px;
+  }
+
+
+  .memory-subfolder-row
+  .memory-folder-card {
+    flex:
+      0
+      0
+      min(
+        58vw,
+        220px
+      );
+
+    width:
+      min(
+        58vw,
+        220px
+      );
+
+    margin:
+      0;
+  }
+
+
+  .memory-subfolder-row
+  .memory-folder-card:hover,
+  .memory-subfolder-row
+  .memory-folder-card:focus-visible {
+    transform:
+      translateY(
+        -6px
+      )
+      rotate(
+        0deg
+      )
+      scale(
+        1.015
+      );
   }
 
 
@@ -1349,18 +1617,47 @@ video {
     width:
       42px;
 
-    font-size:
-      3.6rem;
+    height:
+      42px;
+  }
+
+
+  .memory-lightbox-arrow::before {
+    width:
+      13px;
+
+    height:
+      13px;
+
+    border-top-width:
+      3px;
+
+    border-right-width:
+      3px;
   }
 
 
   .memory-lightbox-arrow-left {
-    left: 0;
+    left:
+      4px;
   }
 
 
   .memory-lightbox-arrow-right {
-    right: 0;
+    right:
+      4px;
+  }
+
+
+  .memory-lightbox-arrow-left::before {
+    left:
+      16px;
+  }
+
+
+  .memory-lightbox-arrow-right::before {
+    right:
+      16px;
   }
 
 
@@ -1390,6 +1687,10 @@ video {
   }
 
 
+  /*
+    Main landing-page card.
+  */
+
   .memory-folder-card {
     width:
       min(
@@ -1399,6 +1700,32 @@ video {
 
     margin:
       -16px
+      0;
+  }
+
+
+  /*
+    Override the landing-page card sizing only when the card
+    appears inside the horizontal subfolder row.
+  */
+
+  .memory-subfolder-row
+  .memory-folder-card {
+    flex:
+      0
+      0
+      min(
+        72vw,
+        220px
+      );
+
+    width:
+      min(
+        72vw,
+        220px
+      );
+
+    margin:
       0;
   }
 

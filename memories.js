@@ -1488,9 +1488,7 @@ function renderCurrentMemoryFolder() {
   if (
     !currentMemoryFolder
   ) {
-
     return;
-
   }
 
 
@@ -1498,11 +1496,19 @@ function renderCurrentMemoryFolder() {
 
 
   const hasSubfolders =
-
     currentMemoryFolder
       .folders
-      .length >
-        0;
+      .length > 0;
+
+
+  const directMedia =
+    getDirectMediaInFolder(
+      currentMemoryFolder
+    );
+
+
+  const hasDirectMedia =
+    directMedia.length > 0;
 
 
   memoriesPageTitle.textContent =
@@ -1529,8 +1535,14 @@ function renderCurrentMemoryFolder() {
   renderBreadcrumbs();
 
 
+  /*
+    Main Memories landing page:
+    retain the original large, overlapping polaroids.
+  */
+
   if (
-    hasSubfolders
+    currentMemoryFolder ===
+      memoryRootTree
   ) {
 
     renderFolderLandingPage(
@@ -1545,9 +1557,275 @@ function renderCurrentMemoryFolder() {
   }
 
 
+  /*
+    Any folder containing only subfolders:
+    also use the large polaroid landing layout.
+  */
+
+  if (
+    hasSubfolders
+
+    &&
+
+    !hasDirectMedia
+  ) {
+
+    renderFolderLandingPage(
+
+      currentMemoryFolder
+        .folders
+
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Folder containing both subfolders and direct photos:
+    show the smaller subfolder row above the photos.
+  */
+
+  if (
+    hasSubfolders
+
+    &&
+
+    hasDirectMedia
+  ) {
+
+    memoriesPageSubtitle.textContent =
+      "";
+
+    renderMixedMemoryFolder(
+      currentMemoryFolder
+    );
+
+    return;
+
+  }
+
+
+  /*
+    Folder containing only photos or videos.
+  */
+
   renderDigitalAlbum(
     currentMemoryFolder
   );
+
+}
+
+/* =========================================================
+   GET MEDIA DIRECTLY INSIDE A FOLDER
+
+   Unlike getAllMediaInFolder(), this does not include media
+   from nested subfolders.
+========================================================= */
+
+function getDirectMediaInFolder(
+  folder
+) {
+
+  return folder
+    .files
+    .map(
+
+      file => ({
+
+        ...file,
+
+        mediaType:
+          getMemoryMediaType(
+            file
+          )
+
+      })
+
+    )
+    .filter(
+
+      file =>
+        Boolean(
+          file.mediaType
+        )
+
+    );
+
+}
+
+
+/* =========================================================
+   RENDER FOLDERS ABOVE DIRECT MEDIA
+========================================================= */
+
+function renderMixedMemoryFolder(
+  folder
+) {
+
+  memoriesContent.innerHTML =
+    "";
+
+  const hasSubfolders =
+    folder.folders.length > 0;
+
+  currentAlbumItems =
+    getDirectMediaInFolder(
+      folder
+    );
+
+  const hasMedia =
+    currentAlbumItems.length > 0;
+
+  /*
+    Subfolder row.
+  */
+  if (
+    hasSubfolders
+  ) {
+
+    const folderSection =
+      document.createElement(
+        "section"
+      );
+
+    folderSection.className =
+      "memory-subfolder-section";
+
+    const folderRow =
+      document.createElement(
+        "div"
+      );
+
+    folderRow.className =
+      "memory-subfolder-row";
+
+    folder.folders.forEach(
+
+      (
+        childFolder,
+        index
+      ) => {
+
+        folderRow.appendChild(
+
+          createFolderPolaroid(
+            childFolder,
+            index
+          )
+
+        );
+
+      }
+
+    );
+
+    folderSection.appendChild(
+      folderRow
+    );
+
+    memoriesContent.appendChild(
+      folderSection
+    );
+
+  }
+
+  /*
+    Media grid below the subfolders.
+  */
+  if (
+    hasMedia
+  ) {
+
+    renderedAlbumCount =
+      0;
+
+    const mediaSection =
+      document.createElement(
+        "section"
+      );
+
+    mediaSection.className =
+      "memory-media-section";
+
+    if (
+      hasSubfolders
+    ) {
+
+      const heading =
+        document.createElement(
+          "h2"
+        );
+
+      heading.className =
+        "memory-media-heading";
+
+      heading.textContent =
+        "Photos";
+
+      mediaSection.appendChild(
+        heading
+      );
+
+    }
+
+    const grid =
+      document.createElement(
+        "div"
+      );
+
+    grid.id =
+      "memoryAlbumGrid";
+
+    grid.className =
+      "memory-album-grid";
+
+    mediaSection.appendChild(
+      grid
+    );
+
+    memoriesContent.appendChild(
+      mediaSection
+    );
+
+    renderNextAlbumBatch();
+    startAlbumObserver();
+
+    return;
+
+  }
+
+  /*
+    Only show an empty state when the folder contains neither
+    media nor subfolders.
+  */
+  if (
+    !hasSubfolders
+  ) {
+
+    memoriesContent.innerHTML = `
+
+      <div
+        class="
+          memories-empty
+        "
+      >
+
+        <h2>
+          No memories yet
+        </h2>
+
+        <p>
+          Photos and videos added to this folder
+          will appear here automatically.
+        </p>
+
+      </div>
+
+    `;
+
+  }
 
 }
 

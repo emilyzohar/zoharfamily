@@ -65,7 +65,7 @@ const travelModalGeneration =
 const travelModalBlurb =
   document.getElementById("travel-modal-blurb");
 
-const travelCarouselImage =
+let travelCarouselImage =
   document.getElementById("travel-carousel-image");
 
 const travelImagePrev =
@@ -108,7 +108,7 @@ const travelLightboxBackdrop =
 const travelLightboxClose =
   document.getElementById("travel-lightbox-close");
 
-const travelLightboxImage =
+let travelLightboxImage =
   document.getElementById("travel-lightbox-image");
 
 const travelLightboxPrev =
@@ -836,13 +836,13 @@ async function performTripContentLoad(
 
           .filter(
 
-            entry =>
+  entry =>
 
-              isImageFile(
-                entry.name
-              )
+    isCarouselMediaFile(
+      entry.name
+    )
 
-          )
+)
 
           .sort(
             naturalEntrySort
@@ -946,64 +946,147 @@ function preloadFirstTravelImage(
       }
 
 
-      const image =
-        new Image();
-
-
-      travel.preloadedFirstImage =
-        image;
-
-
-      try {
-
-        image.fetchPriority =
-          "high";
-
-      } catch (
-        error
-      ) {
-
-      }
-
-
-      image.src =
+      const firstUrl =
         travel.images[0];
 
 
-      try {
-
-        await image.decode();
-
-      } catch (
-        error
+      if (
+        isVideoFile(
+          firstUrl
+        )
       ) {
+
+        const video =
+          document.createElement(
+            "video"
+          );
+
+
+        travel.preloadedFirstImage =
+          video;
+
+
+        video.preload =
+          "metadata";
+
 
         await new Promise(
 
           resolve => {
 
 
-            if (
-              image.complete
-            ) {
+            const finish =
+              () => {
 
-              resolve();
-
-              return;
-
-            }
+                video.removeEventListener(
+                  "loadedmetadata",
+                  finish
+                );
 
 
-            image.onload =
-              resolve;
+                video.removeEventListener(
+                  "error",
+                  finish
+                );
 
 
-            image.onerror =
-              resolve;
+                resolve();
+
+              };
+
+
+            video.addEventListener(
+              "loadedmetadata",
+              finish,
+              {
+                once:
+                  true
+              }
+            );
+
+
+            video.addEventListener(
+              "error",
+              finish,
+              {
+                once:
+                  true
+              }
+            );
+
+
+            video.src =
+              firstUrl;
+
+
+            video.load();
 
           }
 
         );
+
+      } else {
+
+        const image =
+          new Image();
+
+
+        travel.preloadedFirstImage =
+          image;
+
+
+        try {
+
+          image.fetchPriority =
+            "high";
+
+        } catch (
+          error
+        ) {
+
+        }
+
+
+        image.src =
+          firstUrl;
+
+
+        try {
+
+          await image.decode();
+
+        } catch (
+          error
+        ) {
+
+          await new Promise(
+
+            resolve => {
+
+
+              if (
+                image.complete
+              ) {
+
+                resolve();
+
+                return;
+
+              }
+
+
+              image.onload =
+                resolve;
+
+
+              image.onerror =
+                resolve;
+
+            }
+
+          );
+
+        }
 
       }
 
@@ -2683,7 +2766,189 @@ function renderTravelModal() {
 
 }
 
+/* ============================================
+   CAROUSEL MEDIA HELPERS
+============================================ */
 
+function isVideoFile(
+  value
+) {
+
+  return /\.(mp4|webm|ogv|ogg|mov|m4v)(?:[?#].*)?$/i
+    .test(
+      value || ""
+    );
+
+}
+
+
+function createTravelMediaElement(
+  currentElement,
+  isVideo,
+  elementId
+) {
+
+  const requiredTag =
+    isVideo
+      ? "VIDEO"
+      : "IMG";
+
+
+  if (
+
+    currentElement
+
+    &&
+
+    currentElement.tagName ===
+      requiredTag
+
+  ) {
+
+    return currentElement;
+
+  }
+
+
+  const replacement =
+
+    document.createElement(
+
+      isVideo
+        ? "video"
+        : "img"
+
+    );
+
+
+  if (
+    currentElement
+  ) {
+
+    replacement.className =
+      currentElement.className;
+
+
+    replacement.style.cssText =
+      currentElement.style.cssText;
+
+
+    Array.from(
+      currentElement.attributes
+    ).forEach(
+
+      attribute => {
+
+
+        if (
+
+          attribute.name !== "src"
+
+          &&
+
+          attribute.name !== "alt"
+
+          &&
+
+          attribute.name !== "id"
+
+        ) {
+
+          replacement.setAttribute(
+
+            attribute.name,
+
+            attribute.value
+
+          );
+
+        }
+
+      }
+
+    );
+
+
+    currentElement.replaceWith(
+      replacement
+    );
+
+  }
+
+
+  replacement.id =
+    elementId;
+
+
+  if (
+    isVideo
+  ) {
+
+    replacement.controls =
+      true;
+
+
+    replacement.preload =
+      "metadata";
+
+
+    replacement.playsInline =
+      true;
+
+  }
+
+
+  return replacement;
+
+}
+
+
+function setTravelMediaSource(
+  element,
+  url,
+  label
+) {
+
+  if (
+    !element
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    element.tagName === "VIDEO"
+  ) {
+
+    element.pause();
+
+
+    element.src =
+      url;
+
+
+    element.setAttribute(
+      "aria-label",
+      label
+    );
+
+
+    element.load();
+
+  } else {
+
+    element.src =
+      url;
+
+
+    element.alt =
+      label;
+
+  }
+
+}
 /* ============================================
    RENDER CURRENT IMAGE
 ============================================ */
@@ -2718,14 +2983,38 @@ function renderTravelImage() {
       travelCarouselImage
     ) {
 
+      if (
+        travelCarouselImage.tagName === "VIDEO"
+      ) {
+
+        travelCarouselImage.pause();
+
+      }
+
+
       travelCarouselImage
         .removeAttribute(
           "src"
         );
 
 
-      travelCarouselImage.alt =
-        "";
+      if (
+        travelCarouselImage.tagName === "IMG"
+      ) {
+
+        travelCarouselImage.alt =
+          "";
+
+      } else {
+
+        travelCarouselImage.removeAttribute(
+          "aria-label"
+        );
+
+
+        travelCarouselImage.load();
+
+      }
 
 
       travelCarouselImage.style.display =
@@ -2829,6 +3118,26 @@ function renderTravelImage() {
     ];
 
 
+  const currentIsVideo =
+
+    isVideoFile(
+      currentUrl
+    );
+
+
+  travelCarouselImage =
+
+    createTravelMediaElement(
+
+      travelCarouselImage,
+
+      currentIsVideo,
+
+      "travel-carousel-image"
+
+    );
+
+
   if (
     travelCarouselImage
   ) {
@@ -2837,25 +3146,52 @@ function renderTravelImage() {
       "block";
 
 
-    try {
-
-      travelCarouselImage.fetchPriority =
-        "high";
-
-    } catch (
-      error
+    if (
+      !currentIsVideo
     ) {
+
+      try {
+
+        travelCarouselImage.fetchPriority =
+          "high";
+
+      } catch (
+        error
+      ) {
+
+      }
 
     }
 
 
-    travelCarouselImage.src =
-      currentUrl;
+    setTravelMediaSource(
+
+      travelCarouselImage,
+
+      currentUrl,
+
+      `${travel.title} travel ${
+        currentIsVideo
+          ? "video"
+          : "photo"
+      } ${currentImageIndex + 1}`
+
+    );
 
 
-    travelCarouselImage.alt =
+    if (
+      !currentIsVideo
+    ) {
 
-      `${travel.title} travel photo ${currentImageIndex + 1}`;
+      travelCarouselImage.onclick =
+        openTravelLightbox;
+
+    } else {
+
+      travelCarouselImage.onclick =
+        null;
+
+    }
 
   }
 
@@ -2991,6 +3327,34 @@ function preloadAdjacentTravelImages(
       if (
         !url
       ) {
+
+        return;
+
+      }
+
+
+      if (
+        isVideoFile(
+          url
+        )
+      ) {
+
+        const video =
+          document.createElement(
+            "video"
+          );
+
+
+        video.preload =
+          "metadata";
+
+
+        video.src =
+          url;
+
+
+        video.load();
+
 
         return;
 
@@ -3498,13 +3862,7 @@ function renderTravelLightboxImage() {
 
 
   if (
-
     images.length === 0
-
-    ||
-
-    !travelLightboxImage
-
   ) {
 
     return;
@@ -3512,16 +3870,55 @@ function renderTravelLightboxImage() {
   }
 
 
-  travelLightboxImage.src =
+  const currentUrl =
 
     images[
       currentImageIndex
     ];
 
 
-  travelLightboxImage.alt =
+  const currentIsVideo =
 
-    `${travel.title} travel photo ${currentImageIndex + 1}`;
+    isVideoFile(
+      currentUrl
+    );
+
+
+  travelLightboxImage =
+
+    createTravelMediaElement(
+
+      travelLightboxImage,
+
+      currentIsVideo,
+
+      "travel-lightbox-image"
+
+    );
+
+
+  if (
+    !travelLightboxImage
+  ) {
+
+    return;
+
+  }
+
+
+  setTravelMediaSource(
+
+    travelLightboxImage,
+
+    currentUrl,
+
+    `${travel.title} travel ${
+      currentIsVideo
+        ? "video"
+        : "photo"
+    } ${currentImageIndex + 1}`
+
+  );
 
 
   if (
@@ -4074,7 +4471,25 @@ function isImageFile(
 
 }
 
+function isCarouselMediaFile(
+  filename
+) {
 
+  return (
+
+    isImageFile(
+      filename
+    )
+
+    ||
+
+    isVideoFile(
+      filename
+    )
+
+  );
+
+}
 function isExternalUrl(
   value
 ) {
@@ -4137,14 +4552,7 @@ travelImageNext
   );
 
 
-travelCarouselImage
-  ?.addEventListener(
 
-    "click",
-
-    openTravelLightbox
-
-  );
 
 
 /* ============================================
