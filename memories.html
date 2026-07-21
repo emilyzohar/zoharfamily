@@ -1,0 +1,318 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Memories | Zohar Family
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="styles.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="memories.css"
+  >
+
+</head>
+
+
+<body class="memories-page">
+
+
+  <!-- =====================================================
+       TOP NAVIGATION
+  ====================================================== -->
+
+  <header class="top-nav memories-top-nav">
+
+    <nav
+      class="top-nav-inner"
+      aria-label="Main navigation"
+    >
+
+      <a
+        class="top-nav-link"
+        href="index.html"
+      >
+        Home
+      </a>
+
+      <a
+        class="top-nav-link"
+        href="recipes.html"
+      >
+        Recipes
+      </a>
+
+      <a
+        class="top-nav-link"
+        href="merch.html"
+      >
+        Merch
+      </a>
+
+      <a
+        class="top-nav-link"
+        href="travel.html"
+      >
+        Travel
+      </a>
+
+      <a
+        class="top-nav-link active"
+        href="memories.html"
+      >
+        Memories
+      </a>
+
+      <a
+        class="top-nav-link"
+        href="archive.html"
+      >
+        Sabba's Works
+      </a>
+
+    </nav>
+
+  </header>
+
+
+  <!-- =====================================================
+       MAIN PAGE
+  ====================================================== -->
+
+  <main class="memories-main">
+
+
+    <!-- ===================================================
+         PAGE HEADER
+    ==================================================== -->
+
+    <section class="memories-heading-section">
+
+      <div class="memories-heading-inner">
+
+        <div
+          id="memoriesBreadcrumbs"
+          class="memories-breadcrumbs"
+          aria-label="Memory album breadcrumb"
+        >
+        </div>
+
+
+        <h1
+          id="memoriesPageTitle"
+          class="memories-page-title"
+        >
+          Memories
+        </h1>
+
+
+        <p
+          id="memoriesPageSubtitle"
+          class="memories-page-subtitle"
+        >
+
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         CONTENT
+    ==================================================== -->
+
+    <section
+      id="memoriesContent"
+      class="memories-content"
+      aria-live="polite"
+    >
+
+      <div class="memories-loading">
+        Loading memories…
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         LOAD MORE SENTINEL
+
+         IntersectionObserver watches this when displaying
+         an image/video album.
+    ==================================================== -->
+
+    <div
+      id="memoriesLoadSentinel"
+      class="memories-load-sentinel"
+      aria-hidden="true"
+    >
+    </div>
+
+
+  </main>
+
+
+  <!-- =====================================================
+       PHOTO / VIDEO LIGHTBOX
+  ====================================================== -->
+
+  <div
+    id="memoryLightbox"
+    class="memory-lightbox"
+    aria-hidden="true"
+  >
+
+    <button
+      id="memoryLightboxBackdrop"
+      class="memory-lightbox-backdrop"
+      type="button"
+      aria-label="Close viewer"
+    >
+    </button>
+
+
+    <div
+      class="memory-lightbox-window"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="memoryLightboxTitle"
+    >
+
+
+      <!-- CLOSE -->
+
+      <button
+        id="memoryLightboxClose"
+        class="memory-lightbox-close"
+        type="button"
+        aria-label="Close viewer"
+      >
+        ×
+      </button>
+
+
+      <!-- PREVIOUS -->
+
+      <button
+        id="memoryLightboxPrev"
+        class="
+          memory-lightbox-arrow
+          memory-lightbox-arrow-left
+        "
+        type="button"
+        aria-label="Previous memory"
+      >
+        ‹
+      </button>
+
+
+      <!-- MEDIA -->
+
+      <div
+        id="memoryLightboxMedia"
+        class="memory-lightbox-media"
+      >
+      </div>
+
+
+      <!-- NEXT -->
+
+      <button
+        id="memoryLightboxNext"
+        class="
+          memory-lightbox-arrow
+          memory-lightbox-arrow-right
+        "
+        type="button"
+        aria-label="Next memory"
+      >
+        ›
+      </button>
+
+
+      <!-- CAPTION -->
+
+      <div class="memory-lightbox-caption">
+
+        <h2
+          id="memoryLightboxTitle"
+          class="memory-lightbox-title"
+        >
+        </h2>
+
+        <p
+          id="memoryLightboxCount"
+          class="memory-lightbox-count"
+        >
+        </p>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER NAVIGATION
+  ====================================================== -->
+
+  <footer class="bottom-nav">
+
+    <nav
+      class="bottom-nav-inner"
+      aria-label="Footer navigation"
+    >
+
+      <a href="index.html">
+        Home
+      </a>
+
+      <a href="recipes.html">
+        Recipes
+      </a>
+
+      <a href="merch.html">
+        Merch
+      </a>
+
+      <a href="travel.html">
+        Travel
+      </a>
+
+      <a
+        class="active"
+        href="memories.html"
+      >
+        Memories
+      </a>
+
+      <a class="top-nav-link" href="archive.html?person=Sabba">Sabba's Works</a>
+
+    </nav>
+
+  </footer>
+
+
+  <script src="memories.js"></script>
+
+
+</body>
+
+</html>

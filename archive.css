@@ -155,7 +155,71 @@ body {
   font-style: italic;
 }
 
+/* =========================================================
+   LIVE WEBSITE CARD PREVIEW
+========================================================= */
 
+.website-preview-wrap {
+  position: relative;
+
+  overflow: hidden;
+
+  background:
+    rgba(255, 255, 255, 0.45);
+}
+
+
+.website-live-preview {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 400%;
+  height: 400%;
+
+  border: 0;
+
+  transform:
+    scale(0.25);
+
+  transform-origin:
+    top left;
+
+  pointer-events: none;
+
+  background: transparent;
+
+  z-index: 2;
+}
+
+
+.website-preview-fallback {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px;
+
+  color: inherit;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1rem;
+  font-style: italic;
+
+  text-align: center;
+
+  z-index: 1;
+}
 .archive-error p {
   max-width: 700px;
 
@@ -1773,38 +1837,19 @@ body {
 ======================================== */
 
 .image-gallery-arrow {
+  position: fixed;
 
-  position:
-    fixed;
+  top: 50%;
 
-  top:
-    50%;
+  z-index: 25;
 
-  z-index:
-    25;
+  width: 58px;
+  height: 58px;
 
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  width:
-    58px;
-
-  height:
-    58px;
-
-  padding:
-    0;
+  padding: 0;
 
   transform:
-    translateY(
-      -50%
-    );
+    translateY(-50%);
 
   background:
     rgba(
@@ -1824,37 +1869,172 @@ body {
       0.4
     );
 
+  border-radius: 50%;
+
+  /* Hide original text arrow */
+  color: transparent;
+  font-size: 0;
+
+  cursor: pointer;
+
+  transition:
+    background 160ms ease;
+}
+
+
+/* Draw matching chevron */
+
+.image-gallery-arrow::before {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  border-top:
+    4px
+    solid
+    white;
+
+  border-right:
+    4px
+    solid
+    white;
+}
+
+
+/* Left arrow */
+
+.image-gallery-arrow-left {
+  left: 30px;
+}
+
+
+.image-gallery-arrow-left::before {
+  left: 21px;
+
+  transform:
+    translateY(-50%)
+    rotate(-135deg);
+}
+
+
+/* Right arrow */
+
+.image-gallery-arrow-right {
+  right: 30px;
+}
+
+
+.image-gallery-arrow-right::before {
+  right: 21px;
+
+  transform:
+    translateY(-50%)
+    rotate(45deg);
+}
+
+
+.image-gallery-arrow:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.25
+    );
+}
+
+/* ========================================
+   IMAGE GALLERY LOADING INDICATOR
+======================================== */
+
+.image-modal-window {
+  position: relative;
+}
+
+
+.image-gallery-loader {
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  z-index: 20;
+
+  display: none;
+
+  width: 34px;
+  height: 34px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border:
+    3px
+    solid
+    rgba(
+      255,
+      255,
+      255,
+      0.25
+    );
+
+  border-top-color:
+    white;
+
   border-radius:
     50%;
 
-  color:
-    white;
+  animation:
+    image-gallery-spin
+    0.75s
+    linear
+    infinite;
 
-  font-size:
-    44px;
-
-  cursor:
-    pointer;
-
+  pointer-events:
+    none;
 }
 
 
-.image-gallery-arrow-left {
-
-  left:
-    30px;
-
+.image-gallery-loader.is-loading {
+  display: block;
 }
 
 
-.image-gallery-arrow-right {
-
-  right:
-    30px;
-
+@keyframes image-gallery-spin {
+  to {
+    transform:
+      translate(
+        -50%,
+        -50%
+      )
+      rotate(
+        360deg
+      );
+  }
 }
 
 
+/* Fade image slightly while next image loads */
+
+.lightbox-image.is-loading {
+  opacity: 0.25;
+}
+
+
+.lightbox-image {
+  transition:
+    opacity
+    150ms
+    ease;
+}
 
 /* ========================================
    MOBILE

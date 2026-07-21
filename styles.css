@@ -943,3 +943,31 @@ body.modal-open {
   display:
     none !important;
 }
+
+.tree-person {
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+}
+
+
+/*
+  Applied only when a matching Works folder exists.
+*/
+
+.tree-person.has-page {
+  cursor: pointer;
+
+
+  text-decoration-thickness:
+    1px;
+
+  transition:
+    opacity 160ms ease;
+}
+
+
+.tree-person.has-page:hover,
+.tree-person.has-page:focus-visible {
+  opacity: 0.6;
+}

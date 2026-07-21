@@ -5,13 +5,106 @@
 const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
-const DROPBOX_ARCHIVE_ROOT =
-  "/Zohar Family/Works/Sabba";
+const DROPBOX_WORKS_ROOT =
+  "/Zohar Family/Works";
 
 
 /* =========================================================
-   SUPPORTED FILE TYPES
+   CURRENT PERSON
+
+   Examples:
+
+   archive.html
+   → Sabba
+
+   archive.html?person=Emily
+   → Emily
+
+   archive.html?person=Eyal
+   → Eyal
 ========================================================= */
+
+const archiveParameters =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const requestedPersonParameter =
+  archiveParameters
+    .get("person")
+    ?.trim()
+  ||
+  "Sabba";
+
+
+/*
+  Limit the parameter to one folder name so it cannot
+  navigate outside /Zohar Family/Works.
+*/
+
+const requestedPerson =
+  requestedPersonParameter
+    .replace(
+      /[\\/]+/g,
+      ""
+    )
+    .trim()
+  ||
+  "Sabba";
+
+
+const DROPBOX_ARCHIVE_ROOT =
+  `${DROPBOX_WORKS_ROOT}/${requestedPerson}`;
+
+
+/* =========================================================
+   PAGE TITLE
+========================================================= */
+
+function getPossessiveName(
+  name
+) {
+  return /s$/i.test(
+    name
+  )
+    ? `${name}'`
+    : `${name}'s`;
+}
+
+
+const archivePageTitle =
+  `${getPossessiveName(
+    requestedPerson
+  )} Works`;
+
+
+document.title =
+  `${archivePageTitle} | Zohar Family`;
+
+
+function updateArchivePageTitle() {
+  const titleElement =
+    document.getElementById(
+      "archive-page-title"
+    )
+    ||
+    document.querySelector(
+      ".archive-page-title"
+    );
+
+  if (
+    titleElement
+  ) {
+    titleElement.textContent =
+      archivePageTitle;
+  }
+}
+
+
+/* =========================================================
+   ARCHIVE BACKGROUND
+========================================================= */
+
 const ARCHIVE_BACKGROUND_IMAGE =
   "assets/sabba/file.png";
 
@@ -31,155 +124,288 @@ function applyArchiveBackground() {
 }
 
 
-/*
-  Apply the GitHub background immediately.
-  This runs before Dropbox starts loading.
-*/
-
 applyArchiveBackground();
-
-const IMAGE_EXTENSIONS = new Set([
-  "avif",
-  "bmp",
-  "gif",
-  "jpeg",
-  "jpg",
-  "png",
-  "svg",
-  "webp"
-]);
-
-const PDF_EXTENSIONS = new Set([
-  "pdf"
-]);
-
-const POWERPOINT_EXTENSIONS = new Set([
-  "ppt",
-  "pptx"
-]);
-
-const DOCUMENT_EXTENSIONS = new Set([
-  "doc",
-  "docx",
-  "odt",
-  "rtf",
-  "txt"
-]);
 
 
 /* =========================================================
-   OPTIONAL METADATA OVERRIDES
+   SUPPORTED FILE TYPES
+========================================================= */
 
-   These are optional.
+const IMAGE_EXTENSIONS =
+  new Set([
+    "avif",
+    "bmp",
+    "gif",
+    "jpeg",
+    "jpg",
+    "png",
+    "svg",
+    "webp"
+  ]);
 
-   New files do not need to be added here. They will still
-   appear automatically using a title derived from the
-   filename.
 
-   Keys are paths relative to /Works/Sabba.
+const PDF_EXTENSIONS =
+  new Set([
+    "pdf"
+  ]);
+
+
+const POWERPOINT_EXTENSIONS =
+  new Set([
+    "ppt",
+    "pptx"
+  ]);
+
+
+const DOCUMENT_EXTENSIONS =
+  new Set([
+    "doc",
+    "docx",
+    "odt",
+    "rtf",
+    "txt"
+  ]);
+
+
+/* =========================================================
+   PERSON-SPECIFIC ARCHIVE OVERRIDES
+
+   Keys inside each person are relative to that person's
+   Works folder.
 
    Example:
 
-   "articles/football/peleletter.avif": {
-     title: "Pele — My Inspirational Hero",
-     description: "A documentary about Pelé.",
-     url: "https://example.com"
-   }
+   Dropbox:
+   /Zohar Family/Works/Sabba/poems/alon.avif
+
+   Override:
+   "poems/alon.avif"
+
+   A website link can also be customized here, although a
+   .txt file containing only a URL is detected automatically.
 ========================================================= */
 
 const ARCHIVE_OVERRIDES = {
-  "poems/safta.avif": {
-    title: "Poems for Safta",
-    order: 1
-  },
-  "poems/sabba.avif": {
-    title: "Poem for Myself",
-    order: 2
-  },
-  "poems/yal.avif": {
-    title: "Poem for Eyal",
-    order: 3
+
+  Sabba: {
+
+    "poems/safta.avif": {
+      title:
+        "Poems for Safta",
+
+      order:
+        1
+    },
+
+    "poems/sabba.avif": {
+      title:
+        "Poem for Myself",
+
+      order:
+        2
+    },
+
+    "poems/yal.avif": {
+      title:
+        "Poem for Eyal",
+
+      order:
+        3
+    },
+
+    "poems/alon.avif": {
+      title:
+        "Poems for Alon",
+
+      order:
+        4
+    },
+
+    "poems/sharon.avif": {
+      title:
+        "Poem for Sharon",
+
+      order:
+        5
+    },
+
+    "poems/erin.avif": {
+      title:
+        "Poems for Erin",
+
+      order:
+        6
+    },
+
+    "poems/ethan.avif": {
+      title:
+        "Poems for Ethan",
+
+      order:
+        7
+    },
+
+    "poems/emily.avif": {
+      title:
+        "Poem for Emily",
+
+      order:
+        8
+    },
+
+    "poems/zachary.avif": {
+      title:
+        "Poem for Zach",
+
+      order:
+        9
+    },
+
+    "poems/jacklyn.avif": {
+      title:
+        "Poem for Jacklyn",
+
+      order:
+        10
+    },
+
+    "poems/jaime.avif": {
+      title:
+        "Poem for Jaime",
+
+      order:
+        11
+    },
+
+    "poems/alexandra.avif": {
+      title:
+        "Poems for Alexandra",
+
+      order:
+        12
+    },
+
+    "poems/ema.avif": {
+      title:
+        "Poem for Ema",
+
+      order:
+        13
+    },
+
+    "poems/abba.avif": {
+      title:
+        "Poem for Abba",
+
+      order:
+        14
+    },
+
+    "poems/sister.avif": {
+      title:
+        "Poem for Sister",
+
+      order:
+        15
+    },
+
+    "poems/hebrew.avif": {
+      title:
+        "Poems in Hebrew",
+
+      order:
+        16
+    },
+
+    "poems/coby.avif": {
+      title:
+        "Poem for Coby",
+
+      order:
+        17
+    },
+
+    "poems/friend.avif": {
+      title:
+        "Poem for a Friend",
+
+      order:
+        18
+    },
+
+    "poems/rotem.avif": {
+      title:
+        "Poem for Rotem",
+
+      order:
+        19
+    },
+
+    "poems/other.avif": {
+      title:
+        "Other Poems",
+
+      order:
+        20
+    }
+
+
+    /*
+      WEBSITE OVERRIDE EXAMPLE
+
+      Dropbox:
+
+      /Zohar Family/Works/Sabba/Websites/substack.txt
+      /Zohar Family/Works/Sabba/Websites/substack.png
+
+      The TXT should contain only:
+
+      https://example.substack.com
+
+      The matching PNG becomes the card preview.
+
+      "websites/substack.txt": {
+        title:
+          "My Substack",
+
+        label:
+          "Website",
+
+        description:
+          "Essays and writing.",
+
+        order:
+          1
+      }
+    */
+
   },
 
-  "poems/alon.avif": {
-    title: "Poems for Alon",
-    order: 4
-  },
-  "poems/sharon.avif": {
-    title: "Poem for Sharon",
-    order: 5
-  },
-  "poems/erin.avif": {
-    title: "Poems for Erin",
-    order: 6
-  },
-  "poems/ethan.avif": {
-    title: "Poems for Ethan",
-    order: 7
+
+  Emily: {
+
   },
 
-  "poems/emily.avif": {
-    title: "Poem for Emily",
-    order: 8
+
+  Eyal: {
+
   },
-  "poems/zachary.avif": {
-    title: "Poem for Zach",
-    order: 9
+
+
+  Alon: {
+
   },
-  "poems/jacklyn.avif": {
-    title: "Poem for Jacklyn",
-    order: 10
-  },
-  "poems/jaime.avif": {
-    title: "Poem for Jaime",
-    order: 11
-  },
-  "poems/alexandra.avif": {
-    title: "Poems for Alexandra",
-    order: 12
-  },
-  "poems/ema.avif": {
-    title: "Poem for Ema",
-    order: 13
-  },
-  "poems/abba.avif": {
-    title: "Poem for Abba",
-    order: 14
-  },
-  "poems/sister.avif": {
-    title: "Poem for Sister",
-    order: 15
-  },
-  "poems/hebrew.avif": {
-    title: "Poems in Hebrew",
-    order: 16
-  },
-  "poems/coby.avif": {
-    title: "Poem for Coby",
-    order: 17
-  },
-  "poems/friend.avif": {
-    title: "Poem for a Friend",
-    order: 18
-  },
-  "poems/rotem.avif": {
-    title: "Poem for Rotem",
-    order: 19
-  },
-  "poems/other.avif": {
-    title: "Other Poems",
-    order: 20
+
+
+  Sharon: {
+
   }
+
 };
 
 
 /* =========================================================
    CATEGORY SETTINGS
-
-   Folder names are matched case-insensitively.
-
-   Any new top-level folder that is not listed here will
-   still become a category automatically.
 ========================================================= */
 
 const CATEGORY_SETTINGS = {
@@ -189,7 +415,10 @@ const CATEGORY_SETTINGS = {
       "Poems",
 
     label:
-      "Poem"
+      "Poem",
+
+    order:
+      1
   },
 
   books: {
@@ -197,7 +426,10 @@ const CATEGORY_SETTINGS = {
       "Books",
 
     label:
-      "Book"
+      "Book",
+
+    order:
+      2
   },
 
   articles: {
@@ -205,7 +437,10 @@ const CATEGORY_SETTINGS = {
       "Articles",
 
     label:
-      "Article"
+      "Article",
+
+    order:
+      3
   },
 
   lectures: {
@@ -213,7 +448,10 @@ const CATEGORY_SETTINGS = {
       "Lectures",
 
     label:
-      "Lecture"
+      "Lecture",
+
+    order:
+      4
   },
 
   pictures: {
@@ -221,7 +459,21 @@ const CATEGORY_SETTINGS = {
       "Pictures",
 
     label:
-      "Photograph"
+      "Photograph",
+
+    order:
+      5
+  },
+
+  websites: {
+    title:
+      "Websites",
+
+    label:
+      "Website",
+
+    order:
+      6
   }
 
 };
@@ -320,26 +572,26 @@ function joinDropboxPath(
 function getRelativeArchivePath(
   fullPath
 ) {
-  const normalisedRoot =
+  const root =
     trimSlashes(
       DROPBOX_ARCHIVE_ROOT
     );
 
-  const normalisedPath =
+  const path =
     trimSlashes(
       fullPath
     );
 
   if (
-    normalisedPath
+    path
       .toLowerCase()
       .startsWith(
-        normalisedRoot.toLowerCase()
+        root.toLowerCase()
       )
   ) {
-    return normalisedPath
+    return path
       .slice(
-        normalisedRoot.length
+        root.length
       )
       .replace(
         /^\/+/,
@@ -347,7 +599,7 @@ function getRelativeArchivePath(
       );
   }
 
-  return normalisedPath;
+  return path;
 }
 
 
@@ -358,7 +610,9 @@ function getFilename(
     path
   )
     .split("/")
-    .pop() || "";
+    .pop()
+  ||
+  "";
 }
 
 
@@ -490,8 +744,47 @@ function compareNaturally(
 }
 
 
+function getNumericOrder(
+  value
+) {
+  const numericValue =
+    Number(
+      value
+    );
+
+  return Number.isFinite(
+    numericValue
+  )
+    ? numericValue
+    : 9999;
+}
+
+
 /* =========================================================
-   DROPBOX API
+   CURRENT PERSON OVERRIDES
+========================================================= */
+
+function getCurrentPersonOverrides() {
+  const personKey =
+    Object.keys(
+      ARCHIVE_OVERRIDES
+    )
+      .find(
+        key =>
+          key.toLowerCase() ===
+          requestedPerson.toLowerCase()
+      );
+
+  return personKey
+    ? ARCHIVE_OVERRIDES[
+        personKey
+      ]
+    : {};
+}
+
+
+/* =========================================================
+   DROPBOX API URL
 ========================================================= */
 
 function buildDropboxApiUrl(
@@ -529,7 +822,8 @@ function buildDropboxApiUrl(
         ]
       ) => {
         if (
-          value !== undefined &&
+          value !== undefined
+          &&
           value !== null
         ) {
           url.searchParams.set(
@@ -561,6 +855,47 @@ function getDropboxFileUrl(
       path
     }
   );
+}
+
+
+/* =========================================================
+   FETCH DROPBOX TEXT FILE
+========================================================= */
+
+async function fetchDropboxText(
+  path
+) {
+  const response =
+    await fetch(
+      buildDropboxApiUrl(
+        "/text",
+        {
+          path
+        }
+      ),
+      {
+        method:
+          "GET",
+
+        headers: {
+          Accept:
+            "text/plain"
+        }
+      }
+    );
+
+  if (
+    !response.ok
+  ) {
+    const errorText =
+      await response.text();
+
+    throw new Error(
+      `Could not load ${path}. HTTP ${response.status}. ${errorText}`
+    );
+  }
+
+  return response.text();
 }
 
 
@@ -621,170 +956,17 @@ async function fetchAllArchiveEntries() {
 
 
 /* =========================================================
-   BUILD FOLDER TREE FROM RECURSIVE RESULTS
-========================================================= */
-
-function buildArchiveFolderTree(
-  entries
-) {
-  const root = {
-    name:
-      getFilename(
-        DROPBOX_ARCHIVE_ROOT
-      ),
-
-    path:
-      DROPBOX_ARCHIVE_ROOT,
-
-    files:
-      [],
-
-    folders:
-      []
-  };
-
-
-  const folderMap =
-    new Map();
-
-
-  folderMap.set(
-    normalizePathKey(
-      DROPBOX_ARCHIVE_ROOT
-    ),
-    root
-  );
-
-
-  /*
-    Create all folder nodes first.
-  */
-
-  entries
-    .filter(
-      entry =>
-        String(
-          entry.type ?? ""
-        )
-          .toLowerCase() ===
-        "folder"
-    )
-    .sort(
-      (
-        entryA,
-        entryB
-      ) =>
-        getPathDepth(
-          getEntryPath(
-            entryA
-          )
-        ) -
-        getPathDepth(
-          getEntryPath(
-            entryB
-          )
-        )
-    )
-    .forEach(
-      entry => {
-        const folderPath =
-          getEntryPath(
-            entry
-          );
-
-        if (
-          !folderPath
-        ) {
-          return;
-        }
-
-        ensureFolderNode(
-          folderPath,
-          folderMap,
-          root
-        );
-      }
-    );
-
-
-  /*
-    Add files to their parent folders.
-  */
-
-  entries
-    .filter(
-      entry =>
-        String(
-          entry.type ?? ""
-        )
-          .toLowerCase() ===
-        "file"
-    )
-    .forEach(
-      entry => {
-        const filePath =
-          getEntryPath(
-            entry
-          );
-
-        if (
-          !filePath
-        ) {
-          return;
-        }
-
-        const parentPath =
-          getParentPath(
-            filePath
-          );
-
-        const parentFolder =
-          ensureFolderNode(
-            parentPath,
-            folderMap,
-            root
-          );
-
-        parentFolder.files.push({
-          type:
-            "file",
-
-          name:
-            entry.name ||
-            getFilename(
-              filePath
-            ),
-
-          path:
-            filePath,
-
-          size:
-            entry.size ??
-            null
-        });
-      }
-    );
-
-
-  sortFolderTree(
-    root
-  );
-
-
-  return root;
-}
-
-
-/* =========================================================
-   FOLDER-TREE HELPERS
+   FOLDER TREE HELPERS
 ========================================================= */
 
 function getEntryPath(
   entry
 ) {
   return normalisePath(
-    entry.displayPath ||
-    entry.path ||
+    entry.displayPath
+    ||
+    entry.path
+    ||
     ""
   );
 }
@@ -848,6 +1030,155 @@ function getPathDepth(
 }
 
 
+/* =========================================================
+   BUILD FOLDER TREE
+========================================================= */
+
+function buildArchiveFolderTree(
+  entries
+) {
+  const root = {
+    name:
+      getFilename(
+        DROPBOX_ARCHIVE_ROOT
+      ),
+
+    path:
+      DROPBOX_ARCHIVE_ROOT,
+
+    files:
+      [],
+
+    folders:
+      []
+  };
+
+  const folderMap =
+    new Map();
+
+  folderMap.set(
+    normalizePathKey(
+      DROPBOX_ARCHIVE_ROOT
+    ),
+    root
+  );
+
+
+  entries
+    .filter(
+      entry =>
+        String(
+          entry.type ?? ""
+        )
+          .toLowerCase() ===
+        "folder"
+    )
+    .sort(
+      (
+        entryA,
+        entryB
+      ) =>
+        getPathDepth(
+          getEntryPath(
+            entryA
+          )
+        )
+        -
+        getPathDepth(
+          getEntryPath(
+            entryB
+          )
+        )
+    )
+    .forEach(
+      entry => {
+        const path =
+          getEntryPath(
+            entry
+          );
+
+        if (
+          path
+        ) {
+          ensureFolderNode(
+            path,
+            folderMap,
+            root
+          );
+        }
+      }
+    );
+
+
+  entries
+    .filter(
+      entry =>
+        String(
+          entry.type ?? ""
+        )
+          .toLowerCase() ===
+        "file"
+    )
+    .forEach(
+      entry => {
+        const filePath =
+          getEntryPath(
+            entry
+          );
+
+        if (
+          !filePath
+        ) {
+          return;
+        }
+
+        const parentFolder =
+          ensureFolderNode(
+            getParentPath(
+              filePath
+            ),
+            folderMap,
+            root
+          );
+
+        parentFolder.files.push({
+          type:
+            "file",
+
+          name:
+            entry.name
+            ||
+            getFilename(
+              filePath
+            ),
+
+          path:
+            filePath,
+
+          size:
+            entry.size
+            ??
+            null,
+
+          websiteUrl:
+            ""
+        });
+      }
+    );
+
+
+  sortFolderTree(
+    root
+  );
+
+  return root;
+}
+
+
+/* =========================================================
+   ENSURE FOLDER NODE
+========================================================= */
+
 function ensureFolderNode(
   folderPath,
   folderMap,
@@ -867,9 +1198,9 @@ function ensureFolderNode(
       cleanPath
     );
 
-
   if (
-    !cleanPath ||
+    !cleanPath
+    ||
     key ===
       normalizePathKey(
         DROPBOX_ARCHIVE_ROOT
@@ -877,7 +1208,6 @@ function ensureFolderNode(
   ) {
     return root;
   }
-
 
   if (
     folderMap.has(
@@ -889,20 +1219,14 @@ function ensureFolderNode(
     );
   }
 
-
-  const parentPath =
-    getParentPath(
-      cleanPath
-    );
-
-
   const parentFolder =
     ensureFolderNode(
-      parentPath,
+      getParentPath(
+        cleanPath
+      ),
       folderMap,
       root
     );
-
 
   const folder = {
     name:
@@ -920,21 +1244,22 @@ function ensureFolderNode(
       []
   };
 
-
   parentFolder.folders.push(
     folder
   );
-
 
   folderMap.set(
     key,
     folder
   );
 
-
   return folder;
 }
 
+
+/* =========================================================
+   SORT FOLDER TREE
+========================================================= */
 
 function sortFolderTree(
   folder
@@ -950,7 +1275,6 @@ function sortFolderTree(
       )
   );
 
-
   folder.folders.sort(
     (
       folderA,
@@ -962,9 +1286,145 @@ function sortFolderTree(
       )
   );
 
- 
   folder.folders.forEach(
     sortFolderTree
+  );
+}
+
+
+/* =========================================================
+   WEBSITE URL DETECTION
+========================================================= */
+
+function getWebsiteUrlFromText(
+  text
+) {
+  const cleanText =
+    String(
+      text ?? ""
+    )
+      .trim();
+
+  if (
+    !/^https?:\/\/\S+$/i.test(
+      cleanText
+    )
+  ) {
+    return "";
+  }
+
+  try {
+    const parsedUrl =
+      new URL(
+        cleanText
+      );
+
+    if (
+      parsedUrl.protocol !==
+        "http:"
+      &&
+      parsedUrl.protocol !==
+        "https:"
+    ) {
+      return "";
+    }
+
+    return parsedUrl.toString();
+
+  } catch (
+    error
+  ) {
+    return "";
+  }
+}
+
+
+/* =========================================================
+   IDENTIFY TXT WEBSITE FILES
+
+   A .txt file becomes a website item when its entire
+   contents consist of one HTTP or HTTPS address.
+========================================================= */
+
+async function identifyWebsiteLinkFiles(
+  rootFolder
+) {
+  const textFiles =
+    [];
+
+
+  function collectTextFiles(
+    folder
+  ) {
+    folder.files.forEach(
+      file => {
+        if (
+          getExtension(
+            file.name
+          ) ===
+          "txt"
+        ) {
+          textFiles.push(
+            file
+          );
+        }
+      }
+    );
+
+    folder.folders.forEach(
+      collectTextFiles
+    );
+  }
+
+
+  collectTextFiles(
+    rootFolder
+  );
+
+
+  const results =
+    await Promise.allSettled(
+      textFiles.map(
+        async file => {
+          const text =
+            await fetchDropboxText(
+              file.path
+            );
+
+          return {
+            file,
+
+            websiteUrl:
+              getWebsiteUrlFromText(
+                text
+              )
+          };
+        }
+      )
+    );
+
+
+  results.forEach(
+    result => {
+      if (
+        result.status !==
+        "fulfilled"
+      ) {
+        console.warn(
+          "Could not inspect archive text file:",
+          result.reason
+        );
+
+        return;
+      }
+
+      if (
+        result.value.websiteUrl
+      ) {
+        result.value.file.websiteUrl =
+          result.value.websiteUrl;
+      }
+    }
   );
 }
 
@@ -976,6 +1436,12 @@ function sortFolderTree(
 function classifyFile(
   file
 ) {
+  if (
+    file.websiteUrl
+  ) {
+    return "link";
+  }
+
   const extension =
     getExtension(
       file.name
@@ -1018,15 +1484,7 @@ function classifyFile(
 
 
 /* =========================================================
-   RELATED FILE GROUPING
-
-   alon.avif
-   alon2.avif
-   alon3.avif
-
-   become one gallery named "Alon".
-
-   A trailing page number is removed only for grouping.
+   NUMBERED-FILE GROUPING
 ========================================================= */
 
 function getGroupingStem(
@@ -1067,31 +1525,33 @@ function getDisplayStem(
 
 
 /* =========================================================
-   OVERRIDES
+   OVERRIDE LOOKUP
 ========================================================= */
 
 function getArchiveOverride(
   fullPath
 ) {
+  const overrides =
+    getCurrentPersonOverrides();
+
   const relativePath =
     getRelativeArchivePath(
       fullPath
     );
 
-  const exactMatch =
-    ARCHIVE_OVERRIDES[
+  if (
+    overrides[
+      relativePath
+    ]
+  ) {
+    return overrides[
       relativePath
     ];
-
-  if (
-    exactMatch
-  ) {
-    return exactMatch;
   }
 
   const matchingKey =
     Object.keys(
-      ARCHIVE_OVERRIDES
+      overrides
     )
       .find(
         key =>
@@ -1100,7 +1560,7 @@ function getArchiveOverride(
       );
 
   return matchingKey
-    ? ARCHIVE_OVERRIDES[
+    ? overrides[
         matchingKey
       ]
     : {};
@@ -1108,14 +1568,48 @@ function getArchiveOverride(
 
 
 /* =========================================================
-   BUILD AN ARCHIVE ITEM FROM ONE FILE
+   RESOLVE OVERRIDE DROPBOX PATH
+========================================================= */
+
+function resolveOverrideDropboxPath(
+  path
+) {
+  const cleanPath =
+    String(
+      path ?? ""
+    )
+      .trim();
+
+  if (
+    !cleanPath
+  ) {
+    return "";
+  }
+
+  if (
+    cleanPath.startsWith("/")
+  ) {
+    return normalisePath(
+      cleanPath
+    );
+  }
+
+  return joinDropboxPath(
+    DROPBOX_ARCHIVE_ROOT,
+    cleanPath
+  );
+}
+
+
+/* =========================================================
+   CREATE ONE ARCHIVE ITEM
 ========================================================= */
 
 function createItemFromFile(
   file,
   categoryLabel
 ) {
-  const type =
+  const classifiedType =
     classifyFile(
       file
     );
@@ -1126,82 +1620,109 @@ function createItemFromFile(
     );
 
   return {
-  title:
-    override.title ||
-    titleFromFilename(
-      file.name
-    ),
+    title:
+      override.title
+      ||
+      titleFromFilename(
+        file.name
+      ),
 
-  author:
-    override.author ||
-    "",
+    author:
+      override.author
+      ||
+      "",
 
-  year:
-    override.year ||
-    "",
+    year:
+      override.year
+      ||
+      "",
 
-  description:
-    override.description ||
-    "",
+    description:
+      override.description
+      ||
+      "",
 
-  url:
-    override.url ||
-    "",
+    url:
+      override.url
+      ||
+      file.websiteUrl
+      ||
+      "",
 
-  order:
-    Number.isFinite(
-      Number(
+    order:
+      getNumericOrder(
         override.order
+      ),
+
+    type:
+      override.type
+      ||
+      classifiedType,
+
+    file:
+      file.path,
+
+    image:
+      override.image
+        ? resolveOverrideDropboxPath(
+            override.image
+          )
+        : (
+            classifiedType ===
+              "image"
+              ? file.path
+              : ""
+          ),
+
+    quickViewImage:
+      override.quickViewImage
+        ? resolveOverrideDropboxPath(
+            override.quickViewImage
+          )
+        : "",
+
+    label:
+      override.label
+      ||
+      (
+        classifiedType ===
+          "link"
+          ? "Website"
+          : categoryLabel
       )
-    )
-      ? Number(
-          override.order
+      ||
+      "Archive",
+
+    sourcePath:
+      file.path
+  };
+}
+
+
+/* =========================================================
+   FIND UNNUMBERED BASE IMAGE
+========================================================= */
+
+function findBaseImageEntry(
+  imageFiles
+) {
+  return (
+    imageFiles.find(
+      entry =>
+        !/\d+$/.test(
+          removeExtension(
+            entry.file.name
+          )
         )
-      : 9999,
-
-  type:
-    override.type ||
-    type,
-
-  file:
-    file.path,
-
-  image:
-    override.image ||
-    (
-      type === "image"
-        ? file.path
-        : ""
-    ),
-
-  quickViewImage:
-    override.quickViewImage ||
-    "",
-
-  label:
-    override.label ||
-    categoryLabel ||
-    "Archive",
-
-  sourcePath:
-    file.path
-};
+    )
+    ||
+    imageFiles[0]
+  );
 }
 
 
 /* =========================================================
    COMBINE RELATED FILES
-
-   Examples:
-
-   alon.avif + alon2.avif
-   → imageGallery
-
-   LoveTriangle.pdf + LoveTriangle.avif
-   → PDF with image thumbnail
-
-   poem.pdf + poem.avif
-   → mediaGallery
 ========================================================= */
 
 function combineRelatedFiles(
@@ -1211,12 +1732,14 @@ function combineRelatedFiles(
   const groups =
     new Map();
 
+
   files.forEach(
     file => {
       const groupStem =
         getGroupingStem(
           file.name
-        ) ||
+        )
+        ||
         removeExtension(
           file.name
         )
@@ -1243,8 +1766,10 @@ function combineRelatedFiles(
     }
   );
 
+
   const items =
     [];
+
 
   groups.forEach(
     groupedFiles => {
@@ -1263,6 +1788,7 @@ function combineRelatedFiles(
         groupedFiles.map(
           file => ({
             file,
+
             type:
               classifyFile(
                 file
@@ -1291,145 +1817,232 @@ function combineRelatedFiles(
           )
         );
 
+
       /*
-        Several images and no documents:
-        create an image gallery.
+        Multiple images only:
+        create a gallery.
       */
 
       if (
-        imageFiles.length > 1 &&
+        imageFiles.length > 1
+        &&
         nonImageFiles.length === 0
       ) {
-        const firstOverride =
-          getArchiveOverride(
-            imageFiles[0].file.path
+        const baseImageEntry =
+          findBaseImageEntry(
+            imageFiles
           );
 
-        items.push({
-  title:
-    firstOverride.title ||
-    displayTitle,
-
-  order:
-    Number.isFinite(
-      Number(
-        firstOverride.order
-      )
-    )
-      ? Number(
-          firstOverride.order
-        )
-      : 9999,
-
-  type:
-    "imageGallery",
-
-  image:
-    imageFiles[0].file.path,
-
-  file:
-    imageFiles.map(
-      entry =>
-        entry.file.path
-    ),
-
-  label:
-    firstOverride.label ||
-    categoryLabel ||
-    "Images",
-
-  year:
-    firstOverride.year ||
-    "",
-
-  description:
-    firstOverride.description ||
-    ""
-});
-
-        return;
-      }
-
-      /*
-        One document and one or more matching images:
-        use the first image as the document thumbnail.
-      */
-
-      if (
-        nonImageFiles.length === 1 &&
-        imageFiles.length >= 1
-      ) {
-        const documentItem =
-          createItemFromFile(
-            nonImageFiles[0].file,
-            categoryLabel
-          );
-
-        documentItem.image =
-          imageFiles[0].file.path;
-
-        items.push(
-          documentItem
-        );
-
-        return;
-      }
-
-      /*
-        Images mixed with several documents:
-        create one mixed-media collection.
-      */
-
-      if (
-        imageFiles.length >= 1 &&
-        nonImageFiles.length >= 1
-      ) {
-        const firstOverride =
+        const override =
           getArchiveOverride(
-            groupedFiles[0].path
+            baseImageEntry.file.path
           );
 
         items.push({
           title:
-            firstOverride.title ||
+            override.title
+            ||
             displayTitle,
 
+          order:
+            getNumericOrder(
+              override.order
+            ),
+
           type:
-            "mediaGallery",
+            "imageGallery",
 
           image:
-            imageFiles[0].file.path,
+            override.image
+              ? resolveOverrideDropboxPath(
+                  override.image
+                )
+              : baseImageEntry.file.path,
 
           file:
-            typedFiles.map(
-              entry => ({
-                title:
-                  getArchiveOverride(
-                    entry.file.path
-                  ).title ||
-                  titleFromFilename(
-                    entry.file.name
-                  ),
-
-                type:
-                  entry.type,
-
-                file:
-                  entry.file.path
-              })
+            imageFiles.map(
+              entry =>
+                entry.file.path
             ),
 
           label:
-            firstOverride.label ||
-            categoryLabel ||
-            "Collection"
+            override.label
+            ||
+            categoryLabel
+            ||
+            "Images",
+
+          year:
+            override.year
+            ||
+            "",
+
+          description:
+            override.description
+            ||
+            ""
         });
 
         return;
       }
 
+
       /*
-        Otherwise, create one card for each file.
+        One non-image file plus one or more matching images.
+
+        Examples:
+
+        book.pdf + book.png
+        substack.txt + substack.png
+
+        The matching image becomes the card preview.
+      */
+
+      if (
+        nonImageFiles.length === 1
+        &&
+        imageFiles.length >= 1
+      ) {
+        const item =
+          createItemFromFile(
+            nonImageFiles[0].file,
+            categoryLabel
+          );
+
+        const baseImageEntry =
+          findBaseImageEntry(
+            imageFiles
+          );
+
+        if (
+          !item.image
+        ) {
+          item.image =
+            baseImageEntry.file.path;
+        }
+
+        if (
+          item.type ===
+            "link"
+          &&
+          !item.quickViewImage
+        ) {
+          item.quickViewImage =
+            item.image;
+        }
+
+        items.push(
+          item
+        );
+
+        return;
+      }
+
+
+      /*
+        Images mixed with several non-image files:
+        create a collection.
+      */
+
+      if (
+        imageFiles.length >= 1
+        &&
+        nonImageFiles.length >= 1
+      ) {
+        const baseImageEntry =
+          findBaseImageEntry(
+            imageFiles
+          );
+
+        const override =
+          getArchiveOverride(
+            baseImageEntry.file.path
+          );
+
+        items.push({
+          title:
+            override.title
+            ||
+            displayTitle,
+
+          order:
+            getNumericOrder(
+              override.order
+            ),
+
+          type:
+            "mediaGallery",
+
+          image:
+            override.image
+              ? resolveOverrideDropboxPath(
+                  override.image
+                )
+              : baseImageEntry.file.path,
+
+          file:
+            typedFiles.map(
+              entry => {
+                const itemOverride =
+                  getArchiveOverride(
+                    entry.file.path
+                  );
+
+                return {
+                  title:
+                    itemOverride.title
+                    ||
+                    titleFromFilename(
+                      entry.file.name
+                    ),
+
+                  type:
+                    itemOverride.type
+                    ||
+                    entry.type,
+
+                  file:
+                    entry.file.path,
+
+                  url:
+                    itemOverride.url
+                    ||
+                    entry.file.websiteUrl
+                    ||
+                    "",
+
+                  description:
+                    itemOverride.description
+                    ||
+                    ""
+                };
+              }
+            ),
+
+          label:
+            override.label
+            ||
+            categoryLabel
+            ||
+            "Collection",
+
+          year:
+            override.year
+            ||
+            "",
+
+          description:
+            override.description
+            ||
+            ""
+        });
+
+        return;
+      }
+
+
+      /*
+        Otherwise, create one card per file.
       */
 
       groupedFiles.forEach(
@@ -1445,51 +2058,40 @@ function combineRelatedFiles(
     }
   );
 
+
   return items.sort(
-  (
-    itemA,
-    itemB
-  ) => {
-    const orderA =
-      Number.isFinite(
-        Number(
+    (
+      itemA,
+      itemB
+    ) => {
+      const orderA =
+        getNumericOrder(
           itemA.order
-        )
-      )
-        ? Number(
-            itemA.order
-          )
-        : 9999;
+        );
 
-    const orderB =
-      Number.isFinite(
-        Number(
+      const orderB =
+        getNumericOrder(
           itemB.order
-        )
-      )
-        ? Number(
-            itemB.order
-          )
-        : 9999;
+        );
 
-    if (
-      orderA !==
-      orderB
-    ) {
-      return orderA - orderB;
+      if (
+        orderA !==
+        orderB
+      ) {
+        return orderA - orderB;
+      }
+
+      return compareNaturally(
+        itemA.title,
+        itemB.title
+      );
     }
-
-    return compareNaturally(
-      itemA.title,
-      itemB.title
-    );
-  }
-);
+  );
 }
 
 
 /* =========================================================
-   FIND FILES DIRECTLY INSIDE A FOLDER
+   DISPLAYABLE FILES
 ========================================================= */
 
 function getDisplayableFiles(
@@ -1504,16 +2106,16 @@ function getDisplayableFiles(
           .toLowerCase();
 
       if (
-        lowerName ===
-        "file.png"
+        lowerName.startsWith(
+          "."
+        )
       ) {
         return false;
       }
 
       if (
-        lowerName.startsWith(
-          "."
-        )
+        lowerName ===
+        "file.png"
       ) {
         return false;
       }
@@ -1525,7 +2127,7 @@ function getDisplayableFiles(
 
 
 /* =========================================================
-   FLATTEN ALL FILES INSIDE A FOLDER TREE
+   FLATTEN FOLDER FILES
 ========================================================= */
 
 function flattenFolderFiles(
@@ -1552,7 +2154,7 @@ function flattenFolderFiles(
 
 
 /* =========================================================
-   BUILD ONE TOP-LEVEL CATEGORY
+   BUILD ONE CATEGORY
 ========================================================= */
 
 function buildCategoryFromFolder(
@@ -1565,16 +2167,20 @@ function buildCategoryFromFolder(
   const settings =
     CATEGORY_SETTINGS[
       categoryKey
-    ] || {};
+    ]
+    ||
+    {};
 
   const sectionTitle =
-    settings.title ||
+    settings.title
+    ||
     titleFromFolder(
       categoryFolder.name
     );
 
   const categoryLabel =
-    settings.label ||
+    settings.label
+    ||
     sectionTitle.replace(
       /s$/i,
       ""
@@ -1585,10 +2191,6 @@ function buildCategoryFromFolder(
       categoryFolder
     );
 
-  /*
-    No subfolders:
-    show one simple category carousel.
-  */
 
   if (
     categoryFolder.folders.length === 0
@@ -1596,6 +2198,11 @@ function buildCategoryFromFolder(
     return {
       section:
         sectionTitle,
+
+      order:
+        getNumericOrder(
+          settings.order
+        ),
 
       items:
         combineRelatedFiles(
@@ -1605,16 +2212,10 @@ function buildCategoryFromFolder(
     };
   }
 
-  /*
-    Folder contains subfolders:
-    each subfolder becomes a group.
-
-    Files stored directly in the category folder are placed
-    in an "Other" group.
-  */
 
   const groups =
     [];
+
 
   if (
     directFiles.length > 0
@@ -1630,6 +2231,7 @@ function buildCategoryFromFolder(
         )
     });
   }
+
 
   categoryFolder.folders.forEach(
     groupFolder => {
@@ -1653,9 +2255,15 @@ function buildCategoryFromFolder(
     }
   );
 
+
   return {
     section:
       sectionTitle,
+
+    order:
+      getNumericOrder(
+        settings.order
+      ),
 
     groups:
       groups.filter(
@@ -1667,163 +2275,207 @@ function buildCategoryFromFolder(
 
 
 /* =========================================================
-   ARCHIVE BACKGROUND
-========================================================= */
-
-function findArchiveBackground(
-  rootTree
-) {
-  const rootBackground =
-    rootTree.files.find(
-      file =>
-        file.name.toLowerCase() ===
-        "file.png"
-    );
-
-  if (
-    rootBackground
-  ) {
-    return rootBackground.path;
-  }
-
-  for (
-    const folder of
-    rootTree.folders
-  ) {
-    const background =
-      folder.files.find(
-        file =>
-          file.name.toLowerCase() ===
-          "file.png"
-      );
-
-    if (
-      background
-    ) {
-      return background.path;
-    }
-  }
-
-  return "";
-}
-
-
-/* =========================================================
    BUILD ARCHIVE DATA
 ========================================================= */
 
 function buildArchiveData(
   rootTree
 ) {
-  const preferredOrder = [
-    "poems",
-    "books",
-    "articles",
-    "lectures",
-    "pictures"
-  ];
+  const categories =
+    rootTree.folders
+      .map(
+        buildCategoryFromFolder
+      )
+      .filter(
+        section => {
+          if (
+            Array.isArray(
+              section.items
+            )
+          ) {
+            return section.items.length > 0;
+          }
 
-  const categoryFolders = [
-    ...rootTree.folders
-  ];
+          if (
+            Array.isArray(
+              section.groups
+            )
+          ) {
+            return section.groups.length > 0;
+          }
 
-  categoryFolders.sort(
+          return false;
+        }
+      );
+
+
+  categories.sort(
     (
-      folderA,
-      folderB
+      categoryA,
+      categoryB
     ) => {
-      const indexA =
-        preferredOrder.indexOf(
-          folderA.name.toLowerCase()
+      const orderA =
+        getNumericOrder(
+          categoryA.order
         );
 
-      const indexB =
-        preferredOrder.indexOf(
-          folderB.name.toLowerCase()
+      const orderB =
+        getNumericOrder(
+          categoryB.order
         );
 
       if (
-        indexA !== -1 &&
-        indexB !== -1
+        orderA !==
+        orderB
       ) {
-        return indexA - indexB;
-      }
-
-      if (
-        indexA !== -1
-      ) {
-        return -1;
-      }
-
-      if (
-        indexB !== -1
-      ) {
-        return 1;
+        return orderA - orderB;
       }
 
       return compareNaturally(
-        folderA.name,
-        folderB.name
+        categoryA.section,
+        categoryB.section
       );
     }
   );
 
-  return categoryFolders
-    .map(
-      buildCategoryFromFolder
-    )
-    .filter(
-      section => {
-        if (
-          Array.isArray(
-            section.items
-          )
-        ) {
-          return section.items.length > 0;
-        }
 
-        if (
-          Array.isArray(
-            section.groups
-          )
-        ) {
-          return section.groups.length > 0;
-        }
-
-        return false;
-      }
-    );
+  return categories;
 }
 
 
 /* =========================================================
-   LOADING AND ERROR STATES
+   LOADING / EMPTY / ERROR STATES
 ========================================================= */
 
 function showArchiveLoading() {
-  archiveTabs.innerHTML =
-    "";
+  if (
+    archiveTabs
+  ) {
+    archiveTabs.innerHTML =
+      "";
+  }
 
-  archiveStageContent.innerHTML = `
-    <div class="archive-loading">
-      Loading…
-    </div>
-  `;
+  if (
+    archiveStageContent
+  ) {
+    archiveStageContent.innerHTML = `
+      <div class="archive-loading">
+        Loading ${escapeHtml(
+          archivePageTitle
+        )}…
+      </div>
+    `;
+  }
+}
+
+
+function showArchiveEmpty() {
+  if (
+    archiveTabs
+  ) {
+    archiveTabs.innerHTML =
+      "";
+  }
+
+  if (
+    archiveStageContent
+  ) {
+    archiveStageContent.innerHTML = `
+      <div class="archive-loading archive-empty">
+
+        <h2>
+          No works have been added yet
+        </h2>
+
+        <p>
+          There are currently no works available in
+          ${escapeHtml(
+            archivePageTitle
+          )}.
+        </p>
+
+        <a
+          class="archive-empty-link"
+          href="index.html"
+        >
+          Return to the family tree
+        </a>
+
+      </div>
+    `;
+  }
+}
+
+
+function showArchiveNotFound() {
+  if (
+    archiveTabs
+  ) {
+    archiveTabs.innerHTML =
+      "";
+  }
+
+  if (
+    archiveStageContent
+  ) {
+    archiveStageContent.innerHTML = `
+      <div class="archive-loading archive-error">
+
+        <h2>
+          Archive not found
+        </h2>
+
+        <p>
+          No Works folder was found for
+          ${escapeHtml(
+            requestedPerson
+          )}.
+        </p>
+
+        <a
+          class="archive-empty-link"
+          href="index.html"
+        >
+          Return to the family tree
+        </a>
+
+      </div>
+    `;
+  }
 }
 
 
 function showArchiveError(
   message
 ) {
-  archiveTabs.innerHTML =
-    "";
+  if (
+    archiveTabs
+  ) {
+    archiveTabs.innerHTML =
+      "";
+  }
 
-  archiveStageContent.innerHTML = `
-    <div class="archive-loading archive-error">
-      <h2>Sabba's works could not be loaded</h2>
-      <p>${escapeHtml(message)}</p>
-    </div>
-  `;
+  if (
+    archiveStageContent
+  ) {
+    archiveStageContent.innerHTML = `
+      <div class="archive-loading archive-error">
+
+        <h2>
+          ${escapeHtml(
+            archivePageTitle
+          )} could not be loaded
+        </h2>
+
+        <p>
+          ${escapeHtml(
+            message
+          )}
+        </p>
+
+      </div>
+    `;
+  }
 }
 
 
@@ -1832,36 +2484,43 @@ function showArchiveError(
 ========================================================= */
 
 async function loadArchiveFromDropbox() {
-  /*
-    Reapply it in case another style changed it,
-    but do not wait for Dropbox.
-  */
-
   applyArchiveBackground();
 
   showArchiveLoading();
 
   try {
     const entries =
-  await fetchAllArchiveEntries();
+      await fetchAllArchiveEntries();
 
-const rootTree =
-  buildArchiveFolderTree(
-    entries
-  );
+    const rootTree =
+      buildArchiveFolderTree(
+        entries
+      );
+
+
+    /*
+      Detect .txt files containing only a website URL.
+    */
+
+    await identifyWebsiteLinkFiles(
+      rootTree
+    );
+
 
     ARCHIVE_DATA =
       buildArchiveData(
         rootTree
       );
 
+
     if (
       ARCHIVE_DATA.length === 0
     ) {
-      throw new Error(
-        `No supported archive files were found in ${DROPBOX_ARCHIVE_ROOT}.`
-      );
+      showArchiveEmpty();
+
+      return;
     }
+
 
     activeSectionIndex =
       0;
@@ -1878,8 +2537,26 @@ const rootTree =
       error
     );
 
+    const message =
+      String(
+        error?.message
+        ||
+        ""
+      );
+
+    if (
+      message.includes(
+        "HTTP 409"
+      )
+    ) {
+      showArchiveNotFound();
+
+      return;
+    }
+
     showArchiveError(
-      error.message ||
+      message
+      ||
       "An unknown error occurred."
     );
   }
@@ -1887,10 +2564,16 @@ const rootTree =
 
 
 /* =========================================================
-   BUILD CATEGORY TABS
+   CATEGORY TABS
 ========================================================= */
 
 function buildArchiveTabs() {
+  if (
+    !archiveTabs
+  ) {
+    return;
+  }
+
   archiveTabs.innerHTML =
     "";
 
@@ -1943,9 +2626,12 @@ function renderActiveSection() {
 
   if (
     !section
+    ||
+    !archiveStageContent
   ) {
     return;
   }
+
 
   document
     .querySelectorAll(
@@ -1964,11 +2650,13 @@ function renderActiveSection() {
       }
     );
 
+
   archiveStageContent.innerHTML =
     "";
 
   archiveStageContent.scrollTop =
     0;
+
 
   if (
     Array.isArray(
@@ -1983,6 +2671,7 @@ function renderActiveSection() {
 
     return;
   }
+
 
   if (
     Array.isArray(
@@ -1999,6 +2688,7 @@ function renderActiveSection() {
         groupElement.className =
           "archive-group";
 
+
         const heading =
           document.createElement(
             "h2"
@@ -2009,6 +2699,7 @@ function renderActiveSection() {
 
         heading.textContent =
           group.title;
+
 
         groupElement.appendChild(
           heading
@@ -2030,7 +2721,7 @@ function renderActiveSection() {
 
 
 /* =========================================================
-   CREATE CAROUSEL
+   CAROUSEL
 ========================================================= */
 
 function createCarousel(
@@ -2043,6 +2734,7 @@ function createCarousel(
 
   wrapper.className =
     "carousel-wrapper";
+
 
   const previousButton =
     document.createElement(
@@ -2063,6 +2755,7 @@ function createCarousel(
     "Scroll left"
   );
 
+
   const carousel =
     document.createElement(
       "div"
@@ -2070,6 +2763,7 @@ function createCarousel(
 
   carousel.className =
     "archive-carousel";
+
 
   items.forEach(
     item => {
@@ -2080,6 +2774,7 @@ function createCarousel(
       );
     }
   );
+
 
   const nextButton =
     document.createElement(
@@ -2100,23 +2795,18 @@ function createCarousel(
     "Scroll right"
   );
 
+
   function getScrollAmount() {
     const card =
       carousel.querySelector(
         ".archive-card"
       );
 
-    if (
-      !card
-    ) {
-      return 400;
-    }
-
-    return (
-      card.offsetWidth +
-      25
-    );
+    return card
+      ? card.offsetWidth + 25
+      : 400;
   }
+
 
   previousButton.addEventListener(
     "click",
@@ -2131,6 +2821,7 @@ function createCarousel(
     }
   );
 
+
   nextButton.addEventListener(
     "click",
     () => {
@@ -2144,6 +2835,7 @@ function createCarousel(
     }
   );
 
+
   wrapper.append(
     previousButton,
     carousel,
@@ -2155,7 +2847,7 @@ function createCarousel(
 
 
 /* =========================================================
-   DISPLAY URL HELPERS
+   ITEM URL HELPERS
 ========================================================= */
 
 function getItemThumbnailUrl(
@@ -2181,6 +2873,108 @@ function getItemFileUrl(
 
 
 /* =========================================================
+   CARD PREVIEW HTML
+
+   Website preview priority:
+
+   1. Matching screenshot image.
+   2. Live iframe when no screenshot exists.
+========================================================= */
+
+function getCardPreviewHtml(
+  item
+) {
+  const thumbnailUrl =
+    getItemThumbnailUrl(
+      item
+    );
+
+
+  if (
+    item.type ===
+      "link"
+    &&
+    thumbnailUrl
+  ) {
+    return `
+      <div
+        class="card-thumbnail-wrap website-screenshot-wrap"
+      >
+        <img
+          class="card-thumbnail website-screenshot"
+          src="${escapeHtml(
+            thumbnailUrl
+          )}"
+          alt="Preview of ${escapeHtml(
+            item.title
+            ||
+            "website"
+          )}"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+    `;
+  }
+
+
+  if (
+    item.type ===
+      "link"
+    &&
+    item.url
+  ) {
+    return `
+      <div
+        class="card-thumbnail-wrap website-preview-wrap"
+        aria-hidden="true"
+      >
+        <iframe
+          class="website-live-preview"
+          src="${escapeHtml(
+            item.url
+          )}"
+          title=""
+          loading="lazy"
+          tabindex="-1"
+        ></iframe>
+
+        <div class="website-preview-fallback">
+          Website
+        </div>
+      </div>
+    `;
+  }
+
+
+  if (
+    thumbnailUrl
+  ) {
+    return `
+      <div class="card-thumbnail-wrap">
+        <img
+          class="card-thumbnail"
+          src="${escapeHtml(
+            thumbnailUrl
+          )}"
+          alt="${escapeHtml(
+            item.title
+            ||
+            ""
+          )}"
+          loading="lazy"
+          decoding="async"
+        >
+      </div>
+    `;
+  }
+
+
+  return "";
+}
+
+
+/* =========================================================
    CREATE CARD
 ========================================================= */
 
@@ -2196,6 +2990,7 @@ function createCard(
     );
   }
 
+
   const card =
     document.createElement(
       "article"
@@ -2203,6 +2998,15 @@ function createCard(
 
   card.className =
     "archive-card";
+
+  card.setAttribute(
+    "role",
+    "button"
+  );
+
+  card.tabIndex =
+    0;
+
 
   const content =
     document.createElement(
@@ -2212,14 +3016,14 @@ function createCard(
   content.className =
     "archive-card-content";
 
-  const thumbnailUrl =
-    getItemThumbnailUrl(
-      item
-    );
 
   content.innerHTML = `
     <span class="item-type">
-      ${escapeHtml(item.label || "Archive")}
+      ${escapeHtml(
+        item.label
+        ||
+        "Archive"
+      )}
     </span>
 
     <div class="item-main-row">
@@ -2227,14 +3031,20 @@ function createCard(
       <div class="item-main-text">
 
         <h3 class="item-title">
-          ${escapeHtml(item.title || "")}
+          ${escapeHtml(
+            item.title
+            ||
+            ""
+          )}
         </h3>
 
         ${
           item.author
             ? `
               <p class="item-author">
-                ${escapeHtml(item.author)}
+                ${escapeHtml(
+                  item.author
+                )}
               </p>
             `
             : ""
@@ -2242,40 +3052,38 @@ function createCard(
 
       </div>
 
-      ${
-        thumbnailUrl
-          ? `
-            <div class="card-thumbnail-wrap">
-              <img
-  class="card-thumbnail"
-  src="${escapeHtml(thumbnailUrl)}"
-  alt="${escapeHtml(item.title || "")}"
-  loading="lazy"
-  decoding="async"
->
-            </div>
-          `
-          : ""
-      }
+      ${getCardPreviewHtml(
+        item
+      )}
 
     </div>
 
     <div class="item-footer">
 
       <span class="item-meta">
-        ${escapeHtml(item.year || "")}
+        ${escapeHtml(
+          item.year
+          ||
+          ""
+        )}
       </span>
 
       <span class="item-action">
-        ${escapeHtml(getActionText(item.type))}
+        ${escapeHtml(
+          getActionText(
+            item.type
+          )
+        )}
       </span>
 
     </div>
   `;
 
+
   card.appendChild(
     content
   );
+
 
   card.addEventListener(
     "click",
@@ -2285,6 +3093,27 @@ function createCard(
       );
     }
   );
+
+
+  card.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key ===
+          "Enter"
+        ||
+        event.key ===
+          " "
+      ) {
+        event.preventDefault();
+
+        handleItem(
+          item
+        );
+      }
+    }
+  );
+
 
   return card;
 }
@@ -2305,6 +3134,7 @@ function createBlurbCard(
   card.className =
     "archive-card blurb-carousel-card";
 
+
   const text =
     document.createElement(
       "div"
@@ -2315,6 +3145,7 @@ function createBlurbCard(
 
   text.textContent =
     item.text;
+
 
   const button =
     document.createElement(
@@ -2330,19 +3161,22 @@ function createBlurbCard(
   button.textContent =
     "Read more →";
 
+
   button.addEventListener(
     "click",
     event => {
       event.stopPropagation();
 
       openBlurbQuickView(
-        item.title ||
+        item.title
+        ||
         "Introduction",
 
         item.text
       );
     }
   );
+
 
   card.append(
     text,
@@ -2388,7 +3222,7 @@ function getActionText(
       return "View articles →";
 
     case "link":
-      return "Quick view →";
+      return "Visit website ↗";
 
     default:
       return "View →";
@@ -2397,7 +3231,7 @@ function getActionText(
 
 
 /* =========================================================
-   HANDLE ITEM
+   HANDLE CARD CLICK
 ========================================================= */
 
 function handleItem(
@@ -2456,6 +3290,19 @@ function handleItem(
 
       return;
 
+    case "link":
+      if (
+        item.url
+      ) {
+        window.open(
+          item.url,
+          "_blank",
+          "noopener"
+        );
+      }
+
+      return;
+
     default:
       openQuickView(
         item
@@ -2465,7 +3312,7 @@ function handleItem(
 
 
 /* =========================================================
-   OPEN GENERIC DROPBOX FILE
+   OPEN DROPBOX FILE
 ========================================================= */
 
 function openDropboxFile(
@@ -2503,33 +3350,45 @@ function openBlurbQuickView(
       "quickViewModal"
     );
 
+  if (
+    !modal
+  ) {
+    return;
+  }
+
+
   modal
     .querySelector(
       ".quick-view-window"
     )
-    .classList.add(
+    ?.classList.add(
       "blurb-view"
     );
+
 
   document.getElementById(
     "quickViewCategory"
   ).textContent =
     "Introduction";
 
+
   document.getElementById(
     "quickViewTitle"
   ).textContent =
     title;
+
 
   document.getElementById(
     "quickViewAuthor"
   ).textContent =
     "";
 
+
   document.getElementById(
     "quickViewYear"
   ).textContent =
     "";
+
 
   const description =
     document.getElementById(
@@ -2538,6 +3397,7 @@ function openBlurbQuickView(
 
   description.innerHTML =
     "";
+
 
   text
     .split(
@@ -2559,12 +3419,15 @@ function openBlurbQuickView(
       }
     );
 
+
   clearQuickViewImage();
+
 
   document.getElementById(
     "quickViewActions"
   ).innerHTML =
     "";
+
 
   openModal(
     modal
@@ -2584,17 +3447,26 @@ function openArticleCollection(
       "quickViewModal"
     );
 
+  if (
+    !modal
+  ) {
+    return;
+  }
+
+
   modal
     .querySelector(
       ".quick-view-window"
     )
-    .classList.remove(
+    ?.classList.remove(
       "blurb-view"
     );
+
 
   fillCollectionHeader(
     item
   );
+
 
   const description =
     document.getElementById(
@@ -2604,6 +3476,7 @@ function openArticleCollection(
   description.innerHTML =
     "";
 
+
   const list =
     document.createElement(
       "div"
@@ -2612,12 +3485,14 @@ function openArticleCollection(
   list.className =
     "article-list";
 
+
   const articles =
     Array.isArray(
       item.articles
     )
       ? item.articles
       : [];
+
 
   articles.forEach(
     article => {
@@ -2639,10 +3514,22 @@ function openArticleCollection(
                   type:
                     "articleCollection",
 
-                  item:
-                    item
+                  item
                 }
               );
+
+            } else if (
+              article.type ===
+              "link"
+              &&
+              article.url
+            ) {
+              window.open(
+                article.url,
+                "_blank",
+                "noopener"
+              );
+
             } else {
               openDropboxFile(
                 article
@@ -2654,16 +3541,20 @@ function openArticleCollection(
     }
   );
 
+
   description.appendChild(
     list
   );
 
+
   clearQuickViewImage();
+
 
   document.getElementById(
     "quickViewActions"
   ).innerHTML =
     "";
+
 
   openModal(
     modal
@@ -2672,7 +3563,7 @@ function openArticleCollection(
 
 
 /* =========================================================
-   MIXED MEDIA COLLECTION
+   MEDIA GALLERY
 ========================================================= */
 
 function openMediaGallery(
@@ -2683,17 +3574,26 @@ function openMediaGallery(
       "quickViewModal"
     );
 
+  if (
+    !modal
+  ) {
+    return;
+  }
+
+
   modal
     .querySelector(
       ".quick-view-window"
     )
-    .classList.remove(
+    ?.classList.remove(
       "blurb-view"
     );
+
 
   fillCollectionHeader(
     item
   );
+
 
   const description =
     document.getElementById(
@@ -2703,6 +3603,7 @@ function openMediaGallery(
   description.innerHTML =
     "";
 
+
   const list =
     document.createElement(
       "div"
@@ -2711,12 +3612,14 @@ function openMediaGallery(
   list.className =
     "article-list";
 
+
   const mediaFiles =
     Array.isArray(
       item.file
     )
       ? item.file
       : [];
+
 
   mediaFiles.forEach(
     media => {
@@ -2732,9 +3635,9 @@ function openMediaGallery(
               type:
                 "mediaGallery",
 
-              item:
-                item
+              item
             };
+
 
             if (
               media.type ===
@@ -2744,6 +3647,7 @@ function openMediaGallery(
                 media,
                 returnContext
               );
+
             } else if (
               media.type ===
               "pdf"
@@ -2752,6 +3656,7 @@ function openMediaGallery(
                 media,
                 returnContext
               );
+
             } else if (
               media.type ===
               "pptx"
@@ -2759,6 +3664,19 @@ function openMediaGallery(
               openPowerPoint(
                 media
               );
+
+            } else if (
+              media.type ===
+              "link"
+              &&
+              media.url
+            ) {
+              window.open(
+                media.url,
+                "_blank",
+                "noopener"
+              );
+
             } else {
               openDropboxFile(
                 media
@@ -2770,16 +3688,20 @@ function openMediaGallery(
     }
   );
 
+
   description.appendChild(
     list
   );
 
+
   clearQuickViewImage();
+
 
   document.getElementById(
     "quickViewActions"
   ).innerHTML =
     "";
+
 
   openModal(
     modal
@@ -2797,11 +3719,15 @@ function createCollectionRow(
 ) {
   const row =
     document.createElement(
-      "div"
+      "button"
     );
+
+  row.type =
+    "button";
 
   row.className =
     "article-list-item";
+
 
   const text =
     document.createElement(
@@ -2811,18 +3737,22 @@ function createCollectionRow(
   text.className =
     "article-list-text";
 
+
   const title =
     document.createElement(
       "h3"
     );
 
   title.textContent =
-    item.title ||
+    item.title
+    ||
     "Untitled";
+
 
   text.appendChild(
     title
   );
+
 
   const arrow =
     document.createElement(
@@ -2837,15 +3767,18 @@ function createCollectionRow(
       item.type
     );
 
+
   row.append(
     text,
     arrow
   );
 
+
   row.addEventListener(
     "click",
     action
   );
+
 
   return row;
 }
@@ -2861,23 +3794,38 @@ function fillCollectionHeader(
   document.getElementById(
     "quickViewCategory"
   ).textContent =
-    item.label ||
+    item.label
+    ||
     "Collection";
+
 
   document.getElementById(
     "quickViewTitle"
   ).textContent =
-    item.title ||
+    item.title
+    ||
     "";
+
 
   document.getElementById(
     "quickViewAuthor"
   ).textContent =
     "";
 
+
   document.getElementById(
     "quickViewYear"
   ).textContent =
+    item.year
+    ||
+    "";
+
+
+  document.getElementById(
+    "quickViewDescription"
+  ).textContent =
+    item.description
+    ||
     "";
 }
 
@@ -2892,20 +3840,57 @@ function openImageGallery(
   imageReturnContext =
     null;
 
+
   const modal =
     document.getElementById(
       "imageModal"
     );
+
+  if (
+    !modal
+  ) {
+    return;
+  }
+
 
   const windowElement =
     modal.querySelector(
       ".image-modal-window"
     );
 
+
   const image =
     document.getElementById(
       "lightboxImage"
     );
+
+    let loader =
+  windowElement.querySelector(
+    ".image-gallery-loader"
+  );
+
+
+if (
+  !loader
+) {
+  loader =
+    document.createElement(
+      "div"
+    );
+
+  loader.className =
+    "image-gallery-loader";
+
+  loader.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  windowElement.appendChild(
+    loader
+  );
+}
+
 
   const files =
     Array.isArray(
@@ -2916,18 +3901,22 @@ function openImageGallery(
           item.file
         ];
 
+
   let currentIndex =
     0;
+
 
   let previous =
     document.getElementById(
       "imageGalleryPrev"
     );
 
+
   let next =
     document.getElementById(
       "imageGalleryNext"
     );
+
 
   if (
     !previous
@@ -2944,6 +3933,7 @@ function openImageGallery(
     );
   }
 
+
   if (
     !next
   ) {
@@ -2959,38 +3949,98 @@ function openImageGallery(
     );
   }
 
-  function showImage() {
-    image.src =
-      getDropboxFileUrl(
-        files[
-          currentIndex
-        ]
+
+ function showImage() {
+
+  /*
+    Show loading state immediately.
+  */
+
+  loader.classList.add(
+    "is-loading"
+  );
+
+  image.classList.add(
+    "is-loading"
+  );
+
+
+  /*
+    Hide loader once the new image
+    has successfully loaded.
+  */
+
+  image.onload =
+    () => {
+
+      loader.classList.remove(
+        "is-loading"
       );
 
-    image.alt =
-      `${item.title || "Image"} ${currentIndex + 1}`;
+      image.classList.remove(
+        "is-loading"
+      );
 
-    document.getElementById(
-      "lightboxTitle"
-    ).textContent =
-      item.title ||
-      "";
+    };
 
-    document.getElementById(
-      "lightboxDescription"
-    ).textContent =
-      `${currentIndex + 1} of ${files.length}`;
-  }
+
+  /*
+    Also remove loading state if
+    the image fails to load.
+  */
+
+  image.onerror =
+    () => {
+
+      loader.classList.remove(
+        "is-loading"
+      );
+
+      image.classList.remove(
+        "is-loading"
+      );
+
+    };
+
+
+  image.src =
+    getDropboxFileUrl(
+      files[
+        currentIndex
+      ]
+    );
+
+
+  image.alt =
+    `${item.title || "Image"} ${currentIndex + 1}`;
+
+
+  document.getElementById(
+    "lightboxTitle"
+  ).textContent =
+    item.title
+    ||
+    "";
+
+
+  document.getElementById(
+    "lightboxDescription"
+  ).textContent =
+    `${currentIndex + 1} of ${files.length}`;
+}
+
 
   previous.style.display =
     files.length > 1
       ? "flex"
       : "none";
 
+
   next.style.display =
     files.length > 1
       ? "flex"
       : "none";
+
 
   previous.onclick =
     event => {
@@ -2998,14 +4048,18 @@ function openImageGallery(
 
       currentIndex =
         (
-          currentIndex -
-          1 +
+          currentIndex
+          -
+          1
+          +
           files.length
-        ) %
+        )
+        %
         files.length;
 
       showImage();
     };
+
 
   next.onclick =
     event => {
@@ -3013,20 +4067,25 @@ function openImageGallery(
 
       currentIndex =
         (
-          currentIndex +
+          currentIndex
+          +
           1
-        ) %
+        )
+        %
         files.length;
 
       showImage();
     };
+
 
   image.onclick =
     files.length > 1
       ? next.onclick
       : null;
 
+
   showImage();
+
 
   openModal(
     modal
@@ -3075,25 +4134,36 @@ function openImage(
   imageReturnContext =
     returnContext;
 
+
   const modal =
     document.getElementById(
       "imageModal"
     );
+
+  if (
+    !modal
+  ) {
+    return;
+  }
+
 
   const image =
     document.getElementById(
       "lightboxImage"
     );
 
+
   const previous =
     document.getElementById(
       "imageGalleryPrev"
     );
 
+
   const next =
     document.getElementById(
       "imageGalleryNext"
     );
+
 
   if (
     previous
@@ -3102,6 +4172,7 @@ function openImage(
       "none";
   }
 
+
   if (
     next
   ) {
@@ -3109,30 +4180,40 @@ function openImage(
       "none";
   }
 
+
   image.onclick =
     null;
 
+
   image.src =
     getDropboxFileUrl(
-      item.file ||
+      item.file
+      ||
       item.image
     );
 
+
   image.alt =
-    item.title ||
+    item.title
+    ||
     "";
+
 
   document.getElementById(
     "lightboxTitle"
   ).textContent =
-    item.title ||
+    item.title
+    ||
     "";
+
 
   document.getElementById(
     "lightboxDescription"
   ).textContent =
-    item.description ||
+    item.description
+    ||
     "";
+
 
   openModal(
     modal
@@ -3151,31 +4232,44 @@ function openPDF(
   pdfReturnContext =
     returnContext;
 
+
   const modal =
     document.getElementById(
       "pdfModal"
     );
+
+  if (
+    !modal
+  ) {
+    return;
+  }
+
 
   const fileUrl =
     getDropboxFileUrl(
       item.file
     );
 
+
   document.getElementById(
     "pdfFrame"
   ).src =
     fileUrl;
 
+
   document.getElementById(
     "pdfTitle"
   ).textContent =
-    item.title ||
+    item.title
+    ||
     "Document";
+
 
   document.getElementById(
     "pdfNewTab"
   ).href =
     fileUrl;
+
 
   openModal(
     modal
@@ -3184,15 +4278,9 @@ function openPDF(
 
 
 /* =========================================================
-   POWERPOINT
+   POWERPOINT SHARED LINK
 ========================================================= */
 
-/* =========================================================
-   POWERPOINT
-
-   Opens the Dropbox file directly. The browser will
-   download it or open it in the user's PowerPoint app.
-========================================================= */
 async function getDropboxSharedLink(
   path
 ) {
@@ -3206,6 +4294,7 @@ async function getDropboxSharedLink(
       )
     );
 
+
   if (
     !response.ok
   ) {
@@ -3217,8 +4306,10 @@ async function getDropboxSharedLink(
     );
   }
 
+
   const result =
     await response.json();
+
 
   if (
     !result.url
@@ -3228,8 +4319,14 @@ async function getDropboxSharedLink(
     );
   }
 
+
   return result.url;
 }
+
+
+/* =========================================================
+   OPEN POWERPOINT
+========================================================= */
 
 async function openPowerPoint(
   item
@@ -3245,17 +4342,13 @@ async function openPowerPoint(
     return;
   }
 
-  /*
-    Open the tab immediately while the click
-    is still considered a direct user action.
-    This prevents popup blockers from stopping it.
-  */
 
   const previewWindow =
     window.open(
       "",
       "_blank"
     );
+
 
   if (
     previewWindow
@@ -3278,6 +4371,7 @@ async function openPowerPoint(
       </p>
     `;
   }
+
 
   try {
     const sharedLink =
@@ -3303,10 +4397,12 @@ async function openPowerPoint(
       error
     );
 
+
     const fallbackUrl =
       getDropboxFileUrl(
         item.file
       );
+
 
     if (
       previewWindow
@@ -3333,72 +4429,103 @@ function openQuickView(
       "quickViewModal"
     );
 
+  if (
+    !modal
+  ) {
+    return;
+  }
+
+
   modal
     .querySelector(
       ".quick-view-window"
     )
-    .classList.remove(
+    ?.classList.remove(
       "blurb-view"
     );
+
 
   document.getElementById(
     "quickViewCategory"
   ).textContent =
-    item.label ||
+    item.label
+    ||
     "Archive";
+
 
   document.getElementById(
     "quickViewTitle"
   ).textContent =
-    item.title ||
+    item.title
+    ||
     "";
+
 
   document.getElementById(
     "quickViewAuthor"
   ).textContent =
-    item.author ||
+    item.author
+    ||
     "";
+
 
   document.getElementById(
     "quickViewYear"
   ).textContent =
-    item.year ||
+    item.year
+    ||
     "";
+
 
   document.getElementById(
     "quickViewDescription"
   ).textContent =
-    item.description ||
+    item.description
+    ||
     "";
+
 
   const imageContainer =
     document.getElementById(
       "quickViewImageContainer"
     );
 
+
   const image =
     document.getElementById(
       "quickViewImage"
     );
 
-  if (
+
+  const quickViewImagePath =
     item.quickViewImage
+    ||
+    item.image
+    ||
+    "";
+
+
+  if (
+    quickViewImagePath
   ) {
     image.src =
       getDropboxFileUrl(
-        item.quickViewImage
+        quickViewImagePath
       );
 
     image.alt =
-      item.title ||
+      item.title
+      ||
       "";
 
     imageContainer.classList.add(
       "visible"
     );
+
   } else {
     clearQuickViewImage();
   }
+
 
   const actions =
     document.getElementById(
@@ -3407,6 +4534,7 @@ function openQuickView(
 
   actions.innerHTML =
     "";
+
 
   if (
     item.url
@@ -3434,6 +4562,7 @@ function openQuickView(
     actions.appendChild(
       link
     );
+
   } else if (
     item.file
   ) {
@@ -3464,6 +4593,7 @@ function openQuickView(
     );
   }
 
+
   openModal(
     modal
   );
@@ -3480,20 +4610,31 @@ function clearQuickViewImage() {
       "quickViewImageContainer"
     );
 
+
   const image =
     document.getElementById(
       "quickViewImage"
     );
 
-  image.src =
-    "";
 
-  image.alt =
-    "";
+  if (
+    image
+  ) {
+    image.src =
+      "";
 
-  container.classList.remove(
-    "visible"
-  );
+    image.alt =
+      "";
+  }
+
+
+  if (
+    container
+  ) {
+    container.classList.remove(
+      "visible"
+    );
+  }
 }
 
 
@@ -3504,6 +4645,12 @@ function clearQuickViewImage() {
 function openModal(
   modal
 ) {
+  if (
+    !modal
+  ) {
+    return;
+  }
+
   modal.classList.add(
     "is-open"
   );
@@ -3521,6 +4668,12 @@ function openModal(
 function hideModal(
   modal
 ) {
+  if (
+    !modal
+  ) {
+    return;
+  }
+
   modal.classList.remove(
     "is-open"
   );
@@ -3533,7 +4686,7 @@ function hideModal(
 
 
 /* =========================================================
-   RESTORE COLLECTION
+   RESTORE COLLECTION CONTEXT
 ========================================================= */
 
 function restoreContext(
@@ -3548,6 +4701,7 @@ function restoreContext(
     return;
   }
 
+
   if (
     context.type ===
     "articleCollection"
@@ -3555,6 +4709,7 @@ function restoreContext(
     openArticleCollection(
       context.item
     );
+
   } else if (
     context.type ===
     "mediaGallery"
@@ -3577,14 +4732,23 @@ function closeSingleModal(
     modal
   );
 
+
   if (
     modal.id ===
     "pdfModal"
   ) {
-    document.getElementById(
-      "pdfFrame"
-    ).src =
-      "";
+    const frame =
+      document.getElementById(
+        "pdfFrame"
+      );
+
+    if (
+      frame
+    ) {
+      frame.src =
+        "";
+    }
+
 
     const context =
       pdfReturnContext;
@@ -3592,12 +4756,14 @@ function closeSingleModal(
     pdfReturnContext =
       null;
 
+
     restoreContext(
       context
     );
 
     return;
   }
+
 
   if (
     modal.id ===
@@ -3608,17 +4774,24 @@ function closeSingleModal(
         "lightboxImage"
       );
 
-    image.onclick =
-      null;
 
-    image.src =
-      "";
+    if (
+      image
+    ) {
+      image.onclick =
+        null;
+
+      image.src =
+        "";
+    }
+
 
     const context =
       imageReturnContext;
 
     imageReturnContext =
       null;
+
 
     restoreContext(
       context
@@ -3627,13 +4800,14 @@ function closeSingleModal(
     return;
   }
 
+
   document.body.style.overflow =
     "";
 }
 
 
 /* =========================================================
-   CLOSE CONTROLS
+   MODAL CLOSE CONTROLS
 ========================================================= */
 
 document
@@ -3664,7 +4838,7 @@ document
 
 
 /* =========================================================
-   KEYBOARD
+   KEYBOARD CONTROLS
 ========================================================= */
 
 document.addEventListener(
@@ -3690,12 +4864,16 @@ document.addEventListener(
       return;
     }
 
+
     const imageModal =
       document.getElementById(
         "imageModal"
       );
 
+
     if (
+      !imageModal
+      ||
       !imageModal.classList.contains(
         "is-open"
       )
@@ -3703,30 +4881,38 @@ document.addEventListener(
       return;
     }
 
+
     const previous =
       document.getElementById(
         "imageGalleryPrev"
       );
+
 
     const next =
       document.getElementById(
         "imageGalleryNext"
       );
 
+
     if (
       event.key ===
-        "ArrowLeft" &&
-      previous &&
+        "ArrowLeft"
+      &&
+      previous
+      &&
       previous.style.display !==
         "none"
     ) {
       previous.click();
     }
 
+
     if (
       event.key ===
-        "ArrowRight" &&
-      next &&
+        "ArrowRight"
+      &&
+      next
+      &&
       next.style.display !==
         "none"
     ) {
@@ -3737,7 +4923,9 @@ document.addEventListener(
 
 
 /* =========================================================
-   START
+   INITIALISE
 ========================================================= */
+
+updateArchivePageTitle();
 
 loadArchiveFromDropbox();

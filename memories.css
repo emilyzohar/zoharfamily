@@ -1,0 +1,1424 @@
+/* =========================================================
+   MEMORIES PAGE
+========================================================= */
+
+:root {
+  --memories-background:
+    #f4f2ee;
+
+  --memories-paper:
+    #efede7;
+
+  --memories-ink:
+    #681116;
+
+  --memories-blue:
+    #13518c;
+
+  --memories-muted:
+    rgba(
+      104,
+      17,
+      22,
+      0.62
+    );
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+body.memories-page {
+  margin: 0;
+
+  min-height: 100vh;
+
+  background:
+    var(--memories-background);
+
+  color:
+    var(--memories-ink);
+}
+
+
+.memories-main {
+  min-height:
+    calc(
+      100vh - 70px
+    );
+
+  padding-bottom:
+    100px;
+}
+
+
+/* =========================================================
+   TOP NAVIGATION
+========================================================= */
+
+.memories-top-nav {
+  position: relative;
+
+  z-index: 100;
+
+  background:
+    transparent;
+}
+
+
+.memories-top-nav
+.top-nav-inner {
+  padding:
+    0
+    clamp(
+      24px,
+      4vw,
+      72px
+    );
+}
+
+
+.memories-top-nav
+.top-nav-link {
+  color:
+    var(--memories-blue);
+}
+
+
+.memories-top-nav
+.top-nav-link:hover,
+.memories-top-nav
+.top-nav-link:focus-visible {
+  color:
+    var(--memories-blue);
+
+  opacity:
+    0.62;
+}
+
+
+.memories-top-nav
+.top-nav-link.active {
+  color:
+    var(--memories-blue);
+}
+
+
+/* =========================================================
+   PAGE HEADING AREA
+
+   Hide the large page title.
+
+   Only the small instruction remains.
+========================================================= */
+
+.memories-heading-section {
+  padding:
+    24px
+    clamp(
+      28px,
+      5vw,
+      90px
+    )
+    0;
+}
+
+
+.memories-heading-inner {
+  width:
+    min(
+      1500px,
+      100%
+    );
+
+  margin:
+    0
+    auto;
+}
+
+
+/*
+  Hide the large Memories / folder title.
+*/
+
+.memories-page-title {
+  display: none;
+}
+
+
+/*
+  This will display:
+  "Press on an album"
+
+  Change the text itself in memories.html or memories.js.
+*/
+
+.memories-page-subtitle {
+  margin:
+    0;
+
+  text-align:
+    center;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    clamp(
+      1.2rem,
+      1.7vw,
+      1.55rem
+    );
+
+  font-weight:
+    400;
+
+  font-style:
+    italic;
+
+  color:
+    var(--memories-blue);
+}
+
+
+/* =========================================================
+   BREADCRUMBS
+========================================================= */
+
+.memories-breadcrumbs {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  min-height: 28px;
+
+  margin-bottom: 8px;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    1.05rem;
+}
+
+
+.memories-breadcrumb {
+  padding: 0;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--memories-blue);
+
+  font-family:
+    inherit;
+
+  font-size:
+    inherit;
+
+  cursor:
+    pointer;
+
+  opacity:
+    0.58;
+
+  transition:
+    opacity
+    150ms
+    ease;
+}
+
+
+.memories-breadcrumb:hover {
+  opacity: 1;
+}
+
+
+.memories-breadcrumb-current {
+  opacity: 1;
+
+  cursor:
+    default;
+}
+
+
+.memories-breadcrumb-divider {
+  color:
+    var(--memories-blue);
+
+  opacity:
+    0.3;
+}
+
+
+/* =========================================================
+   MAIN CONTENT AREA
+========================================================= */
+
+.memories-content {
+  position: relative;
+
+  width:
+    min(
+      1600px,
+      100%
+    );
+
+  min-height:
+    620px;
+
+  margin:
+    0
+    auto;
+
+  padding:
+    20px
+    clamp(
+      24px,
+      5vw,
+      90px
+    )
+    90px;
+
+  box-sizing:
+    border-box;
+}
+
+
+/* =========================================================
+   LOADING / ERROR
+========================================================= */
+
+.memories-loading,
+.memories-error,
+.memories-empty {
+  padding:
+    120px
+    20px;
+
+  text-align:
+    center;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    1.6rem;
+
+  font-style:
+    italic;
+
+  color:
+    var(--memories-blue);
+}
+
+
+.memories-error h2,
+.memories-empty h2 {
+  margin:
+    0
+    0
+    16px;
+
+  font-size:
+    clamp(
+      2.4rem,
+      5vw,
+      4rem
+    );
+
+  font-weight:
+    400;
+}
+
+
+/* =========================================================
+   POLAROID FOLDER LANDING PAGE
+========================================================= */
+
+.memory-folder-stage {
+  position: relative;
+
+  display: flex;
+
+  justify-content:
+    center;
+
+  align-items:
+    center;
+
+  flex-wrap:
+    wrap;
+
+  gap: 0;
+
+  min-height:
+    620px;
+
+  padding:
+    50px
+    40px
+    100px;
+}
+
+
+/* =========================================================
+   POLAROID FOLDER CARD
+
+   The card itself handles natural pile rotation.
+========================================================= */
+
+.memory-folder-card {
+  --folder-rotation:
+    0deg;
+
+  --folder-x:
+    0px;
+
+  --folder-y:
+    0px;
+
+  --folder-z:
+    1;
+
+  position: relative;
+
+  display: block;
+
+  width:
+    clamp(
+      280px,
+      26vw,
+      400px
+    );
+
+  aspect-ratio:
+    0.83 / 1;
+
+  margin:
+    -26px
+    -34px;
+
+  padding: 0;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    var(--memories-ink);
+
+  cursor:
+    pointer;
+
+  transform:
+    translate(
+      var(--folder-x),
+      var(--folder-y)
+    )
+    rotate(
+      var(--folder-rotation)
+    );
+
+  transform-origin:
+    center center;
+
+  transition:
+    transform
+    300ms
+    cubic-bezier(
+      .2,
+      .8,
+      .2,
+      1
+    ),
+    filter
+    300ms
+    ease;
+
+  z-index:
+    var(--folder-z);
+}
+
+
+.memory-folder-card:hover,
+.memory-folder-card:focus-visible {
+  transform:
+    translate(
+      var(--folder-x),
+      calc(
+        var(--folder-y) - 32px
+      )
+    )
+    rotate(
+      0deg
+    )
+    scale(
+      1.035
+    );
+
+  z-index:
+    100;
+
+  filter:
+    drop-shadow(
+      0
+      20px
+      18px
+      rgba(
+        0,
+        0,
+        0,
+        0.12
+      )
+    );
+}
+
+
+/* =========================================================
+   POLAROID
+
+   The Dropbox image sits underneath.
+
+   The PNG Polaroid frame sits above it using ::after.
+========================================================= */
+
+.memory-polaroid {
+  position: absolute;
+
+  inset: 0;
+
+  filter:
+    drop-shadow(
+      0
+      5px
+      5px
+      rgba(
+        0,
+        0,
+        0,
+        0.05
+      )
+    );
+}
+
+
+/* =========================================================
+   POLAROID FRAME IMAGE
+========================================================= */
+
+.memory-polaroid::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  background:
+    url("assets/memories/polaroid.png")
+    center
+    center
+    /
+    100%
+    100%
+    no-repeat;
+
+  pointer-events:
+    none;
+
+  z-index:
+    3;
+}
+
+
+/* =========================================================
+   POLAROID PHOTO WINDOW
+========================================================= */
+
+.memory-polaroid-image-wrap {
+  position: absolute;
+
+  top: 7.6%;
+  left: 8.2%;
+
+  width: 79%;
+  height: 70%;
+
+  overflow: hidden;
+
+  background: #eceae5;
+
+  z-index: 1;
+}
+
+
+.memory-polaroid-image {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+
+  object-position: center;
+}
+
+/* =========================================================
+   MISSING COVER PLACEHOLDER
+========================================================= */
+
+.memory-polaroid-image-placeholder {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  padding:
+    20px;
+
+  box-sizing:
+    border-box;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    1.3rem;
+
+  font-style:
+    italic;
+
+  color:
+    var(--memories-blue);
+
+  opacity:
+    0.4;
+}
+
+
+/* =========================================================
+   POLAROID TITLE
+========================================================= */
+
+.memory-polaroid-title {
+  position: absolute;
+
+  left: 7%;
+  right: 10%;
+
+  bottom: 15.5%;
+
+  z-index: 4;
+
+  margin: 0;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+
+  text-align: center;
+
+  font-family:
+    "Courier New",
+    Courier,
+    monospace;
+
+  font-size:
+    clamp(
+      0.9rem,
+      1.25vw,
+      1.15rem
+    );
+
+  font-weight: 400;
+
+  letter-spacing: -0.02em;
+
+  color:
+    var(--memories-ink);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   DIGITAL PHOTO ALBUM
+========================================================= */
+
+.memory-album-grid {
+  columns:
+    4;
+
+  column-gap:
+    18px;
+}
+
+
+.memory-album-item {
+  position:
+    relative;
+
+  width:
+    100%;
+
+  margin:
+    0
+    0
+    18px;
+
+  padding:
+    0;
+
+  break-inside:
+    avoid;
+
+  border:
+    0;
+
+  background:
+    transparent;
+
+  cursor:
+    zoom-in;
+
+  overflow:
+    hidden;
+
+  vertical-align:
+    top;
+}
+
+
+.memory-album-image,
+.memory-album-video {
+  display:
+    block;
+
+  width:
+    100%;
+
+  height:
+    auto;
+
+  transition:
+    transform
+    400ms
+    cubic-bezier(
+      .2,
+      .8,
+      .2,
+      1
+    ),
+    opacity
+    200ms
+    ease;
+}
+
+
+.memory-album-item:hover
+.memory-album-image,
+.memory-album-item:hover
+.memory-album-video {
+  transform:
+    scale(
+      1.025
+    );
+}
+
+
+.memory-album-video {
+  pointer-events:
+    none;
+}
+
+
+/* =========================================================
+   VIDEO INDICATOR
+========================================================= */
+
+.memory-video-indicator {
+  position:
+    absolute;
+
+  left:
+    50%;
+
+  top:
+    50%;
+
+  width:
+    58px;
+
+  height:
+    58px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border-radius:
+    50%;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.46
+    );
+
+  pointer-events:
+    none;
+}
+
+
+.memory-video-indicator::after {
+  content:
+    "";
+
+  position:
+    absolute;
+
+  left:
+    23px;
+
+  top:
+    17px;
+
+  width: 0;
+
+  height: 0;
+
+  border-top:
+    12px
+    solid
+    transparent;
+
+  border-bottom:
+    12px
+    solid
+    transparent;
+
+  border-left:
+    19px
+    solid
+    white;
+}
+
+
+/* =========================================================
+   ENDLESS-SCROLL SENTINEL
+========================================================= */
+
+.memories-load-sentinel {
+  width:
+    100%;
+
+  height:
+    2px;
+}
+
+
+/* =========================================================
+   LIGHTBOX
+========================================================= */
+
+.memory-lightbox {
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    10000;
+
+  display:
+    none;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+}
+
+
+.memory-lightbox.is-open {
+  display:
+    flex;
+}
+
+
+/* =========================================================
+   LIGHTBOX BACKDROP
+========================================================= */
+
+.memory-lightbox-backdrop {
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  padding: 0;
+
+  border: 0;
+
+  background:
+    rgba(
+      20,
+      16,
+      14,
+      0.88
+    );
+
+  backdrop-filter:
+    blur(
+      6px
+    );
+}
+
+
+/* =========================================================
+   LIGHTBOX WINDOW
+========================================================= */
+
+.memory-lightbox-window {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display: flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    min(
+      1500px,
+      calc(
+        100vw - 90px
+      )
+    );
+
+  height:
+    min(
+      900px,
+      calc(
+        100vh - 60px
+      )
+    );
+}
+
+
+/* =========================================================
+   LIGHTBOX MEDIA
+========================================================= */
+
+.memory-lightbox-media {
+  display: flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    100%;
+
+  height:
+    calc(
+      100% - 80px
+    );
+}
+
+
+.memory-lightbox-media
+img {
+  display:
+    block;
+
+  max-width:
+    100%;
+
+  max-height:
+    100%;
+
+  object-fit:
+    contain;
+}
+
+
+.memory-lightbox-media
+video {
+  display:
+    block;
+
+  max-width:
+    100%;
+
+  max-height:
+    100%;
+}
+
+
+/* =========================================================
+   LIGHTBOX CAPTION
+========================================================= */
+
+.memory-lightbox-caption {
+  padding-top:
+    8px;
+
+  text-align:
+    center;
+
+  color:
+    #f5efe8;
+}
+
+
+.memory-lightbox-title {
+    display:none;
+  margin: 0;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    1.5rem;
+
+  font-weight:
+    400;
+
+  font-style:
+    italic;
+}
+
+
+.memory-lightbox-count {
+  margin:
+    4px
+    0
+    0;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  opacity:
+    0.65;
+}
+
+
+/* =========================================================
+   LIGHTBOX CLOSE
+========================================================= */
+
+.memory-lightbox-close {
+  position:
+    fixed;
+
+  z-index:
+    10020;
+
+  right:
+    28px;
+
+  top:
+    18px;
+
+  width:
+    50px;
+
+  height:
+    50px;
+
+  padding: 0;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    white;
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size:
+    3rem;
+
+  line-height:
+    1;
+
+  cursor:
+    pointer;
+
+  opacity:
+    0.8;
+}
+
+
+.memory-lightbox-close:hover {
+  opacity:
+    1;
+}
+
+
+/* =========================================================
+   LIGHTBOX ARROWS
+========================================================= */
+
+.memory-lightbox-arrow {
+  position: fixed;
+  z-index: 10020;
+
+  top: 50%;
+
+  width: 64px;
+  height: 64px;
+
+  transform: translateY(-50%);
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: rgba(239, 230, 212, 0.72);
+
+  cursor: pointer;
+
+  opacity: 1;
+
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+
+/* remove any text-based arrow styling */
+.memory-lightbox-arrow {
+  font-size: 0;
+  color: transparent;
+}
+
+
+/* draw the chevron */
+.memory-lightbox-arrow::before {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+
+  width: 18px;
+  height: 18px;
+
+  border-top: 4px solid #6f0f14;
+  border-right: 4px solid #6f0f14;
+}
+
+
+.memory-lightbox-arrow-left::before {
+  left: 23px;
+
+  transform:
+    translateY(-50%)
+    rotate(-135deg);
+}
+
+
+.memory-lightbox-arrow-right::before {
+  right: 23px;
+
+  transform:
+    translateY(-50%)
+    rotate(45deg);
+}
+
+
+.memory-lightbox-arrow:hover {
+  background: rgba(239, 230, 212, 0.95);
+}
+
+
+.memory-lightbox-arrow-left {
+  left: 28px;
+}
+
+
+.memory-lightbox-arrow-right {
+  right: 28px;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (
+  max-width:
+  1150px
+) {
+
+  .memory-folder-stage {
+    min-height:
+      520px;
+  }
+
+
+  .memory-folder-card {
+    width:
+      clamp(
+        240px,
+        34vw,
+        350px
+      );
+
+    margin:
+      -18px
+      -25px;
+  }
+
+
+  .memory-album-grid {
+    columns:
+      3;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (
+  max-width:
+  760px
+) {
+
+  .memories-heading-section {
+    padding:
+      18px
+      20px
+      0;
+  }
+
+
+  .memories-content {
+    padding:
+      15px
+      14px
+      60px;
+  }
+
+
+  .memory-folder-stage {
+    min-height:
+      500px;
+
+    padding:
+      30px
+      0
+      70px;
+  }
+
+
+  .memory-folder-card {
+    width:
+      min(
+        72vw,
+        310px
+      );
+
+    margin:
+      -22px
+      -42px;
+  }
+
+
+  .memory-folder-card:hover,
+.memory-folder-card:focus-visible {
+  transform:
+    translate(
+      var(--folder-x),
+      calc(
+        var(--folder-y) - 12px
+      )
+    )
+    rotate(
+      calc(
+        var(--folder-rotation) * 0.35
+      )
+    )
+    scale(
+      .2
+    );
+
+  z-index:
+    100;
+}
+
+
+  .memory-polaroid-title {
+    font-size:
+      0.92rem;
+
+    bottom:
+      6%;
+  }
+
+
+  .memory-album-grid {
+    columns:
+      2;
+
+    column-gap:
+      8px;
+  }
+
+
+  .memory-album-item {
+    margin-bottom:
+      8px;
+  }
+
+
+  .memory-lightbox-window {
+    width:
+      calc(
+        100vw - 30px
+      );
+
+    height:
+      calc(
+        100vh - 70px
+      );
+  }
+
+
+  .memory-lightbox-arrow {
+    width:
+      42px;
+
+    font-size:
+      3.6rem;
+  }
+
+
+  .memory-lightbox-arrow-left {
+    left: 0;
+  }
+
+
+  .memory-lightbox-arrow-right {
+    right: 0;
+  }
+
+
+  .memory-lightbox-close {
+    right:
+      8px;
+
+    top:
+      6px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
+@media (
+  max-width:
+  480px
+) {
+
+  .memory-album-grid {
+    columns:
+      1;
+  }
+
+
+  .memory-folder-card {
+    width:
+      min(
+        82vw,
+        330px
+      );
+
+    margin:
+      -16px
+      0;
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  .memory-folder-card,
+  .memory-album-image,
+  .memory-album-video {
+    transition:
+      none;
+  }
+
+}

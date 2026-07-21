@@ -18,7 +18,7 @@
     <a class="top-nav-link" href="merch.html">Merch</a>
     <a class="top-nav-link" href="travel.html">Travel</a>
     <a class="top-nav-link" href="memories.html">Memories</a>
-    <a class="top-nav-link" href="archive.html">Sabba's Works</a>
+    <a class="top-nav-link" href="archive.html?person=Sabba">Sabba's Works</a>
   </nav>
 </header>
 
@@ -36,27 +36,35 @@
         <div class="family-tree-manual" aria-label="Zohar family tree">
 
           <!-- Clickable names -->
-          <a class="tree-person aliza">Aliza</a>
-          <a class="tree-person has-page amnon" href="archive.html">Amnon</a>
+          <a class="tree-person aliza" data-person="Aliza">Aliza</a>
+          <a
+  class="tree-person amnon"
+  data-person="Sabba"
+  data-work-person="Sabba"
+>
+  Amnon
+</a>
 
-          <a class="tree-person eyal">Eyal</a>
-          <a class="tree-person mitzi" >Mitzi</a>
+          
 
-          <a class="tree-person alon" >Alon</a>
-          <a class="tree-person tracey">Tracey</a>
+<a class="tree-person eyal" data-person="Eyal">Eyal</a>
+<a class="tree-person mitzi" data-person="Mitzi">Mitzi</a>
 
-          <a class="tree-person sharon" >Sharon</a>
-          <a class="tree-person mark" >Mark</a>
+<a class="tree-person alon" data-person="Alon">Alon</a>
+<a class="tree-person tracey" data-person="Tracey">Tracey</a>
 
-          <a class="tree-person emily" href="person.html?person=emily">Emily</a>
-          <a class="tree-person zach" >Zach</a>
+<a class="tree-person sharon" data-person="Sharon">Sharon</a>
+<a class="tree-person mark" data-person="Mark">Mark</a>
 
-          <a class="tree-person erin" >Erin</a>
-          <a class="tree-person ethan">Ethan</a>
-          <a class="tree-person jacklyn" >Jacklyn</a>
+<a class="tree-person emily" data-person="Emily">Emily</a>
+<a class="tree-person zach" data-person="Zach">Zach</a>
 
-          <a class="tree-person jaime">Jaime</a>
-          <a class="tree-person alex">Alex</a>
+<a class="tree-person erin" data-person="Erin">Erin</a>
+<a class="tree-person ethan" data-person="Ethan">Ethan</a>
+<a class="tree-person jacklyn" data-person="Jacklyn">Jacklyn</a>
+
+<a class="tree-person jaime" data-person="Jaime">Jaime</a>
+<a class="tree-person alex" data-person="Alex">Alex</a>
 
           <!-- All connector lines live in one SVG so joints stay crisp -->
           <svg
@@ -155,6 +163,173 @@
   window.addEventListener("resize", updateMenuColor);
 
   updateMenuColor();
+
+
+</script>
+
+<script>
+  const DROPBOX_API_BASE =
+    "https://family-photo-api.emilyzohar.workers.dev";
+
+  const DROPBOX_WORKS_FOLDER =
+    "/Zohar Family/Works";
+
+
+  function normalizePersonName(value) {
+    return String(value ?? "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(
+        /[\u0300-\u036f]/g,
+        ""
+      )
+      .replace(
+        /[^a-z0-9]+/g,
+        ""
+      );
+  }
+
+
+  function buildDropboxApiUrl(
+    endpoint,
+    parameters = {}
+  ) {
+    const url =
+      new URL(
+        endpoint,
+        `${DROPBOX_API_BASE}/`
+      );
+
+    Object.entries(parameters)
+      .forEach(
+        ([key, value]) => {
+          url.searchParams.set(
+            key,
+            String(value)
+          );
+        }
+      );
+
+    return url.toString();
+  }
+
+
+  async function connectWorksFoldersToTree() {
+    const people = [
+      ...document.querySelectorAll(
+        ".tree-person[data-person]"
+      )
+    ];
+
+    /*
+      Start with every name non-clickable.
+    */
+
+    people.forEach(
+      personElement => {
+        personElement.removeAttribute(
+          "href"
+        );
+
+        personElement.classList.remove(
+          "has-page"
+        );
+
+        personElement.removeAttribute(
+          "aria-label"
+        );
+      }
+    );
+
+    try {
+      const url =
+        buildDropboxApiUrl(
+          "folder",
+          {
+            path:
+              DROPBOX_WORKS_FOLDER
+          }
+        );
+
+      const response =
+        await fetch(url);
+
+      if (
+        !response.ok
+      ) {
+        throw new Error(
+          `Could not load Works folders. HTTP ${response.status}.`
+        );
+      }
+
+      const entries =
+        await response.json();
+
+      const foldersByName =
+        new Map();
+
+      entries
+        .filter(
+          entry =>
+            entry.type === "folder"
+        )
+        .forEach(
+          folder => {
+            foldersByName.set(
+              normalizePersonName(
+                folder.name
+              ),
+              folder.name
+            );
+          }
+        );
+
+      people.forEach(
+        personElement => {
+          const personName =
+            personElement.dataset.person;
+
+          const matchingFolderName =
+            foldersByName.get(
+              normalizePersonName(
+                personName
+              )
+            );
+
+          if (
+            !matchingFolderName
+          ) {
+            return;
+          }
+
+          personElement.href =
+            `archive.html?person=${encodeURIComponent(
+              matchingFolderName
+            )}`;
+
+          personElement.classList.add(
+            "has-page"
+          );
+
+          personElement.setAttribute(
+            "aria-label",
+            `Open ${personName}'s works`
+          );
+        }
+      );
+    }
+
+    catch (error) {
+      console.error(
+        "Could not connect Works folders to the family tree:",
+        error
+      );
+    }
+  }
+
+
+  connectWorksFoldersToTree();
 </script>
 <footer class="bottom-nav">
   <nav class="bottom-nav-inner" aria-label="Footer navigation">
