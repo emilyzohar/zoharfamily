@@ -26,38 +26,7 @@ body {
    LANDING SCREEN
    ========================================================= */
 
-.landing-screen {
-  position: relative;
-  width: 100%;
-  height: calc(110vh - 78px);
-  min-height: 0;
 
-  background-image: url("assets/landing-background.png");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center bottom;
-}
-
-.landing-photo {
-  position: absolute;
-  left: 50.1%;
-  top: 30%;
-  width: 12.2%;
-  aspect-ratio: 1 / 1;
-  transform: translateX(-50%);
-  object-fit: cover;
-  display: block;
-}
-
-.landing-photo {
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  cursor: pointer;
-}
-
-.landing-photo:hover {
-  transform: translateX(-50%) scale(1.04);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-}
 .top-nav {
   position: flex;
   top: 0;
@@ -219,10 +188,7 @@ body {
 
 .paper-section {
   min-height: 85vh;
-  background-image: url("assets/paper-background.png");
-  background-size: cover;
-  background-position: center top;
-  background-repeat: repeat-y;
+  background: #f5f0e7;
 }
 
 .manual-tree-wrap {
@@ -970,4 +936,174 @@ body.modal-open {
 .tree-person.has-page:hover,
 .tree-person.has-page:focus-visible {
   opacity: 0.6;
+}
+
+/* =========================================================
+   HOME PHOTO LANDING
+========================================================= */
+
+.home-photo-landing {
+  position: relative;
+
+  width: 100%;
+  min-height: 100vh;
+
+  background: #f5f0e7;
+
+  overflow: hidden;
+}
+
+
+/* Navigation is burgundy on the beige background */
+
+.home-photo-landing .top-nav-link {
+  color: #5e0b11;
+}
+
+
+/* Area containing the photograph stack */
+
+.home-photo-stage {
+  min-height:
+    calc(100vh - 65px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    70px
+    40px
+    100px;
+}
+
+
+.home-photo-stack {
+  position: relative;
+
+  width:
+    min(
+      900px,
+      90vw
+    );
+
+  height:
+    min(
+      600px,
+      72vw
+    );
+
+  min-height: 520px;
+}
+
+
+/* Individual photograph */
+
+.home-stack-photo {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  display: block;
+
+  width: clamp(180px, 22vw, 310px);
+  max-height: 390px;
+
+  padding: 0;
+  background: transparent;
+  object-fit: contain;
+
+  box-shadow: none;
+
+  transform:
+    translate(
+      calc(-50% + var(--photo-x)),
+      calc(-50% + var(--photo-y))
+    )
+    rotate(var(--photo-rotation));
+
+  transition: transform 220ms ease;
+  cursor: pointer;
+}
+
+
+.home-stack-photo:hover,
+.home-stack-photo:focus-visible {
+  z-index: 100 !important;
+
+  transform:
+    translate(
+      calc(-50% + var(--photo-x)),
+      calc(-50% + var(--photo-y) - 12px)
+    )
+    rotate(0deg)
+    scale(1.04);
+
+  box-shadow: none;
+  outline: none;
+}
+
+
+/* Loading and error message */
+
+.home-photo-message {
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  transform:
+    translate(-50%, -50%);
+
+  margin: 0;
+
+  color: #5e0b11;
+
+  font-size: 1.5rem;
+  font-style: italic;
+
+  text-align: center;
+}
+
+
+/* Mobile */
+
+@media (max-width: 700px) {
+
+  .home-photo-stage {
+    min-height:
+      calc(100vh - 62px);
+
+    padding:
+      50px
+      15px
+      70px;
+  }
+
+
+  .home-photo-stack {
+  position: relative;
+
+  width: min(1350px, 96vw);
+  height: min(700px, 72vw);
+
+  min-height: 520px;
+}
+
+
+  .home-stack-photo {
+    width:
+      min(
+        68vw,
+        285px
+      );
+
+    max-height: 370px;
+
+    padding:
+      9px
+      9px
+      30px;
+  }
+
 }

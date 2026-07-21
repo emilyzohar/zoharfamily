@@ -9,20 +9,33 @@
 <body>
 
   <main>
-    <section class="landing-screen light-section">
+    <section class="landing-screen home-photo-landing">
 
   <header class="top-nav">
-  <nav class="top-nav-inner" aria-label="Main navigation">
-    <a class="top-nav-link active" href="index.html">Home</a>
-    <a class="top-nav-link" href="recipes.html">Recipes</a>
-    <a class="top-nav-link" href="merch.html">Merch</a>
-    <a class="top-nav-link" href="travel.html">Travel</a>
-    <a class="top-nav-link" href="memories.html">Memories</a>
-    <a class="top-nav-link" href="archive.html?person=Sabba">Sabba's Works</a>
-  </nav>
-</header>
+    <nav class="top-nav-inner" aria-label="Main navigation">
+      <a class="top-nav-link active" href="index.html">Home</a>
+      <a class="top-nav-link" href="recipes.html">Recipes</a>
+      <a class="top-nav-link" href="merch.html">Merch</a>
+      <a class="top-nav-link" href="travel.html">Travel</a>
+      <a class="top-nav-link" href="memories.html">Memories</a>
+      <a class="top-nav-link" href="archive.html?person=Sabba">
+        Sabba's Works
+      </a>
+    </nav>
+  </header>
 
- 
+  <div class="home-photo-stage">
+    <div
+      id="home-photo-stack"
+      class="home-photo-stack"
+      aria-live="polite"
+      aria-label="Favourite old family photographs"
+    >
+      <p class="home-photo-message">
+        Loading family photographs…
+      </p>
+    </div>
+  </div>
 
 </section>
 
@@ -122,10 +135,7 @@
   </main>
 
   <script src="data.js"></script>
-  <script>
-    const landingPhoto = document.getElementById("landing-photo");
-    if (landingPhoto) landingPhoto.src = LANDING_PHOTO;
-  </script>
+  
   <script>
   const menuToggle = document.querySelector(".menu-toggle");
   const mobileMenu = document.querySelector(".mobile-menu");
@@ -330,6 +340,217 @@
 
 
   connectWorksFoldersToTree();
+</script>
+
+<script>
+  const HOME_PHOTOS = [
+    "assets/faves/alon-frown.png",
+    "assets/faves/coby-yael-kids.png",
+    "assets/faves/family-photo.png",
+    "assets/faves/house-coat.png",
+    "assets/faves/house.png",
+    "assets/faves/kids in coats.png",
+    "assets/faves/matching-haircut.png",
+    "assets/faves/new-baby.png",
+    "assets/faves/newly-weds.png",
+    "assets/faves/park.png",
+    "assets/faves/sabba-driving.png",
+    "assets/faves/siblings.png",
+    "assets/faves/tennis.png",
+    "assets/faves/tweens.png",
+    "assets/faves/yal-alon-couch.png",
+    "assets/faves/yal-ball.png",
+    "assets/faves/yal-on-bike.png",
+    "assets/faves/yal-sabba.png",
+    "assets/faves/yal-tree.png",
+    "assets/faves/yal-wedding-sabba.png"
+  ];
+
+
+  function shuffleHomePhotos(
+    photos
+  ) {
+    const shuffled =
+      [...photos];
+
+    for (
+      let index =
+        shuffled.length - 1;
+
+      index > 0;
+
+      index -= 1
+    ) {
+      const randomIndex =
+        Math.floor(
+          Math.random() *
+          (index + 1)
+        );
+
+      [
+        shuffled[index],
+        shuffled[randomIndex]
+      ] = [
+        shuffled[randomIndex],
+        shuffled[index]
+      ];
+    }
+
+    return shuffled;
+  }
+
+
+  function createPhotoAltText(
+    path,
+    index
+  ) {
+    const filename =
+      path
+        .split("/")
+        .pop()
+        .replace(
+          /\.[^.]+$/,
+          ""
+        )
+        .replace(
+          /[-_]+/g,
+          " "
+        );
+
+    return filename
+      ? filename
+      : `Family photograph ${index + 1}`;
+  }
+
+
+  function loadHomePhotoStack() {
+    const stack =
+      document.getElementById(
+        "home-photo-stack"
+      );
+
+    if (
+      !stack
+    ) {
+      return;
+    }
+
+    const positions = [
+  { x: "-500px", y: "-125px", rotation: "-8deg" },
+  { x: "-330px", y: "-145px", rotation: "5deg" },
+  { x: "-165px", y: "-130px", rotation: "-4deg" },
+  { x: "0px", y: "-145px", rotation: "7deg" },
+  { x: "165px", y: "-130px", rotation: "-6deg" },
+  { x: "330px", y: "-145px", rotation: "4deg" },
+  { x: "500px", y: "-120px", rotation: "-5deg" },
+
+  { x: "-525px", y: "25px", rotation: "6deg" },
+  { x: "-350px", y: "5px", rotation: "-3deg" },
+  { x: "-175px", y: "20px", rotation: "4deg" },
+  { x: "0px", y: "0px", rotation: "-7deg" },
+  { x: "175px", y: "18px", rotation: "3deg" },
+  { x: "350px", y: "3px", rotation: "-5deg" },
+  { x: "525px", y: "25px", rotation: "6deg" },
+
+  { x: "-410px", y: "165px", rotation: "-4deg" },
+  { x: "-205px", y: "180px", rotation: "6deg" },
+  { x: "0px", y: "165px", rotation: "-2deg" },
+  { x: "205px", y: "180px", rotation: "5deg" },
+  { x: "410px", y: "165px", rotation: "-7deg" }
+];
+    const photos =
+      shuffleHomePhotos(
+        HOME_PHOTOS
+      )
+        .slice(
+          0,
+          positions.length
+        );
+
+    stack.innerHTML =
+      "";
+
+    photos.forEach(
+      (
+        photoPath,
+        index
+      ) => {
+        const position =
+          positions[index];
+
+        const image =
+          document.createElement(
+            "img"
+          );
+
+        image.className =
+          "home-stack-photo";
+
+        image.src =
+          photoPath;
+
+        image.alt =
+          createPhotoAltText(
+            photoPath,
+            index
+          );
+
+        image.loading =
+          index < 4
+            ? "eager"
+            : "lazy";
+
+        image.tabIndex =
+          0;
+
+        image.style.setProperty(
+          "--photo-x",
+          position.x
+        );
+
+        image.style.setProperty(
+          "--photo-y",
+          position.y
+        );
+
+        image.style.setProperty(
+          "--photo-rotation",
+          position.rotation
+        );
+
+        image.style.zIndex =
+          String(index + 1);
+
+        image.addEventListener(
+          "error",
+          () => {
+            console.error(
+              `Could not load ${photoPath}`
+            );
+
+            image.remove();
+          }
+        );
+
+        stack.appendChild(
+          image
+        );
+      }
+    );
+
+    if (
+      photos.length === 0
+    ) {
+      stack.innerHTML = `
+        <p class="home-photo-message">
+          No family photographs have been added yet.
+        </p>
+      `;
+    }
+  }
+
+
+  loadHomePhotoStack();
 </script>
 <footer class="bottom-nav">
   <nav class="bottom-nav-inner" aria-label="Footer navigation">
