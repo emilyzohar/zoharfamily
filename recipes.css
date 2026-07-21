@@ -1640,7 +1640,7 @@ body.recipe-modal-open {
 
     font-size:
       clamp(
-        1rem,
+        1.5rem,
         4.5vw,
         1.4rem
       );
