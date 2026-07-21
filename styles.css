@@ -1112,10 +1112,10 @@ body.modal-open {
 
   header.merch-header,
   .merch-header {
-    height: 65px !important;
-    min-height: 65px !important;
+    height: 65px;
+    min-height: 65px;
 
-    background: none !important;
+    background: var(--line);
     background-image: none !important;
   }
 
