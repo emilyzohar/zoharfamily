@@ -1108,18 +1108,20 @@ body.modal-open {
 
 }
 
-@media (max-width: 700px) {
+@media screen and (max-width: 900px) {
 
+  header.merch-header,
   .merch-header {
-    height: auto;
-    min-height: 65px;
+    height: 65px !important;
+    min-height: 65px !important;
 
     background: none !important;
     background-image: none !important;
   }
 
+  .merch-header img,
   .merch-title {
-    display: none;
+    display: none !important;
   }
 
 }
