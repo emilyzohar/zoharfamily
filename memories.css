@@ -1735,7 +1735,23 @@ video {
 /* =========================================================
    REDUCED MOTION
 ========================================================= */
+@media (max-width: 700px) {
 
+  .recipes-hero {
+    height: auto;
+    min-height: 0;
+
+    background-image: none;
+  }
+
+  .recipes-header {
+    height: auto;
+    min-height: 65px;
+
+    background-image: none;
+  }
+
+}
 @media (
   prefers-reduced-motion:
   reduce

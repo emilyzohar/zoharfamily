@@ -1628,6 +1628,21 @@ body.recipe-modal-open {
       1rem;
   }
 
+  .recipes-grid.is-piled .recipe-card-title {
+  left: 17%;
+  right: 11%;
+  top: 55%;
+
+  font-size:
+    clamp(
+      1.75rem,
+      7.5vw,
+      2.8rem
+    );
+
+  line-height: 0.95;
+}
+
 }
 
 /* =========================================================

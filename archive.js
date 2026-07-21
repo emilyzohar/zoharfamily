@@ -3851,40 +3851,52 @@ function openArticleCollection(
           article,
           () => {
             if (
-              article.type ===
-              "pdf"
-            ) {
-              hideModal(
-                modal
-              );
+  article.type ===
+  "pdf"
+) {
+  hideModal(
+    modal
+  );
 
-              openPDF(
-                article,
-                {
-                  type:
-                    "articleCollection",
+  openPDF(
+    article,
+    {
+      type:
+        "articleCollection",
 
-                  item
-                }
-              );
+      item
+    }
+  );
 
-            } else if (
-              article.type ===
-                "link"
-              &&
-              article.url
-            ) {
-              window.open(
-                article.url,
-                "_blank",
-                "noopener"
-              );
+} else if (
+  article.type ===
+  "pptx"
+) {
+  hideModal(
+    modal
+  );
 
-            } else {
-              openDropboxFile(
-                article
-              );
-            }
+  openPowerPoint(
+    article
+  );
+
+} else if (
+  article.type ===
+    "link"
+  &&
+  article.url
+) {
+  window.open(
+    article.url,
+    "_blank",
+    "noopener"
+  );
+
+} else {
+  openDropboxFile(
+    article
+  );
+}
           }
         )
       );
@@ -4644,7 +4656,6 @@ async function getDropboxSharedLink(
       )
     );
 
-
   if (
     !response.ok
   ) {
@@ -4656,10 +4667,8 @@ async function getDropboxSharedLink(
     );
   }
 
-
   const result =
     await response.json();
-
 
   if (
     !result.url
@@ -4669,8 +4678,26 @@ async function getDropboxSharedLink(
     );
   }
 
+  /*
+    Explicitly force Dropbox's preview page rather than
+    a direct download.
+  */
 
-  return result.url;
+  const previewUrl =
+    new URL(
+      result.url
+    );
+
+  previewUrl.searchParams.delete(
+    "raw"
+  );
+
+  previewUrl.searchParams.set(
+    "dl",
+    "0"
+  );
+
+  return previewUrl.toString();
 }
 
 
@@ -4692,6 +4719,10 @@ async function openPowerPoint(
     return;
   }
 
+  /*
+    Open the tab synchronously so browsers do not block it
+    after the asynchronous shared-link request.
+  */
 
   const previewWindow =
     window.open(
@@ -4699,29 +4730,37 @@ async function openPowerPoint(
       "_blank"
     );
 
-
   if (
-    previewWindow
+    !previewWindow
   ) {
-    previewWindow.opener =
-      null;
+    console.error(
+      "The PowerPoint preview tab was blocked."
+    );
 
-    previewWindow.document.title =
-      "Opening presentation…";
+    alert(
+      "Please allow pop-ups for this website to open the presentation."
+    );
 
-    previewWindow.document.body.innerHTML = `
-      <p
-        style="
-          font-family: Georgia, serif;
-          padding: 40px;
-          color: #681116;
-        "
-      >
-        Opening presentation…
-      </p>
-    `;
+    return;
   }
 
+  previewWindow.opener =
+    null;
+
+  previewWindow.document.title =
+    "Opening presentation…";
+
+  previewWindow.document.body.innerHTML = `
+    <p
+      style="
+        font-family: Georgia, serif;
+        padding: 40px;
+        color: #681116;
+      "
+    >
+      Opening presentation…
+    </p>
+  `;
 
   try {
     const sharedLink =
@@ -4729,40 +4768,43 @@ async function openPowerPoint(
         item.file
       );
 
-    if (
-      previewWindow
-    ) {
-      previewWindow.location.href =
-        sharedLink;
-    } else {
-      window.location.href =
-        sharedLink;
-    }
+    previewWindow.location.replace(
+      sharedLink
+    );
 
   } catch (
     error
   ) {
     console.error(
-      "Could not open Dropbox preview:",
+      "Could not open Dropbox presentation preview:",
       error
     );
 
+    /*
+      Do not fall back to the direct file endpoint because
+      that may download the PowerPoint.
+    */
 
-    const fallbackUrl =
-      getDropboxFileUrl(
-        item.file
-      );
+    previewWindow.document.title =
+      "Presentation unavailable";
 
+    previewWindow.document.body.innerHTML = `
+      <div
+        style="
+          font-family: Georgia, serif;
+          padding: 40px;
+          color: #681116;
+        "
+      >
+        <h1>
+          Presentation unavailable
+        </h1>
 
-    if (
-      previewWindow
-    ) {
-      previewWindow.location.href =
-        fallbackUrl;
-    } else {
-      window.location.href =
-        fallbackUrl;
-    }
+        <p>
+          The Dropbox preview could not be opened.
+        </p>
+      </div>
+    `;
   }
 }
 
