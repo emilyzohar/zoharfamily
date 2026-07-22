@@ -70,6 +70,20 @@ const DROPBOX_ARCHIVE_ROOT =
   `${DROPBOX_WORKS_ROOT}/${requestedPerson}`;
 
 
+/*
+  These folders power the other personalized popup tabs.
+  They live inside a person's Works folder, but should not
+  also appear as categories on that person's Works page.
+*/
+const RESERVED_PERSONAL_PAGE_FOLDERS =
+  new Set([
+    "recipes",
+    "merch",
+    "memories",
+    "travel"
+  ]);
+
+
 /* =========================================================
    PAGE TITLE
 ========================================================= */
@@ -946,17 +960,20 @@ async function fetchDropboxText(
    FETCH ENTIRE ARCHIVE IN ONE REQUEST
 ========================================================= */
 
-async function fetchAllArchiveEntries() {
+async function fetchArchiveFolderEntries(
+  path,
+  recursive = false
+) {
   const response =
     await fetch(
       buildDropboxApiUrl(
         "/folder",
         {
-          path:
-            DROPBOX_ARCHIVE_ROOT,
-
+          path,
           recursive:
-            "true"
+            recursive
+              ? "true"
+              : "false"
         }
       ),
       {
@@ -977,7 +994,7 @@ async function fetchAllArchiveEntries() {
       await response.text();
 
     throw new Error(
-      `Could not load ${DROPBOX_ARCHIVE_ROOT}. HTTP ${response.status}. ${errorText}`
+      `Could not load ${path}. HTTP ${response.status}. ${errorText}`
     );
   }
 
@@ -995,6 +1012,69 @@ async function fetchAllArchiveEntries() {
   }
 
   return entries;
+}
+
+
+async function fetchAllArchiveEntries() {
+  /*
+    First inspect only the person's top-level Works folder.
+    Recipes / Merch / Memories / Travel are separate personal
+    pages, so do not recursively crawl them as Works content.
+  */
+  const rootEntries =
+    await fetchArchiveFolderEntries(
+      DROPBOX_ARCHIVE_ROOT,
+      false
+    );
+
+  const visibleRootEntries =
+    rootEntries.filter(
+      entry => {
+        if (
+          String(entry.type ?? "")
+            .toLowerCase() !== "folder"
+        ) {
+          return true;
+        }
+
+        return !RESERVED_PERSONAL_PAGE_FOLDERS.has(
+          String(entry.name ?? "")
+            .trim()
+            .toLowerCase()
+        );
+      }
+    );
+
+  const workCategoryFolders =
+    visibleRootEntries.filter(
+      entry =>
+        String(entry.type ?? "")
+          .toLowerCase() === "folder"
+    );
+
+  const nestedEntryGroups =
+    await Promise.all(
+      workCategoryFolders.map(
+        entry => {
+          const folderPath =
+            normalisePath(
+              entry.displayPath ||
+              entry.path ||
+              `${DROPBOX_ARCHIVE_ROOT}/${entry.name}`
+            );
+
+          return fetchArchiveFolderEntries(
+            folderPath,
+            true
+          );
+        }
+      )
+    );
+
+  return [
+    ...visibleRootEntries,
+    ...nestedEntryGroups.flat()
+  ];
 }
 
 
@@ -2533,9 +2613,20 @@ groups.push(
 async function buildArchiveData(
   rootTree
 ) {
+  const workFolders =
+    rootTree.folders.filter(
+      folder =>
+        !RESERVED_PERSONAL_PAGE_FOLDERS.has(
+          String(folder.name ?? "")
+            .trim()
+            .toLowerCase()
+        )
+    );
+
+
   const categoryResults =
     await Promise.all(
-      rootTree.folders.map(
+      workFolders.map(
         buildCategoryFromFolder
       )
     );

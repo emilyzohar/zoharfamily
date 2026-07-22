@@ -1125,3 +1125,35 @@ body.modal-open {
   }
 
 }
+
+/* =========================================================
+   PERSONAL PAGE POPUP MODE
+   Used when Recipes / Merch / Memories / Travel are opened
+   inside a family member popup from index.html.
+========================================================= */
+
+body.person-peek-mode {
+  min-height: 100vh;
+}
+
+body.person-peek-mode .recipes-header,
+body.person-peek-mode .merch-header,
+body.person-peek-mode .travel-header,
+body.person-peek-mode .memories-top-nav {
+  display: none !important;
+}
+
+body.person-peek-mode .recipes-main,
+body.person-peek-mode .merch-main,
+body.person-peek-mode .memories-main,
+body.person-peek-mode .travel-main {
+  min-height: 100vh;
+}
+
+body.person-peek-mode .recipes-main {
+  padding-top: 42px;
+}
+
+body.person-peek-mode .merch-main {
+  padding-top: 42px;
+}

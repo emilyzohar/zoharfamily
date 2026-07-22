@@ -5,8 +5,77 @@
 const PHOTO_API =
   "https://family-photo-api.emilyzohar.workers.dev";
 
+function getPersonalPageContext(defaultSectionName) {
+  const parameters =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const cleanFolderPart = value =>
+    String(value ?? "")
+      .replace(/[\\/]+/g, "")
+      .trim();
+
+  const person =
+    cleanFolderPart(
+      parameters.get("person")
+    );
+
+  const section =
+    cleanFolderPart(
+      parameters.get("section")
+    ) || defaultSectionName;
+
+  const peek =
+    parameters.get("peek") === "true";
+
+  if (peek) {
+    document.body.classList.add(
+      "person-peek-mode"
+    );
+  }
+
+  return {
+    person,
+    section,
+    peek
+  };
+}
+
+const travelPageContext =
+  getPersonalPageContext(
+    "Travel"
+  );
+
+/*
+  All actual trip folders live in one shared Dropbox location.
+
+  Person-specific Travel pages do NOT duplicate those folders.
+  Instead they read a small manifest at:
+
+  /Zohar Family/Works/{Person}/Travel/trips.txt
+
+  Each non-empty line in trips.txt is the name of a folder inside
+  /Zohar Family/Travel.
+*/
+
 const TRAVEL_ROOT =
   "/Zohar Family/Travel";
+
+const PERSON_TRAVEL_ROOT =
+  travelPageContext.person
+    ? `/Zohar Family/Works/${travelPageContext.person}/${travelPageContext.section}`
+    : "";
+
+const PERSON_TRAVEL_MANIFEST =
+  PERSON_TRAVEL_ROOT
+    ? `${PERSON_TRAVEL_ROOT}/trips.txt`
+    : "";
+
+if (travelPageContext.person) {
+  document.title =
+    `${travelPageContext.person}'s Travel | Zohar Family`;
+}
 
 const TRIP_METADATA_FILE =
   "trip.txt";
@@ -203,6 +272,160 @@ let travelTripsMenu =
 
 
 /* ============================================
+   PERSON TRAVEL MANIFEST
+
+   /Works/{Person}/Travel/trips.txt contains
+   one shared Travel folder name per line.
+
+   Blank lines and # comments are ignored.
+   Duplicate names are removed case-insensitively.
+============================================ */
+
+function parsePersonTravelManifest(
+  text
+) {
+
+  const seen =
+    new Set();
+
+
+  return String(
+    text ?? ""
+  )
+
+    .split(
+      /\r?\n/
+    )
+
+    .map(
+      line =>
+        line.trim()
+    )
+
+    .filter(
+      line =>
+        line &&
+        !line.startsWith("#")
+    )
+
+    .filter(
+      line => {
+
+        const key =
+          line.toLocaleLowerCase();
+
+
+        if (
+          seen.has(
+            key
+          )
+        ) {
+
+          return false;
+
+        }
+
+
+        seen.add(
+          key
+        );
+
+
+        return true;
+
+      }
+    );
+
+}
+
+
+async function getPersonTravelFolders(
+  allTripFolders
+) {
+
+  let manifestText;
+
+
+  try {
+
+    manifestText =
+      await getDropboxText(
+        PERSON_TRAVEL_MANIFEST
+      );
+
+  } catch (
+    error
+  ) {
+
+    console.error(
+      `Could not load person Travel manifest: ${PERSON_TRAVEL_MANIFEST}`,
+      error
+    );
+
+
+    return [];
+
+  }
+
+
+  const requestedFolderNames =
+    parsePersonTravelManifest(
+      manifestText
+    );
+
+
+  const foldersByName =
+    new Map(
+      allTripFolders.map(
+        folder => [
+          String(
+            folder.name ?? ""
+          ).toLocaleLowerCase(),
+          folder
+        ]
+      )
+    );
+
+
+  const matchedFolders =
+    [];
+
+
+  requestedFolderNames.forEach(
+    folderName => {
+
+      const folder =
+        foldersByName.get(
+          folderName.toLocaleLowerCase()
+        );
+
+
+      if (
+        folder
+      ) {
+
+        matchedFolders.push(
+          folder
+        );
+
+      } else {
+
+        console.warn(
+          `Trip listed in ${PERSON_TRAVEL_MANIFEST} was not found in ${TRAVEL_ROOT}: ${folderName}`
+        );
+
+      }
+
+    }
+  );
+
+
+  return matchedFolders;
+
+}
+
+
+/* ============================================
    LOAD ALL TRAVEL DATA
 
    1. Load /Travel folder listing.
@@ -222,11 +445,32 @@ async function loadTravelData() {
       );
 
 
-    const tripFolders =
+    const allTripFolders =
       rootEntries.filter(
         entry =>
           entry.type === "folder"
       );
+
+
+    /*
+      On a person-specific page, /Works/{Person}/Travel/trips.txt
+      contains only the names of shared trip folders to include.
+
+      Example:
+
+      Italy 1984
+      France 1992
+      Israel 2001
+
+      The actual data still loads from /Zohar Family/Travel/....
+    */
+
+    const tripFolders =
+      travelPageContext.person
+        ? await getPersonTravelFolders(
+            allTripFolders
+          )
+        : allTripFolders;
 
 
     TRAVELS =
@@ -239,17 +483,23 @@ async function loadTravelData() {
     selectedTravelCategories.clear();
 
 
-    DEFAULT_SELECTED_TRAVEL_CATEGORIES.forEach(
+    if (
+      !travelPageContext.person
+    ) {
 
-      category => {
+      DEFAULT_SELECTED_TRAVEL_CATEGORIES.forEach(
 
-        selectedTravelCategories.add(
-          category
-        );
+        category => {
 
-      }
+          selectedTravelCategories.add(
+            category
+          );
 
-    );
+        }
+
+      );
+
+    }
 
 
     if (
@@ -1677,6 +1927,28 @@ function registerTravelCategory(
   availableTravelCategories.add(
     category
   );
+
+
+  /*
+    A person-specific Travel page should show
+    every category belonging to that person by
+    default. Categories are discovered
+    asynchronously from each trip.txt, so select
+    each category as soon as it is registered.
+
+    The main Travel page keeps its existing
+    Sabba & Safta + Family defaults.
+  */
+
+  if (
+    travelPageContext.person
+  ) {
+
+    selectedTravelCategories.add(
+      category
+    );
+
+  }
 
 
   if (

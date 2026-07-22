@@ -5,8 +5,57 @@
 const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
+function getPersonalPageContext(defaultSectionName) {
+  const parameters =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const cleanFolderPart = value =>
+    String(value ?? "")
+      .replace(/[\\/]+/g, "")
+      .trim();
+
+  const person =
+    cleanFolderPart(
+      parameters.get("person")
+    );
+
+  const section =
+    cleanFolderPart(
+      parameters.get("section")
+    ) || defaultSectionName;
+
+  const peek =
+    parameters.get("peek") === "true";
+
+  if (peek) {
+    document.body.classList.add(
+      "person-peek-mode"
+    );
+  }
+
+  return {
+    person,
+    section,
+    peek
+  };
+}
+
+const recipePageContext =
+  getPersonalPageContext(
+    "Recipes"
+  );
+
 const DROPBOX_RECIPES_FOLDER =
-  "/Zohar Family/Recipes";
+  recipePageContext.person
+    ? `/Zohar Family/Works/${recipePageContext.person}/${recipePageContext.section}`
+    : "/Zohar Family/Recipes";
+
+if (recipePageContext.person) {
+  document.title =
+    `${recipePageContext.person}'s Recipes | Zohar Family`;
+}
 
 
 /* =========================================================
@@ -1384,31 +1433,127 @@ function validateUniqueRecipeIds(
    RECIPE SORTING
 ========================================================= */
 
-function shuffleRecipes(recipes) {
-  const shuffled =
-    [...recipes];
+function getStableRecipeShuffleValue(
+  recipe
+) {
 
-  for (
-    let index = shuffled.length - 1;
-    index > 0;
-    index -= 1
-  ) {
-    const randomIndex =
-      Math.floor(
-        Math.random() *
-        (index + 1)
-      );
+  /*
+    Use the recipe's own identifying information to create
+    a stable pseudo-random value. This keeps the pile looking
+    casually shuffled, but gives every recipe the same place
+    every time the page loads.
+  */
+
+  const key =
 
     [
-      shuffled[index],
-      shuffled[randomIndex]
-    ] = [
-      shuffled[randomIndex],
-      shuffled[index]
-    ];
+      recipe.id,
+      recipe.name,
+      recipe.sourcePath
+    ]
+      .filter(Boolean)
+      .join("|");
+
+
+  let hash =
+    2166136261;
+
+
+  for (
+    let index = 0;
+    index < key.length;
+    index += 1
+  ) {
+
+    hash ^=
+      key.charCodeAt(
+        index
+      );
+
+
+    hash =
+      Math.imul(
+        hash,
+        16777619
+      );
+
   }
 
-  return shuffled;
+
+  return hash >>> 0;
+
+}
+
+
+function shuffleRecipes(
+  recipes
+) {
+
+  /*
+    This replaces the old Math.random() shuffle.
+
+    The display still looks shuffled, but the order is now
+    deterministic, so the pile is identical on every visit.
+  */
+
+  return [...recipes]
+    .sort(
+      (
+        recipeA,
+        recipeB
+      ) => {
+
+        const hashDifference =
+
+          getStableRecipeShuffleValue(
+            recipeA
+          )
+
+          -
+
+          getStableRecipeShuffleValue(
+            recipeB
+          );
+
+
+        if (
+          hashDifference !== 0
+        ) {
+
+          return hashDifference;
+
+        }
+
+
+        return String(
+          recipeA.id
+          ||
+          recipeA.name
+          ||
+          ""
+        )
+          .localeCompare(
+            String(
+              recipeB.id
+              ||
+              recipeB.name
+              ||
+              ""
+            ),
+            undefined,
+            {
+              numeric:
+                true,
+
+              sensitivity:
+                "base"
+            }
+          );
+
+      }
+
+    );
+
 }
 
 
@@ -2279,6 +2424,16 @@ function renderRecipes() {
 
   pileCover.alt =
     "Safta's Kitchen";
+
+
+  /*
+    Keep the cover above every recipe card in pile mode.
+    Some cards receive their own inline z-index, so this must
+    also be inline rather than relying only on the CSS value.
+  */
+
+  pileCover.style.zIndex =
+    "3";
 
 
   recipeGrid

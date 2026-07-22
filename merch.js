@@ -5,8 +5,57 @@
 const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
+function getPersonalPageContext(defaultSectionName) {
+  const parameters =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const cleanFolderPart = value =>
+    String(value ?? "")
+      .replace(/[\\/]+/g, "")
+      .trim();
+
+  const person =
+    cleanFolderPart(
+      parameters.get("person")
+    );
+
+  const section =
+    cleanFolderPart(
+      parameters.get("section")
+    ) || defaultSectionName;
+
+  const peek =
+    parameters.get("peek") === "true";
+
+  if (peek) {
+    document.body.classList.add(
+      "person-peek-mode"
+    );
+  }
+
+  return {
+    person,
+    section,
+    peek
+  };
+}
+
+const merchPageContext =
+  getPersonalPageContext(
+    "Merch"
+  );
+
 const DROPBOX_MERCH_ROOT =
-  "/Zohar Family/Merch";
+  merchPageContext.person
+    ? `/Zohar Family/Works/${merchPageContext.person}/${merchPageContext.section}`
+    : "/Zohar Family/Merch";
+
+if (merchPageContext.person) {
+  document.title =
+    `${merchPageContext.person}'s Merch | Zohar Family`;
+}
 
 
 const MERCH_IMAGE_EXTENSIONS =

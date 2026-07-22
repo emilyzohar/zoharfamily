@@ -6,19 +6,6 @@
   <title>Zohar Family</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .archive-peek-close {
-  transition:
-    opacity 160ms ease,
-    visibility 160ms ease,
-    transform 160ms ease;
-}
-
-.archive-peek-close.is-hidden {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: scale(0.85);
-}
     .archive-peek {
       position: fixed;
       inset: 0;
@@ -43,46 +30,177 @@
     .archive-peek-window {
       position: relative;
       z-index: 1;
-      width: min(1180px, 94vw);
-      height: min(860px, 92vh);
+      width: min(1320px, 96vw);
+      height: min(900px, 94vh);
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
-      background: #681116;
-      border: 1px solid rgba(251, 236, 216, 0.55);
+      background: #f5f0e7;
+      border: 1px solid rgba(94, 11, 17, 0.24);
       border-radius: 18px;
       box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
     }
 
+    .archive-peek-header {
+      position: relative;
+      z-index: 3;
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      padding: 10px 16px 10px 24px;
+      background: #f5f0e7;
+      border-bottom: 1px solid rgba(94, 11, 17, 0.18);
+      color: #5e0b11;
+      flex: 0 0 auto;
+    }
+
+    .archive-peek-person {
+      margin: 0;
+      min-width: max-content;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: clamp(1.35rem, 2vw, 1.85rem);
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    .archive-peek-tabs {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      min-width: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .archive-peek-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .archive-peek-tab {
+      flex: 0 0 auto;
+      padding: 8px 0 6px;
+      border: 0;
+      border-bottom: 1px solid transparent;
+      background: transparent;
+      color: #5e0b11;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1.18rem;
+      cursor: pointer;
+      opacity: 0.56;
+    }
+
+    .archive-peek-tab:hover,
+    .archive-peek-tab:focus-visible {
+      opacity: 1;
+    }
+
+    .archive-peek-tab.is-active {
+      border-bottom-color: currentColor;
+      font-style: italic;
+      opacity: 1;
+    }
+
+    .archive-peek-status {
+      margin-left: auto;
+      color: rgba(94, 11, 17, 0.58);
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1rem;
+      font-style: italic;
+      white-space: nowrap;
+    }
+
+    .archive-peek-status:empty {
+      display: none;
+    }
+
+    .archive-peek-frame-wrap {
+      position: relative;
+      flex: 1 1 auto;
+      min-height: 0;
+      background: #f5f0e7;
+    }
+
     .archive-peek-frame {
+      display: block;
       width: 100%;
       height: 100%;
       border: 0;
-      background: #681116;
+      background: #f5f0e7;
     }
 
     .archive-peek-close {
-      position: absolute;
-      top: 12px;
-      right: 16px;
-      z-index: 2;
+      flex: 0 0 auto;
       width: 42px;
       height: 42px;
+      margin-left: 0;
       padding: 0;
-      border: 1px solid rgba(251, 236, 216, 0.65);
+      border: 1px solid rgba(94, 11, 17, 0.45);
       border-radius: 50%;
-      background: #681116;
-      color: #fbecd8;
+      background: transparent;
+      color: #5e0b11;
       font-size: 30px;
       line-height: 1;
       cursor: pointer;
+      transition:
+        opacity 160ms ease,
+        visibility 160ms ease,
+        transform 160ms ease;
+    }
+
+    .archive-peek-close:hover,
+    .archive-peek-close:focus-visible {
+      background: rgba(94, 11, 17, 0.08);
+    }
+
+    .archive-peek-close.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: scale(0.85);
     }
 
     body.archive-peek-open {
       overflow: hidden;
     }
 
-    @media (max-width: 700px) {
-      .archive-peek { padding: 10px; }
-      .archive-peek-window { width: 100%; height: 94vh; border-radius: 12px; }
+    @media (max-width: 760px) {
+      .archive-peek {
+        padding: 8px;
+      }
+
+      .archive-peek-window {
+        width: 100%;
+        height: 96vh;
+        border-radius: 12px;
+      }
+
+      .archive-peek-header {
+        min-height: 62px;
+        gap: 16px;
+        padding: 9px 10px 9px 16px;
+      }
+
+      .archive-peek-person {
+        font-size: 1.25rem;
+      }
+
+      .archive-peek-tabs {
+        gap: 16px;
+      }
+
+      .archive-peek-tab {
+        font-size: 1.05rem;
+      }
+
+      .archive-peek-status {
+        display: none;
+      }
+
+      .archive-peek-close {
+        width: 38px;
+        height: 38px;
+      }
     }
   </style>
 </head>
@@ -217,9 +335,44 @@
 
   <div id="archivePeek" class="archive-peek" aria-hidden="true">
     <div class="archive-peek-backdrop" data-close-archive-peek></div>
-    <div class="archive-peek-window" role="dialog" aria-modal="true" aria-label="Family archive preview">
-      <button class="archive-peek-close" type="button" aria-label="Close archive" data-close-archive-peek>×</button>
-      <iframe id="archivePeekFrame" class="archive-peek-frame" title="Family archive"></iframe>
+
+    <div
+      class="archive-peek-window"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="archivePeekPerson"
+    >
+      <header class="archive-peek-header">
+        <h2 id="archivePeekPerson" class="archive-peek-person">Family</h2>
+
+        <nav
+          id="archivePeekTabs"
+          class="archive-peek-tabs"
+          aria-label="Personal pages"
+        ></nav>
+
+        <span
+          id="archivePeekStatus"
+          class="archive-peek-status"
+          role="status"
+          aria-live="polite"
+        ></span>
+
+        <button
+          class="archive-peek-close"
+          type="button"
+          aria-label="Close personal pages"
+          data-close-archive-peek
+        >×</button>
+      </header>
+
+      <div class="archive-peek-frame-wrap">
+        <iframe
+          id="archivePeekFrame"
+          class="archive-peek-frame"
+          title="Family personal page"
+        ></iframe>
+      </div>
     </div>
   </div>
 
@@ -305,20 +458,76 @@
   const DROPBOX_WORKS_FOLDER =
     "/Zohar Family/Works";
 
+  const PERSONAL_PAGE_SECTIONS = [
+    {
+      key: "works",
+      label: "Works",
+      page: "archive.html"
+    },
+    {
+      key: "recipes",
+      label: "Recipes",
+      page: "recipes.html",
+      folder: "Recipes"
+    },
+    {
+      key: "merch",
+      label: "Merch",
+      page: "merch.html",
+      folder: "Merch"
+    },
+    {
+      key: "memories",
+      label: "Memories",
+      page: "memories.html",
+      folder: "Memories"
+    },
+    {
+      key: "travel",
+      label: "Travel",
+      page: "travel.html",
+      folder: "Travel"
+    }
+  ];
+
+  const archivePeek =
+    document.getElementById("archivePeek");
+
+  const archivePeekFrame =
+    document.getElementById("archivePeekFrame");
+
+  const archivePeekTabs =
+    document.getElementById("archivePeekTabs");
+
+  const archivePeekPerson =
+    document.getElementById("archivePeekPerson");
+
+  const archivePeekStatus =
+    document.getElementById("archivePeekStatus");
+
+  const archivePeekClose =
+    document.querySelector(".archive-peek-close");
+
+  let activePersonalSections = [];
+  let activePersonalSectionKey = "works";
+  let activeWorksFolderName = "";
+  let personalSectionRequestId = 0;
+
 
   function normalizePersonName(value) {
     return String(value ?? "")
       .trim()
       .toLowerCase()
       .normalize("NFD")
-      .replace(
-        /[\u0300-\u036f]/g,
-        ""
-      )
-      .replace(
-        /[^a-z0-9]+/g,
-        ""
-      );
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+
+  function cleanDropboxFolderName(value) {
+    return String(value ?? "")
+      .replace(/[\\/]+/g, "")
+      .trim();
   }
 
 
@@ -346,16 +555,198 @@
   }
 
 
+  function buildPersonalPageUrl(section) {
+    const person =
+      cleanDropboxFolderName(
+        activeWorksFolderName
+      );
+
+    if (!person) {
+      return "about:blank";
+    }
+
+    const parameters =
+      new URLSearchParams();
+
+    parameters.set(
+      "person",
+      person
+    );
+
+    parameters.set(
+      "peek",
+      "true"
+    );
+
+    if (
+      section.key !== "works" &&
+      section.actualFolderName
+    ) {
+      parameters.set(
+        "section",
+        section.actualFolderName
+      );
+    }
+
+    return `${section.page}?${parameters.toString()}`;
+  }
+
+
+  function renderPersonalSectionTabs() {
+    if (!archivePeekTabs) {
+      return;
+    }
+
+    archivePeekTabs.innerHTML = "";
+
+    activePersonalSections.forEach(
+      section => {
+        const button =
+          document.createElement("button");
+
+        button.type = "button";
+        button.className = "archive-peek-tab";
+        button.dataset.personalSection =
+          section.key;
+        button.textContent =
+          section.label;
+
+        const isActive =
+          section.key ===
+          activePersonalSectionKey;
+
+        button.classList.toggle(
+          "is-active",
+          isActive
+        );
+
+        button.setAttribute(
+          "aria-pressed",
+          String(isActive)
+        );
+
+        archivePeekTabs.appendChild(
+          button
+        );
+      }
+    );
+  }
+
+
+  function showPersonalSection(sectionKey) {
+    const section =
+      activePersonalSections.find(
+        candidate =>
+          candidate.key === sectionKey
+      );
+
+    if (!section || !archivePeekFrame) {
+      return;
+    }
+
+    activePersonalSectionKey =
+      section.key;
+
+    renderPersonalSectionTabs();
+
+    archivePeekFrame.src =
+      buildPersonalPageUrl(section);
+
+    archivePeekFrame.title =
+      `${archivePeekPerson?.textContent || "Family"} ${section.label}`;
+  }
+
+
+  async function getPersonalSections(
+    worksFolderName
+  ) {
+    const safeFolderName =
+      cleanDropboxFolderName(
+        worksFolderName
+      );
+
+    const sections = [
+      {
+        ...PERSONAL_PAGE_SECTIONS[0]
+      }
+    ];
+
+    if (!safeFolderName) {
+      return sections;
+    }
+
+    const response =
+      await fetch(
+        buildDropboxApiUrl(
+          "folder",
+          {
+            path:
+              `${DROPBOX_WORKS_FOLDER}/${safeFolderName}`
+          }
+        )
+      );
+
+    if (!response.ok) {
+      throw new Error(
+        `Could not inspect ${safeFolderName}'s personal folders. HTTP ${response.status}.`
+      );
+    }
+
+    const entries =
+      await response.json();
+
+    const foldersByNormalizedName =
+      new Map();
+
+    entries
+      .filter(
+        entry =>
+          String(entry.type ?? "")
+            .toLowerCase() === "folder"
+      )
+      .forEach(
+        folder => {
+          foldersByNormalizedName.set(
+            normalizePersonName(
+              folder.name
+            ),
+            folder.name
+          );
+        }
+      );
+
+    PERSONAL_PAGE_SECTIONS
+      .slice(1)
+      .forEach(
+        section => {
+          const actualFolderName =
+            foldersByNormalizedName.get(
+              normalizePersonName(
+                section.folder
+              )
+            );
+
+          if (!actualFolderName) {
+            return;
+          }
+
+          sections.push({
+            ...section,
+            actualFolderName
+          });
+        }
+      );
+
+    return sections;
+  }
+
+
   async function connectWorksFoldersToTree() {
     const people = [
       ...document.querySelectorAll(
         ".tree-person[data-person]"
       )
     ];
-
-    /*
-      Start with every name non-clickable.
-    */
 
     people.forEach(
       personElement => {
@@ -370,25 +761,24 @@
         personElement.removeAttribute(
           "aria-label"
         );
+
+        delete personElement.dataset.worksFolder;
       }
     );
 
     try {
-      const url =
-        buildDropboxApiUrl(
-          "folder",
-          {
-            path:
-              DROPBOX_WORKS_FOLDER
-          }
+      const response =
+        await fetch(
+          buildDropboxApiUrl(
+            "folder",
+            {
+              path:
+                DROPBOX_WORKS_FOLDER
+            }
+          )
         );
 
-      const response =
-        await fetch(url);
-
-      if (
-        !response.ok
-      ) {
+      if (!response.ok) {
         throw new Error(
           `Could not load Works folders. HTTP ${response.status}.`
         );
@@ -403,7 +793,8 @@
       entries
         .filter(
           entry =>
-            entry.type === "folder"
+            String(entry.type ?? "")
+              .toLowerCase() === "folder"
         )
         .forEach(
           folder => {
@@ -418,26 +809,28 @@
 
       people.forEach(
         personElement => {
-          const personName =
+          const requestedFolderName =
+            personElement.dataset.workPerson ||
             personElement.dataset.person;
 
           const matchingFolderName =
             foldersByName.get(
               normalizePersonName(
-                personName
+                requestedFolderName
               )
             );
 
-          if (
-            !matchingFolderName
-          ) {
+          if (!matchingFolderName) {
             return;
           }
 
           personElement.href =
-  `archive.html?person=${encodeURIComponent(
-    matchingFolderName
-  )}&peek=true`;
+            `archive.html?person=${encodeURIComponent(
+              matchingFolderName
+            )}&peek=true`;
+
+          personElement.dataset.worksFolder =
+            matchingFolderName;
 
           personElement.classList.add(
             "has-page"
@@ -445,7 +838,7 @@
 
           personElement.setAttribute(
             "aria-label",
-            `Open ${personName}'s works`
+            `Open ${personElement.textContent.trim()}'s family pages`
           );
         }
       );
@@ -460,103 +853,238 @@
   }
 
 
-  connectWorksFoldersToTree();
-
-  const archivePeek = document.getElementById("archivePeek");
-  const archivePeekFrame = document.getElementById("archivePeekFrame");
-
-  const archivePeekClose =
-  document.querySelector(
-    ".archive-peek-close"
-  );
-
-
-window.addEventListener(
-  "message",
-  event => {
-    /*
-      Only accept messages from this website.
-    */
+  async function openArchivePeek(
+    worksFolderName,
+    displayName
+  ) {
     if (
-      event.origin !==
-      window.location.origin
+      !archivePeek ||
+      !archivePeekFrame ||
+      !archivePeekTabs
     ) {
       return;
     }
 
-    if (
-      event.data?.type !==
-      "archive-preview-state"
-    ) {
-      return;
+    const requestId =
+      ++personalSectionRequestId;
+
+    activeWorksFolderName =
+      cleanDropboxFolderName(
+        worksFolderName
+      );
+
+    activePersonalSectionKey =
+      "works";
+
+    activePersonalSections = [
+      {
+        ...PERSONAL_PAGE_SECTIONS[0]
+      }
+    ];
+
+    if (archivePeekPerson) {
+      archivePeekPerson.textContent =
+        String(displayName || worksFolderName || "Family")
+          .trim();
     }
 
-    archivePeekClose?.classList.toggle(
-      "is-hidden",
-      Boolean(
-        event.data.isOpen
-      )
+    if (archivePeekStatus) {
+      archivePeekStatus.textContent =
+        "Checking pages…";
+    }
+
+    renderPersonalSectionTabs();
+    showPersonalSection("works");
+
+    archivePeek.classList.add(
+      "is-open"
     );
-  }
-);
 
-  function openArchivePeek(url, personName) {
-    if (!archivePeek || !archivePeekFrame) return;
+    archivePeek.setAttribute(
+      "aria-hidden",
+      "false"
+    );
 
-    archivePeekFrame.src = url;
-    archivePeekFrame.title = `${personName || "Family"} archive`;
-    archivePeek.classList.add("is-open");
-    archivePeek.setAttribute("aria-hidden", "false");
-    document.body.classList.add("archive-peek-open");
+    document.body.classList.add(
+      "archive-peek-open"
+    );
+
+    archivePeekClose?.focus();
+
+    try {
+      const sections =
+        await getPersonalSections(
+          activeWorksFolderName
+        );
+
+      if (
+        requestId !==
+        personalSectionRequestId
+      ) {
+        return;
+      }
+
+      activePersonalSections =
+        sections;
+
+      renderPersonalSectionTabs();
+    }
+
+    catch (error) {
+      console.error(
+        "Could not load personalized page tabs:",
+        error
+      );
+    }
+
+    finally {
+      if (
+        requestId ===
+        personalSectionRequestId &&
+        archivePeekStatus
+      ) {
+        archivePeekStatus.textContent =
+          "";
+      }
+    }
   }
+
 
   function closeArchivePeek() {
-  if (
-    !archivePeek ||
-    !archivePeekFrame
-  ) {
-    return;
-  }
-
-  archivePeek.classList.remove(
-    "is-open"
-  );
-
-  archivePeek.setAttribute(
-    "aria-hidden",
-    "true"
-  );
-
-  document.body.classList.remove(
-    "archive-peek-open"
-  );
-
-  archivePeekClose?.classList.remove(
-    "is-hidden"
-  );
-
-  archivePeekFrame.src =
-    "about:blank";
-}
-  document.addEventListener("click", event => {
-    const personLink = event.target.closest(".tree-person.has-page");
-
-    if (personLink) {
-      event.preventDefault();
-      openArchivePeek(personLink.href, personLink.dataset.person);
+    if (
+      !archivePeek ||
+      !archivePeekFrame
+    ) {
       return;
     }
 
-    if (event.target.closest("[data-close-archive-peek]")) {
-      closeArchivePeek();
-    }
-  });
+    personalSectionRequestId += 1;
 
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && archivePeek?.classList.contains("is-open")) {
-      closeArchivePeek();
+    archivePeek.classList.remove(
+      "is-open"
+    );
+
+    archivePeek.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    document.body.classList.remove(
+      "archive-peek-open"
+    );
+
+    archivePeekClose?.classList.remove(
+      "is-hidden"
+    );
+
+    archivePeekFrame.src =
+      "about:blank";
+
+    if (archivePeekTabs) {
+      archivePeekTabs.innerHTML =
+        "";
     }
-  });
+
+    if (archivePeekStatus) {
+      archivePeekStatus.textContent =
+        "";
+    }
+  }
+
+
+  window.addEventListener(
+    "message",
+    event => {
+      if (
+        event.origin !==
+        window.location.origin
+      ) {
+        return;
+      }
+
+      if (
+        event.data?.type !==
+        "archive-preview-state"
+      ) {
+        return;
+      }
+
+      archivePeekClose?.classList.toggle(
+        "is-hidden",
+        Boolean(
+          event.data.isOpen
+        )
+      );
+    }
+  );
+
+
+  document.addEventListener(
+    "click",
+    event => {
+      const personLink =
+        event.target.closest(
+          ".tree-person.has-page"
+        );
+
+      if (personLink) {
+        event.preventDefault();
+
+        openArchivePeek(
+          personLink.dataset.worksFolder ||
+          personLink.dataset.workPerson ||
+          personLink.dataset.person,
+          personLink.textContent.trim()
+        );
+
+        return;
+      }
+
+      const sectionButton =
+        event.target.closest(
+          "[data-personal-section]"
+        );
+
+      if (
+        sectionButton &&
+        archivePeek?.contains(
+          sectionButton
+        )
+      ) {
+        showPersonalSection(
+          sectionButton.dataset.personalSection
+        );
+
+        return;
+      }
+
+      if (
+        event.target.closest(
+          "[data-close-archive-peek]"
+        )
+      ) {
+        closeArchivePeek();
+      }
+    }
+  );
+
+
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key === "Escape" &&
+        archivePeek?.classList.contains(
+          "is-open"
+        )
+      ) {
+        closeArchivePeek();
+      }
+    }
+  );
+
+
+  connectWorksFoldersToTree();
 </script>
 
 <script>

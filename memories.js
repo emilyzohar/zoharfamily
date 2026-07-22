@@ -6,8 +6,57 @@ const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
 
+function getPersonalPageContext(defaultSectionName) {
+  const parameters =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const cleanFolderPart = value =>
+    String(value ?? "")
+      .replace(/[\\/]+/g, "")
+      .trim();
+
+  const person =
+    cleanFolderPart(
+      parameters.get("person")
+    );
+
+  const section =
+    cleanFolderPart(
+      parameters.get("section")
+    ) || defaultSectionName;
+
+  const peek =
+    parameters.get("peek") === "true";
+
+  if (peek) {
+    document.body.classList.add(
+      "person-peek-mode"
+    );
+  }
+
+  return {
+    person,
+    section,
+    peek
+  };
+}
+
+const memoriesPageContext =
+  getPersonalPageContext(
+    "Memories"
+  );
+
 const DROPBOX_MEMORIES_ROOT =
-  "/Zohar Family/Memories";
+  memoriesPageContext.person
+    ? `/Zohar Family/Works/${memoriesPageContext.person}/${memoriesPageContext.section}`
+    : "/Zohar Family/Memories";
+
+if (memoriesPageContext.person) {
+  document.title =
+    `${memoriesPageContext.person}'s Memories | Zohar Family`;
+}
 
 
 /* =========================================================
@@ -1431,15 +1480,34 @@ function navigateToFolder(
     );
 
 
-  const url =
+  const nextUrl =
+    new URL(
+      window.location.href
+    );
 
+
+  if (
     relativePath
+  ) {
 
-      ? `memories.html?folder=${encodeURIComponent(
-          relativePath
-        )}`
+    nextUrl.searchParams.set(
+      "folder",
+      relativePath
+    );
 
-      : "memories.html";
+  }
+
+  else {
+
+    nextUrl.searchParams.delete(
+      "folder"
+    );
+
+  }
+
+
+  const url =
+    `${nextUrl.pathname}${nextUrl.search}`;
 
 
   if (
