@@ -2191,3 +2191,144 @@ body.peek-mode .archive-loading {
     font-size: 34px;
   }
 }
+/* ========================================
+   ROOT WEBSITE SUBHEADINGS
+   Top-level URL-only .txt files in /Works/{Person}
+======================================== */
+
+.archive-root-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px 30px;
+
+  margin:
+    0
+    0
+    28px
+    10px;
+}
+
+.archive-root-link {
+  color: var(--archive-heading-active);
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 30px;
+  font-style: italic;
+  font-weight: 600;
+
+  line-height: 1.1;
+
+  text-decoration: none;
+  text-underline-offset: 5px;
+}
+
+.archive-root-link:hover,
+.archive-root-link:focus-visible {
+  text-decoration: underline;
+}
+
+
+/* ========================================
+   COMPACT WORKS QUICK-VIEW MODE
+======================================== */
+
+body.peek-mode .archive-category-nav {
+  top: 28px;
+  height: 66px;
+}
+
+body.peek-mode .archive-category-tab {
+  font-size: 22px;
+}
+
+body.peek-mode .archive-stage-content {
+  top: 92px;
+
+  padding:
+    18px
+    42px
+    48px;
+}
+
+body.peek-mode .archive-root-links {
+  gap: 8px 24px;
+
+  margin-bottom: 20px;
+}
+
+body.peek-mode .archive-root-link {
+  font-size: 24px;
+}
+
+body.peek-mode .archive-group {
+  margin-bottom: 30px;
+}
+
+body.peek-mode .archive-group-title {
+  margin-bottom: 8px;
+
+  font-size: 27px;
+}
+
+body.peek-mode .archive-carousel {
+  gap: 18px;
+
+  padding:
+    6px
+    4px
+    16px;
+}
+
+body.peek-mode .archive-carousel .archive-card {
+  flex-basis:
+    min(
+      280px,
+      calc(100vw - 70px)
+    );
+}
+
+body.peek-mode .archive-card {
+  min-height: 230px;
+
+  padding:
+    24px
+    23px
+    20px;
+}
+
+body.peek-mode .item-type {
+  margin-bottom: 14px;
+
+  font-size: 9px;
+}
+
+body.peek-mode .item-title {
+  margin-bottom: 10px;
+
+  font-size: 25px;
+}
+
+body.peek-mode .item-footer {
+  margin-top: 16px;
+}
+
+body.peek-mode .card-thumbnail-wrap {
+  height: 88px;
+}
+
+body.peek-mode .card-thumbnail {
+  height: 88px;
+  max-width: 84px;
+}
+
+body.peek-mode .carousel-button {
+  width: 42px;
+  height: 42px;
+
+  font-size: 21px;
+}

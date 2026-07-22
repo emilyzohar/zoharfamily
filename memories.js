@@ -717,7 +717,27 @@ function parsePersonMemoriesManifest(
 
   const groups = [];
 
-  let currentGroup = null;
+  const manifestLines =
+    String(
+      text ?? ""
+    )
+      .split(
+        /\r?\n/
+      )
+      .map(
+        rawLine =>
+          rawLine.trim()
+      )
+      .filter(
+        line =>
+          Boolean(
+            line
+          )
+          &&
+          !line.startsWith(
+            "#"
+          )
+      );
 
 
   function ensureGroup(
@@ -764,27 +784,72 @@ function parsePersonMemoriesManifest(
   }
 
 
-  String(
-    text ?? ""
-  )
-    .split(
-      /\r?\n/
-    )
-    .forEach(
-      rawLine => {
+  /*
+    Simple albums.txt format:
 
-        const line =
-          rawLine.trim();
+    Italy 1984
+    Cottage
+    Photographs
 
-        if (
-          !line
-          ||
-          line.startsWith(
-            "#"
-          )
-        ) {
-          return;
-        }
+    When the file contains no -> headings at all, each line is treated as
+    one existing album/reference and keeps that album's original name.
+  */
+  const hasArrowHeadings =
+    manifestLines.some(
+      line =>
+        line.includes(
+          "->"
+        )
+    );
+
+
+  if (
+    !hasArrowHeadings
+  ) {
+
+    manifestLines.forEach(
+      line => {
+
+        splitManifestReferences(
+          line
+        ).forEach(
+          reference => {
+
+            const originalName =
+              getFilename(
+                trimSlashes(
+                  reference
+                )
+              )
+              ||
+              reference;
+
+            const group =
+              ensureGroup(
+                originalName
+              );
+
+            if (
+              group
+            ) {
+              group.references.push(
+                reference
+              );
+            }
+
+          }
+        );
+
+      }
+    );
+
+  }
+  else {
+
+    let currentGroup = null;
+
+    manifestLines.forEach(
+      line => {
 
         const arrowIndex =
           line.indexOf(
@@ -829,26 +894,59 @@ function parsePersonMemoriesManifest(
         }
 
         /*
-          Backwards compatibility: if an old albums.txt contains plain
-          references before any -> heading, place them in one virtual folder.
+          Lines following a -> heading are references belonging to that
+          renamed album. If a plain line appears before the first heading,
+          keep its own original album name instead of calling it
+          "Selected Memories".
         */
         if (
-          !currentGroup
+          currentGroup
         ) {
-          currentGroup =
-            ensureGroup(
-              "Selected Memories"
-            );
+
+          currentGroup.references.push(
+            ...splitManifestReferences(
+              line
+            )
+          );
+
+          return;
+
         }
 
-        currentGroup.references.push(
-          ...splitManifestReferences(
-            line
-          )
+        splitManifestReferences(
+          line
+        ).forEach(
+          reference => {
+
+            const originalName =
+              getFilename(
+                trimSlashes(
+                  reference
+                )
+              )
+              ||
+              reference;
+
+            const group =
+              ensureGroup(
+                originalName
+              );
+
+            if (
+              group
+            ) {
+              group.references.push(
+                reference
+              );
+            }
+
+          }
         );
 
       }
     );
+
+  }
 
 
   groups.forEach(
@@ -892,7 +990,6 @@ function parsePersonMemoriesManifest(
   );
 
 }
-
 
 function getMemoryRelativePath(
   path
@@ -1389,23 +1486,444 @@ function buildPersonMemoryFolderTree(
 }
 
 
-async function getPersonMemoryTree(
-  allEntries
+async function fetchPersonMemoryEntries() {
+
+  if (
+    !memoriesPageContext.person
+    ||
+    !PERSON_MEMORIES_ROOT
+  ) {
+    return [];
+  }
+
+  const response =
+    await fetch(
+      buildDropboxApiUrl(
+        "/folder",
+        {
+          path:
+            PERSON_MEMORIES_ROOT,
+
+          recursive:
+            "true"
+        }
+      ),
+      {
+        method:
+          "GET",
+
+        headers: {
+          Accept:
+            "application/json"
+        }
+      }
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    /*
+      A person can still have a Memories page driven entirely
+      by albums.txt/shared references. A missing local folder
+      therefore behaves like an empty local folder.
+    */
+    if (
+      response.status ===
+        409
+      ||
+      response.status ===
+        404
+    ) {
+      return [];
+    }
+
+    const errorText =
+      await response.text();
+
+    throw new Error(
+      `Could not load personal memories. HTTP ${response.status}. ${errorText}`
+    );
+  }
+
+
+  const entries =
+    await response.json();
+
+
+  return Array.isArray(
+    entries
+  )
+    ? entries
+    : [];
+
+}
+
+
+function getPersonalMemoryRelativePath(
+  path
 ) {
 
-  const manifestText =
-    await getDropboxText(
-      PERSON_MEMORIES_MANIFEST
+  const normalizedRoot =
+    normalizePathKey(
+      PERSON_MEMORIES_ROOT
     );
 
-  const groups =
-    parsePersonMemoriesManifest(
-      manifestText
+  const normalizedPath =
+    normalisePath(
+      path
     );
 
-  return buildPersonMemoryFolderTree(
-    groups,
-    allEntries
+  const normalizedPathKey =
+    normalizePathKey(
+      normalizedPath
+    );
+
+  if (
+    normalizedPathKey ===
+      normalizedRoot
+  ) {
+    return "";
+  }
+
+  if (
+    normalizedPathKey.startsWith(
+      `${normalizedRoot}/`
+    )
+  ) {
+
+    return trimSlashes(
+      normalizedPath.slice(
+        PERSON_MEMORIES_ROOT.length
+      )
+    );
+
+  }
+
+  return trimSlashes(
+    normalizedPath
+  );
+
+}
+
+
+function addPersonalMemoryEntriesToTree(
+  root,
+  personalEntries
+) {
+
+  /*
+    Local folders inside /Works/{Person}/Memories are real albums on the
+    personal Memories page. Their hierarchy is preserved instead of flattening
+    every local photo/video into the Memories root.
+
+    Example:
+
+    Memories/
+      albums.txt
+      Photographs/
+        photo1.jpg
+        photo2.jpg
+
+    renders "Photographs" as a folder, with the two images inside it.
+  */
+
+  const existingMediaPaths =
+    new Set();
+
+
+  function indexExistingMedia(
+    folder
+  ) {
+
+    folder.files.forEach(
+      file => {
+        existingMediaPaths.add(
+          normalizePathKey(
+            file.path
+          )
+        );
+      }
+    );
+
+    folder.folders.forEach(
+      indexExistingMedia
+    );
+
+  }
+
+
+  indexExistingMedia(
+    root
+  );
+
+
+  function ensurePersonalFolder(
+    relativeFolderPath
+  ) {
+
+    const cleanRelativePath =
+      trimSlashes(
+        relativeFolderPath
+      );
+
+    if (
+      !cleanRelativePath
+    ) {
+      return root;
+    }
+
+    const segments =
+      cleanRelativePath
+        .split(
+          "/"
+        )
+        .filter(
+          Boolean
+        );
+
+    let parent =
+      root;
+
+    const builtSegments =
+      [];
+
+
+    segments.forEach(
+      segment => {
+
+        builtSegments.push(
+          segment
+        );
+
+        let folder =
+          parent.folders.find(
+            child =>
+              child.name.toLocaleLowerCase() ===
+                segment.toLocaleLowerCase()
+          );
+
+        if (
+          !folder
+        ) {
+
+          folder = {
+            name:
+              segment,
+
+            /*
+              Folder paths remain virtual beneath the normal Memories root so
+              existing URL state, folder navigation and breadcrumbs continue
+              to work. Media files themselves retain their real Dropbox paths.
+            */
+            path:
+              `${DROPBOX_MEMORIES_ROOT}/${builtSegments.join("/")}`,
+
+            files:
+              [],
+
+            folders:
+              [],
+
+            parent
+          };
+
+          parent.folders.push(
+            folder
+          );
+
+        }
+
+        parent =
+          folder;
+
+      }
+    );
+
+
+    return parent;
+
+  }
+
+
+  /* Create local folder nodes first, from shallowest to deepest. */
+  personalEntries
+    .filter(
+      entry =>
+        String(
+          entry?.type ?? ""
+        ).toLowerCase() ===
+          "folder"
+    )
+    .sort(
+      (
+        entryA,
+        entryB
+      ) =>
+        getPathDepth(
+          getPersonalMemoryRelativePath(
+            getEntryPath(
+              entryA
+            )
+          )
+        )
+        -
+        getPathDepth(
+          getPersonalMemoryRelativePath(
+            getEntryPath(
+              entryB
+            )
+          )
+        )
+    )
+    .forEach(
+      entry => {
+
+        ensurePersonalFolder(
+          getPersonalMemoryRelativePath(
+            getEntryPath(
+              entry
+            )
+          )
+        );
+
+      }
+    );
+
+
+  /* Add each local image/video to its actual local subfolder. */
+  personalEntries
+    .filter(
+      entry =>
+        isSupportedMemoryMediaEntry(
+          entry
+        )
+    )
+    .forEach(
+      entry => {
+
+        const sourcePath =
+          getEntryPath(
+            entry
+          );
+
+        const sourceKey =
+          normalizePathKey(
+            sourcePath
+          );
+
+        if (
+          !sourcePath
+          ||
+          existingMediaPaths.has(
+            sourceKey
+          )
+        ) {
+          return;
+        }
+
+        const relativeFilePath =
+          getPersonalMemoryRelativePath(
+            sourcePath
+          );
+
+        const relativeParentPath =
+          getParentPath(
+            relativeFilePath
+          );
+
+        const parentFolder =
+          ensurePersonalFolder(
+            relativeParentPath
+          );
+
+        existingMediaPaths.add(
+          sourceKey
+        );
+
+        parentFolder.files.push({
+          type:
+            "file",
+
+          name:
+            entry.name
+            ||
+            getFilename(
+              sourcePath
+            ),
+
+          /* Real Dropbox path is required for the image/video URL. */
+          path:
+            sourcePath,
+
+          size:
+            entry.size
+            ??
+            null
+        });
+
+      }
+    );
+
+
+  sortMemoryFolderTree(
+    root
+  );
+
+
+  return root;
+
+}
+
+async function getPersonMemoryTree(
+  sharedEntries,
+  personalEntries = []
+) {
+
+  let groups =
+    [];
+
+
+  /*
+    albums.txt remains optional. When present it continues to
+    create the existing virtual albums that point into the shared
+    /Zohar Family/Memories library.
+  */
+  try {
+
+    const manifestText =
+      await getDropboxText(
+        PERSON_MEMORIES_MANIFEST
+      );
+
+
+    groups =
+      parsePersonMemoriesManifest(
+        manifestText
+      );
+
+  } catch (
+    error
+  ) {
+
+    console.info(
+      `No usable personal Memories manifest at ${PERSON_MEMORIES_MANIFEST}.`
+    );
+
+  }
+
+
+  const root =
+    buildPersonMemoryFolderTree(
+      groups,
+      sharedEntries
+    );
+
+
+  return addPersonalMemoryEntriesToTree(
+    root,
+    personalEntries
   );
 
 }
@@ -2451,6 +2969,44 @@ function renderCurrentMemoryFolder() {
     currentMemoryFolder ===
       memoryRootTree
   ) {
+
+    /*
+      A personal Memories page may now contain both the existing
+      albums.txt-linked virtual albums and media files physically
+      stored inside /Works/{Person}/Memories.
+
+      When local media exists, show it on the same page beneath
+      the linked albums. With no local media, preserve the original
+      large-polaroid album landing page.
+    */
+    if (
+      memoriesPageContext.person
+      &&
+      hasDirectMedia
+    ) {
+
+      memoriesPageSubtitle.textContent =
+        "";
+
+      if (
+        hasSubfolders
+      ) {
+
+        renderMixedMemoryFolder(
+          currentMemoryFolder
+        );
+
+      } else {
+
+        renderDigitalAlbum(
+          currentMemoryFolder
+        );
+
+      }
+
+      return;
+    }
+
 
     renderFolderLandingPage(
 
@@ -4087,9 +4643,20 @@ async function initialiseMemories() {
 
   try {
 
-    const allEntries =
+    const [
+      allEntries,
+      personalEntries
+    ] =
 
-      await fetchAllMemoryEntries();
+      await Promise.all([
+
+        fetchAllMemoryEntries(),
+
+        memoriesPageContext.person
+          ? fetchPersonMemoryEntries()
+          : Promise.resolve([])
+
+      ]);
 
 
     memoryRootTree =
@@ -4097,7 +4664,8 @@ async function initialiseMemories() {
       memoriesPageContext.person
 
         ? await getPersonMemoryTree(
-            allEntries
+            allEntries,
+            personalEntries
           )
 
         : buildMemoryFolderTree(

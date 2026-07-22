@@ -493,6 +493,124 @@ async function fetchDropboxText(
 
 
 /* =========================================================
+   PERSON-SPECIFIC MERCH TITLE
+
+   When Merch is opened from a person's Works folder, a root
+   name.txt file controls both the visible page heading and the
+   browser tab title.
+========================================================= */
+
+async function applyPersonalMerchTitle() {
+  if (
+    !merchPageContext.person
+  ) {
+    return;
+  }
+
+  const namePath =
+    joinDropboxPath(
+      DROPBOX_MERCH_ROOT,
+      "name.txt"
+    );
+
+  try {
+    const customName =
+      String(
+        await fetchDropboxText(
+          namePath
+        )
+      )
+        .replace(
+          /\r\n?/g,
+          "\n"
+        )
+        .split(
+          "\n"
+        )
+        .map(
+          line =>
+            line.trim()
+        )
+        .filter(
+          Boolean
+        )
+        .join(
+          " "
+        )
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim();
+
+    if (
+      !customName
+    ) {
+      return;
+    }
+
+    document.title =
+      `${customName} | Zohar Family`;
+
+    document
+      .querySelectorAll(
+        "#merch-title, .merch-title, [data-person-page-title]"
+      )
+      .forEach(
+        element => {
+          element.textContent =
+            customName;
+        }
+      );
+
+
+    /*
+      The personalized navigation belongs to the parent popup,
+      not this iframe. Tell the parent immediately so "Merch"
+      can be replaced there as well.
+    */
+    if (
+      window.parent
+      &&
+      window.parent !==
+        window
+    ) {
+      window.parent.postMessage(
+        {
+          type:
+            "person-page-title",
+
+          section:
+            "merch",
+
+          person:
+            merchPageContext.person,
+
+          title:
+            customName
+        },
+
+        window.location.origin
+      );
+    }
+
+  } catch (
+    error
+  ) {
+
+    /*
+      name.txt is optional. Keep the ordinary Merch label when it
+      does not exist.
+    */
+    console.info(
+      `No personalized Merch name found at ${namePath}.`
+    );
+
+  }
+}
+
+
+/* =========================================================
    METADATA
 ========================================================= */
 
@@ -923,6 +1041,8 @@ async function loadMerch() {
   try {
     const entries =
       await fetchAllMerchEntries();
+
+    await applyPersonalMerchTitle();
 
     const folders =
       groupEntriesByMerchFolder(

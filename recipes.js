@@ -1941,7 +1941,9 @@ function resetRecipeInterface() {
 
 
   hasSnappedToGrid =
-    false;
+    Boolean(
+      recipePageContext.person
+    );
 
 
   currentRecipeIndex =
@@ -1963,15 +1965,17 @@ closeRecipeFilter();
 
   recipeGrid
     .classList
-    .remove(
-      "is-grid"
+    .toggle(
+      "is-grid",
+      hasSnappedToGrid
     );
 
 
   recipeGrid
     .classList
-    .add(
-      "is-piled"
+    .toggle(
+      "is-piled",
+      !hasSnappedToGrid
     );
 
 }
@@ -2407,39 +2411,43 @@ function renderRecipes() {
     );
 
 
-  const pileCover =
+  if (
+    !recipePageContext.person
+  ) {
+    const pileCover =
 
-    document.createElement(
-      "img"
-    );
-
-
-  pileCover.className =
-    "recipe-pile-cover";
-
-
-  pileCover.src =
-    "assets/recipes/saftas-kitchen.png";
+      document.createElement(
+        "img"
+      );
 
 
-  pileCover.alt =
-    "Safta's Kitchen";
+    pileCover.className =
+      "recipe-pile-cover";
 
 
-  /*
-    Keep the cover above every recipe card in pile mode.
-    Some cards receive their own inline z-index, so this must
-    also be inline rather than relying only on the CSS value.
-  */
-
-  pileCover.style.zIndex =
-    "3";
+    pileCover.src =
+      "assets/recipes/saftas-kitchen.png";
 
 
-  recipeGrid
-    .appendChild(
-      pileCover
-    );
+    pileCover.alt =
+      "Safta's Kitchen";
+
+
+    /*
+      Keep the cover above every recipe card in pile mode.
+      Some cards receive their own inline z-index, so this must
+      also be inline rather than relying only on the CSS value.
+    */
+
+    pileCover.style.zIndex =
+      "3";
+
+
+    recipeGrid
+      .appendChild(
+        pileCover
+      );
+  }
 
 
   applyRecipeFilters();

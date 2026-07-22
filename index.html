@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Zohar Family</title>
   <link rel="stylesheet" href="styles.css" />
+
   <style>
+    /* ======================================================
+       PERSON QUICK VIEW
+       ====================================================== */
+
     .archive-peek {
       position: fixed;
       inset: 0;
@@ -30,127 +35,167 @@
     .archive-peek-window {
       position: relative;
       z-index: 1;
-      width: min(1320px, 96vw);
+
+      width: min(1500px, 97vw);
       height: min(900px, 94vh);
-      display: flex;
-      flex-direction: column;
+
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+
       overflow: hidden;
+
       background: #f5f0e7;
-      border: 1px solid rgba(94, 11, 17, 0.24);
+
+      border:
+        1px solid
+        rgba(251, 236, 216, 0.55);
+
       border-radius: 18px;
-      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.4);
+
+      box-shadow:
+        0 30px 90px
+        rgba(0, 0, 0, 0.4);
     }
 
-    .archive-peek-header {
-      position: relative;
-      z-index: 3;
-      min-height: 68px;
+    .person-peek-header {
+      min-height: 78px;
+
       display: flex;
       align-items: center;
-      gap: 28px;
-      padding: 10px 16px 10px 24px;
+
+      gap: 30px;
+
+      padding:
+        0
+        28px
+        0
+        30px;
+
       background: #f5f0e7;
-      border-bottom: 1px solid rgba(94, 11, 17, 0.18);
-      color: #5e0b11;
-      flex: 0 0 auto;
+      color: #681116;
+
+      border-bottom:
+        1px solid
+        rgba(104, 17, 22, 0.08);
+
+      font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
     }
 
-    .archive-peek-person {
+    .person-peek-name {
+      flex: 0 0 auto;
+
       margin: 0;
-      min-width: max-content;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: clamp(1.35rem, 2vw, 1.85rem);
+
+      font-size: 2rem;
       font-weight: 600;
       line-height: 1;
     }
 
-    .archive-peek-tabs {
+    .person-peek-nav {
+      min-width: 0;
+
       display: flex;
       align-items: center;
-      gap: 22px;
-      min-width: 0;
+
+      gap: 28px;
+
       overflow-x: auto;
       scrollbar-width: none;
     }
 
-    .archive-peek-tabs::-webkit-scrollbar {
+    .person-peek-nav::-webkit-scrollbar {
       display: none;
     }
 
-    .archive-peek-tab {
+    .person-peek-link {
       flex: 0 0 auto;
-      padding: 8px 0 6px;
-      border: 0;
-      border-bottom: 1px solid transparent;
-      background: transparent;
-      color: #5e0b11;
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 1.18rem;
-      cursor: pointer;
-      opacity: 0.56;
-    }
 
-    .archive-peek-tab:hover,
-    .archive-peek-tab:focus-visible {
-      opacity: 1;
-    }
-
-    .archive-peek-tab.is-active {
-      border-bottom-color: currentColor;
-      font-style: italic;
-      opacity: 1;
-    }
-
-    .archive-peek-status {
-      margin-left: auto;
-      color: rgba(94, 11, 17, 0.58);
-      font-family: "Cormorant Garamond", Georgia, serif;
-      font-size: 1rem;
-      font-style: italic;
-      white-space: nowrap;
-    }
-
-    .archive-peek-status:empty {
-      display: none;
-    }
-
-    .archive-peek-frame-wrap {
       position: relative;
-      flex: 1 1 auto;
-      min-height: 0;
-      background: #f5f0e7;
+
+      padding:
+        8px
+        0
+        7px;
+
+      border: 0;
+
+      background: transparent;
+      color: rgba(104, 17, 22, 0.64);
+
+      font: inherit;
+      font-size: 1.35rem;
+      font-weight: 400;
+      line-height: 1;
+
+      text-decoration: none;
+
+      cursor: pointer;
+
+      transition:
+        color 140ms ease,
+        opacity 140ms ease;
     }
 
-    .archive-peek-frame {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      background: #f5f0e7;
+    .person-peek-link:hover,
+    .person-peek-link:focus-visible {
+      color: #681116;
+    }
+
+    .person-peek-link.is-active {
+      color: #681116;
+      font-style: italic;
+    }
+
+    .person-peek-link.is-active::after {
+      content: "";
+
+      position: absolute;
+
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      height: 1px;
+
+      background: #681116;
+    }
+
+    .person-peek-external::after {
+      content: " ↗";
+      font-size: 0.72em;
+      opacity: 0.65;
     }
 
     .archive-peek-close {
       flex: 0 0 auto;
-      width: 42px;
-      height: 42px;
-      margin-left: 0;
+
+      width: 50px;
+      height: 50px;
+
+      margin-left: auto;
       padding: 0;
-      border: 1px solid rgba(94, 11, 17, 0.45);
+
+      border:
+        1px solid
+        rgba(104, 17, 22, 0.38);
+
       border-radius: 50%;
+
       background: transparent;
-      color: #5e0b11;
-      font-size: 30px;
+      color: #681116;
+
+      font-size: 31px;
       line-height: 1;
+
       cursor: pointer;
+
       transition:
         opacity 160ms ease,
         visibility 160ms ease,
         transform 160ms ease;
-    }
-
-    .archive-peek-close:hover,
-    .archive-peek-close:focus-visible {
-      background: rgba(94, 11, 17, 0.08);
     }
 
     .archive-peek-close.is-hidden {
@@ -160,1143 +205,2386 @@
       transform: scale(0.85);
     }
 
+    .archive-peek-body {
+      min-height: 0;
+      position: relative;
+      background: #681116;
+    }
+
+    .archive-peek-frame {
+      display: block;
+
+      width: 100%;
+      height: 100%;
+
+      border: 0;
+
+      background: #681116;
+    }
+
+    .person-peek-empty {
+      position: absolute;
+      inset: 0;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 40px;
+
+      background: #f5f0e7;
+      color: #681116;
+
+      font-family:
+        "Cormorant Garamond",
+        Georgia,
+        serif;
+
+      font-size: 1.5rem;
+      font-style: italic;
+
+      text-align: center;
+    }
+
+    .person-peek-empty[hidden] {
+      display: none;
+    }
+
     body.archive-peek-open {
       overflow: hidden;
     }
 
-    @media (max-width: 760px) {
+    @media (max-width: 700px) {
       .archive-peek {
-        padding: 8px;
+        padding: 10px;
       }
 
       .archive-peek-window {
         width: 100%;
-        height: 96vh;
+        height: 95vh;
+
         border-radius: 12px;
       }
 
-      .archive-peek-header {
-        min-height: 62px;
-        gap: 16px;
-        padding: 9px 10px 9px 16px;
+      .person-peek-header {
+        min-height: 66px;
+
+        gap: 18px;
+
+        padding:
+          0
+          14px
+          0
+          16px;
       }
 
-      .archive-peek-person {
-        font-size: 1.25rem;
+      .person-peek-name {
+        font-size: 1.55rem;
       }
 
-      .archive-peek-tabs {
-        gap: 16px;
+      .person-peek-nav {
+        gap: 20px;
       }
 
-      .archive-peek-tab {
-        font-size: 1.05rem;
-      }
-
-      .archive-peek-status {
-        display: none;
+      .person-peek-link {
+        font-size: 1.08rem;
       }
 
       .archive-peek-close {
-        width: 38px;
-        height: 38px;
+        width: 42px;
+        height: 42px;
+
+        font-size: 27px;
       }
     }
   </style>
 </head>
+
 <body>
 
   <main>
+
     <section class="landing-screen home-photo-landing">
 
-  <header class="top-nav">
-    <nav class="top-nav-inner" aria-label="Main navigation">
-      <a class="top-nav-link active" href="index.html">Home</a>
-      <a class="top-nav-link" href="recipes.html">Recipes</a>
-      <a class="top-nav-link" href="merch.html">Merch</a>
-      <a class="top-nav-link" href="travel.html">Travel</a>
-      <a class="top-nav-link" href="memories.html">Memories</a>
-      <a class="top-nav-link" href="archive.html?person=Sabba">
-        Sabba's Works
-      </a>
-    </nav>
-  </header>
+      <header class="top-nav">
+        <nav class="top-nav-inner" aria-label="Main navigation">
+          <a class="top-nav-link active" href="index.html">Home</a>
+          <a class="top-nav-link" href="recipes.html">Recipes</a>
+          <a class="top-nav-link" href="merch.html">Merch</a>
+          <a class="top-nav-link" href="travel.html">Travel</a>
+          <a class="top-nav-link" href="memories.html">Memories</a>
+          <a class="top-nav-link" href="archive.html?person=Sabba">
+            Sabba's Works
+          </a>
+        </nav>
+      </header>
 
-  <div class="home-photo-stage">
-    <div
-      id="home-photo-stack"
-      class="home-photo-stack"
-      aria-live="polite"
-      aria-label="Favourite old family photographs"
-    >
-      <p class="home-photo-message">
-        Loading family photographs…
-      </p>
-    </div>
-  </div>
+      <div class="home-photo-stage">
+        <div
+          id="home-photo-stack"
+          class="home-photo-stack"
+          aria-live="polite"
+          aria-label="Favourite old family photographs"
+        >
+          <p class="home-photo-message">
+            Loading family photographs…
+          </p>
+        </div>
+      </div>
 
-</section>
+    </section>
+
 
     <section class="paper-section light-section">
 
-  
-
-  <!-- your family tree here -->
-
       <div class="manual-tree-wrap">
-        <div class="family-tree-manual" aria-label="Zohar family tree">
 
-          <!-- Clickable names -->
-          <a class="tree-person aliza" data-person="Aliza">Aliza</a>
+        <div
+          class="family-tree-manual"
+          aria-label="Zohar family tree"
+        >
+
           <a
-  class="tree-person amnon"
-  data-person="Sabba"
-  data-work-person="Sabba"
->
-  Amnon
-</a>
+            class="tree-person aliza"
+            data-person="Aliza"
+          >
+            Aliza
+          </a>
 
-          
+          <a
+            class="tree-person amnon"
+            data-person="Sabba"
+            data-work-person="Sabba"
+          >
+            Amnon
+          </a>
 
-<a class="tree-person eyal" data-person="Eyal">Eyal</a>
-<a class="tree-person mitzi" data-person="Mitzi">Mitzi</a>
+          <a
+            class="tree-person eyal"
+            data-person="Eyal"
+          >
+            Eyal
+          </a>
 
-<a class="tree-person alon" data-person="Alon">Alon</a>
-<a class="tree-person tracey" data-person="Tracey">Tracey</a>
+          <a
+            class="tree-person mitzi"
+            data-person="Mitzi"
+          >
+            Mitzi
+          </a>
 
-<a class="tree-person sharon" data-person="Sharon">Sharon</a>
-<a class="tree-person mark" data-person="Mark">Mark</a>
+          <a
+            class="tree-person alon"
+            data-person="Alon"
+          >
+            Alon
+          </a>
 
-<a class="tree-person emily" data-person="Emily">Emily</a>
-<a class="tree-person zach" data-person="Zach">Zach</a>
+          <a
+            class="tree-person tracey"
+            data-person="Tracey"
+          >
+            Tracey
+          </a>
 
-<a class="tree-person erin" data-person="Erin">Erin</a>
-<a class="tree-person ethan" data-person="Ethan">Ethan</a>
-<a class="tree-person jacklyn" data-person="Jacklyn">Jacklyn</a>
+          <a
+            class="tree-person sharon"
+            data-person="Sharon"
+          >
+            Sharon
+          </a>
 
-<a class="tree-person jaime" data-person="Jaime">Jaime</a>
-<a class="tree-person alex" data-person="Alex">Alex</a>
+          <a
+            class="tree-person mark"
+            data-person="Mark"
+          >
+            Mark
+          </a>
 
-          <!-- All connector lines live in one SVG so joints stay crisp -->
+          <a
+            class="tree-person emily"
+            data-person="Emily"
+          >
+            Emily
+          </a>
+
+          <a
+            class="tree-person zach"
+            data-person="Zach"
+          >
+            Zach
+          </a>
+
+          <a
+            class="tree-person erin"
+            data-person="Erin"
+          >
+            Erin
+          </a>
+
+          <a
+            class="tree-person ethan"
+            data-person="Ethan"
+          >
+            Ethan
+          </a>
+
+          <a
+            class="tree-person jacklyn"
+            data-person="Jacklyn"
+          >
+            Jacklyn
+          </a>
+
+          <a
+            class="tree-person jaime"
+            data-person="Jaime"
+          >
+            Jaime
+          </a>
+
+          <a
+            class="tree-person alex"
+            data-person="Alex"
+          >
+            Alex
+          </a>
+
+
           <svg
             class="tree-lines"
             viewBox="0 0 2000 650"
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            <!-- Aliza — Amnon -->
-            <line x1="300" y1="122" x2="400" y2="122" />
 
-            <!-- Grandparents down to generation line -->
-            <line x1="350" y1="122" x2="350" y2="222" />
+            <line
+              x1="300"
+              y1="122"
+              x2="400"
+              y2="122"
+            />
 
-            <!-- Main horizontal generation line -->
-            <line x1="200" y1="222" x2="1540" y2="222" />
+            <line
+              x1="350"
+              y1="122"
+              x2="350"
+              y2="222"
+            />
 
-            <!-- Drops to the three family branches -->
-            <line x1="200" y1="222" x2="200" y2="302" />
-            <line x1="925" y1="222" x2="925" y2="302" />
-            <line x1="1540" y1="222" x2="1540" y2="302" />
+            <line
+              x1="200"
+              y1="222"
+              x2="1540"
+              y2="222"
+            />
 
-            <!-- Eyal — Mitzi -->
-            <line x1="270" y1="322" x2="370" y2="322" />
-            <line x1="320" y1="322" x2="320" y2="422" />
+            <line
+              x1="200"
+              y1="222"
+              x2="200"
+              y2="302"
+            />
 
-            <!-- Eyal / Mitzi children -->
-            <line x1="210" y1="422" x2="430" y2="422" />
-            <line x1="210" y1="422" x2="210" y2="550" />
-            <line x1="430" y1="422" x2="430" y2="550" />
+            <line
+              x1="925"
+              y1="222"
+              x2="925"
+              y2="302"
+            />
 
-            <!-- Alon — Tracey -->
-            <line x1="975" y1="322" x2="1075" y2="322" />
-            <line x1="1025" y1="322" x2="1025" y2="422" />
+            <line
+              x1="1540"
+              y1="222"
+              x2="1540"
+              y2="302"
+            />
 
-            <!-- Alon / Tracey children -->
-            <line x1="850" y1="422" x2="1210" y2="422" />
-            <line x1="850" y1="422" x2="850" y2="500" />
-            <line x1="1025" y1="422" x2="1025" y2="525" />
-            <line x1="1210" y1="422" x2="1210" y2="580" />
+            <line
+              x1="270"
+              y1="322"
+              x2="370"
+              y2="322"
+            />
 
-            <!-- Sharon — Mark -->
-            <line x1="1625" y1="322" x2="1725" y2="322" />
-            <line x1="1675" y1="322" x2="1675" y2="422" />
+            <line
+              x1="320"
+              y1="322"
+              x2="320"
+              y2="422"
+            />
 
-            <!-- Sharon / Mark children -->
-            <line x1="1575" y1="422" x2="1800" y2="422" />
-            <line x1="1575" y1="422" x2="1575" y2="615" />
-            <line x1="1800" y1="422" x2="1800" y2="645" />
+            <line
+              x1="210"
+              y1="422"
+              x2="430"
+              y2="422"
+            />
+
+            <line
+              x1="210"
+              y1="422"
+              x2="210"
+              y2="550"
+            />
+
+            <line
+              x1="430"
+              y1="422"
+              x2="430"
+              y2="550"
+            />
+
+            <line
+              x1="975"
+              y1="322"
+              x2="1075"
+              y2="322"
+            />
+
+            <line
+              x1="1025"
+              y1="322"
+              x2="1025"
+              y2="422"
+            />
+
+            <line
+              x1="850"
+              y1="422"
+              x2="1210"
+              y2="422"
+            />
+
+            <line
+              x1="850"
+              y1="422"
+              x2="850"
+              y2="500"
+            />
+
+            <line
+              x1="1025"
+              y1="422"
+              x2="1025"
+              y2="525"
+            />
+
+            <line
+              x1="1210"
+              y1="422"
+              x2="1210"
+              y2="580"
+            />
+
+            <line
+              x1="1625"
+              y1="322"
+              x2="1725"
+              y2="322"
+            />
+
+            <line
+              x1="1675"
+              y1="322"
+              x2="1675"
+              y2="422"
+            />
+
+            <line
+              x1="1575"
+              y1="422"
+              x2="1800"
+              y2="422"
+            />
+
+            <line
+              x1="1575"
+              y1="422"
+              x2="1575"
+              y2="615"
+            />
+
+            <line
+              x1="1800"
+              y1="422"
+              x2="1800"
+              y2="645"
+            />
+
           </svg>
 
         </div>
+
       </div>
+
     </section>
+
   </main>
 
 
-  <div id="archivePeek" class="archive-peek" aria-hidden="true">
-    <div class="archive-peek-backdrop" data-close-archive-peek></div>
+  <div
+    id="archivePeek"
+    class="archive-peek"
+    aria-hidden="true"
+  >
+
+    <div
+      class="archive-peek-backdrop"
+      data-close-archive-peek
+    ></div>
+
 
     <div
       class="archive-peek-window"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="archivePeekPerson"
+      aria-label="Family archive preview"
     >
-      <header class="archive-peek-header">
-        <h2 id="archivePeekPerson" class="archive-peek-person">Family</h2>
+
+      <header class="person-peek-header">
+
+        <h2
+          id="personPeekName"
+          class="person-peek-name"
+        ></h2>
 
         <nav
-          id="archivePeekTabs"
-          class="archive-peek-tabs"
+          id="personPeekNav"
+          class="person-peek-nav"
           aria-label="Personal pages"
         ></nav>
-
-        <span
-          id="archivePeekStatus"
-          class="archive-peek-status"
-          role="status"
-          aria-live="polite"
-        ></span>
 
         <button
           class="archive-peek-close"
           type="button"
-          aria-label="Close personal pages"
+          aria-label="Close archive"
           data-close-archive-peek
-        >×</button>
+        >
+          ×
+        </button>
+
       </header>
 
-      <div class="archive-peek-frame-wrap">
+
+      <div class="archive-peek-body">
+
         <iframe
           id="archivePeekFrame"
           class="archive-peek-frame"
-          title="Family personal page"
+          title="Family archive"
         ></iframe>
+
+        <div
+          id="personPeekEmpty"
+          class="person-peek-empty"
+          hidden
+        >
+          No personal pages have been added yet.
+        </div>
+
       </div>
+
     </div>
+
   </div>
 
+
   <script src="data.js"></script>
-  
-<script>
-  const menuToggle =
-    document.querySelector(".menu-toggle");
-
-  const mobileMenu =
-    document.querySelector(".mobile-menu");
-
-  const paperSection =
-    document.querySelector(".paper-section");
 
 
-  if (menuToggle && mobileMenu) {
-    menuToggle.addEventListener(
-      "click",
-      () => {
-        const isOpen =
-          mobileMenu.classList.toggle("open");
+  <script>
+    /* ======================================================
+       DROPBOX + PERSONAL PAGE DISCOVERY
+       ====================================================== */
 
-        menuToggle.setAttribute(
-          "aria-expanded",
-          String(isOpen)
-        );
-      }
-    );
-  }
+    const DROPBOX_API_BASE =
+      "https://family-photo-api.emilyzohar.workers.dev";
+
+    const DROPBOX_WORKS_FOLDER =
+      "/Zohar Family/Works";
 
 
-  function updateMenuColor() {
-    /*
-      This page currently does not contain a menu toggle.
-      Stop immediately if either required element is absent.
-    */
-    if (!menuToggle || !paperSection) {
-      return;
-    }
-
-    const menuRect =
-      menuToggle.getBoundingClientRect();
-
-    const paperRect =
-      paperSection.getBoundingClientRect();
-
-    const menuCenter =
-      menuRect.top +
-      menuRect.height / 2;
-
-    if (paperRect.top <= menuCenter) {
-      menuToggle.classList.add("menu-dark");
-      menuToggle.classList.remove("menu-light");
-    } else {
-      menuToggle.classList.add("menu-light");
-      menuToggle.classList.remove("menu-dark");
-    }
-  }
-
-
-  if (menuToggle && paperSection) {
-    window.addEventListener(
-      "scroll",
-      updateMenuColor
-    );
-
-    window.addEventListener(
-      "resize",
-      updateMenuColor
-    );
-
-    updateMenuColor();
-  }
-
-
-</script>
-
-<script>
-  const DROPBOX_API_BASE =
-    "https://family-photo-api.emilyzohar.workers.dev";
-
-  const DROPBOX_WORKS_FOLDER =
-    "/Zohar Family/Works";
-
-  const PERSONAL_PAGE_SECTIONS = [
-    {
-      key: "works",
-      label: "Works",
-      page: "archive.html"
-    },
-    {
-      key: "recipes",
-      label: "Recipes",
-      page: "recipes.html",
-      folder: "Recipes"
-    },
-    {
-      key: "merch",
-      label: "Merch",
-      page: "merch.html",
-      folder: "Merch"
-    },
-    {
-      key: "memories",
-      label: "Memories",
-      page: "memories.html",
-      folder: "Memories"
-    },
-    {
-      key: "travel",
-      label: "Travel",
-      page: "travel.html",
-      folder: "Travel"
-    }
-  ];
-
-  const archivePeek =
-    document.getElementById("archivePeek");
-
-  const archivePeekFrame =
-    document.getElementById("archivePeekFrame");
-
-  const archivePeekTabs =
-    document.getElementById("archivePeekTabs");
-
-  const archivePeekPerson =
-    document.getElementById("archivePeekPerson");
-
-  const archivePeekStatus =
-    document.getElementById("archivePeekStatus");
-
-  const archivePeekClose =
-    document.querySelector(".archive-peek-close");
-
-  let activePersonalSections = [];
-  let activePersonalSectionKey = "works";
-  let activeWorksFolderName = "";
-  let personalSectionRequestId = 0;
-
-
-  function normalizePersonName(value) {
-    return String(value ?? "")
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9]+/g, "");
-  }
-
-
-  function cleanDropboxFolderName(value) {
-    return String(value ?? "")
-      .replace(/[\\/]+/g, "")
-      .trim();
-  }
-
-
-  function buildDropboxApiUrl(
-    endpoint,
-    parameters = {}
-  ) {
-    const url =
-      new URL(
-        endpoint,
-        `${DROPBOX_API_BASE}/`
-      );
-
-    Object.entries(parameters)
-      .forEach(
-        ([key, value]) => {
-          url.searchParams.set(
-            key,
-            String(value)
-          );
-        }
-      );
-
-    return url.toString();
-  }
-
-
-  function buildPersonalPageUrl(section) {
-    const person =
-      cleanDropboxFolderName(
-        activeWorksFolderName
-      );
-
-    if (!person) {
-      return "about:blank";
-    }
-
-    const parameters =
-      new URLSearchParams();
-
-    parameters.set(
-      "person",
-      person
-    );
-
-    parameters.set(
-      "peek",
-      "true"
-    );
-
-    if (
-      section.key !== "works" &&
-      section.actualFolderName
-    ) {
-      parameters.set(
-        "section",
-        section.actualFolderName
-      );
-    }
-
-    return `${section.page}?${parameters.toString()}`;
-  }
-
-
-  function renderPersonalSectionTabs() {
-    if (!archivePeekTabs) {
-      return;
-    }
-
-    archivePeekTabs.innerHTML = "";
-
-    activePersonalSections.forEach(
-      section => {
-        const button =
-          document.createElement("button");
-
-        button.type = "button";
-        button.className = "archive-peek-tab";
-        button.dataset.personalSection =
-          section.key;
-        button.textContent =
-          section.label;
-
-        const isActive =
-          section.key ===
-          activePersonalSectionKey;
-
-        button.classList.toggle(
-          "is-active",
-          isActive
-        );
-
-        button.setAttribute(
-          "aria-pressed",
-          String(isActive)
-        );
-
-        archivePeekTabs.appendChild(
-          button
-        );
-      }
-    );
-  }
-
-
-  function showPersonalSection(sectionKey) {
-    const section =
-      activePersonalSections.find(
-        candidate =>
-          candidate.key === sectionKey
-      );
-
-    if (!section || !archivePeekFrame) {
-      return;
-    }
-
-    activePersonalSectionKey =
-      section.key;
-
-    renderPersonalSectionTabs();
-
-    archivePeekFrame.src =
-      buildPersonalPageUrl(section);
-
-    archivePeekFrame.title =
-      `${archivePeekPerson?.textContent || "Family"} ${section.label}`;
-  }
-
-
-  async function getPersonalSections(
-    worksFolderName
-  ) {
-    const safeFolderName =
-      cleanDropboxFolderName(
-        worksFolderName
-      );
-
-    const sections = [
+    const PERSON_PAGE_DEFINITIONS = [
       {
-        ...PERSONAL_PAGE_SECTIONS[0]
+        id:
+          "recipes",
+
+        folder:
+          "Recipes",
+
+        label:
+          "Recipes",
+
+        page:
+          "recipes.html"
+      },
+
+      {
+        id:
+          "merch",
+
+        folder:
+          "Merch",
+
+        label:
+          "Merch",
+
+        page:
+          "merch.html"
+      },
+
+      {
+        id:
+          "travel",
+
+        folder:
+          "Travel",
+
+        label:
+          "Travel",
+
+        page:
+          "travel.html"
+      },
+
+      {
+        id:
+          "memories",
+
+        folder:
+          "Memories",
+
+        label:
+          "Memories",
+
+        page:
+          "memories.html"
       }
     ];
 
-    if (!safeFolderName) {
-      return sections;
-    }
 
-    const response =
-      await fetch(
-        buildDropboxApiUrl(
-          "folder",
-          {
-            path:
-              `${DROPBOX_WORKS_FOLDER}/${safeFolderName}`
-          }
+    const RESERVED_PERSONAL_FOLDER_NAMES =
+      new Set(
+        PERSON_PAGE_DEFINITIONS.map(
+          item =>
+            item.folder.toLowerCase()
         )
       );
 
-    if (!response.ok) {
-      throw new Error(
-        `Could not inspect ${safeFolderName}'s personal folders. HTTP ${response.status}.`
-      );
-    }
 
-    const entries =
-      await response.json();
+    const IGNORED_WORKS_ROOT_FILES =
+      new Set([
+        ".ds_store",
+        "thumbs.db",
+        "desktop.ini",
+        "name.txt",
+        "blurb.txt"
+      ]);
 
-    const foldersByNormalizedName =
+
+    const personPageConfigs =
       new Map();
 
-    entries
-      .filter(
-        entry =>
-          String(entry.type ?? "")
-            .toLowerCase() === "folder"
+
+    let activePersonConfig =
+      null;
+
+
+    let activePersonSectionId =
+      "";
+
+
+    function normalizePersonName(
+      value
+    ) {
+
+      return String(
+        value ?? ""
       )
-      .forEach(
-        folder => {
-          foldersByNormalizedName.set(
-            normalizePersonName(
-              folder.name
-            ),
-            folder.name
-          );
-        }
+        .trim()
+        .toLowerCase()
+        .normalize(
+          "NFD"
+        )
+        .replace(
+          /[\u0300-\u036f]/g,
+          ""
+        )
+        .replace(
+          /[^a-z0-9]+/g,
+          ""
+        );
+
+    }
+
+
+    function normalizeDropboxPath(
+      value
+    ) {
+
+      return String(
+        value ?? ""
+      )
+        .trim()
+        .replace(
+          /\\/g,
+          "/"
+        )
+        .replace(
+          /\/+/g,
+          "/"
+        );
+
+    }
+
+
+    function getDropboxEntryPath(
+      entry
+    ) {
+
+      return normalizeDropboxPath(
+        entry?.displayPath
+        ||
+        entry?.path
+        ||
+        ""
       );
 
-    PERSONAL_PAGE_SECTIONS
-      .slice(1)
-      .forEach(
-        section => {
-          const actualFolderName =
-            foldersByNormalizedName.get(
-              normalizePersonName(
-                section.folder
-              )
-            );
+    }
 
-          if (!actualFolderName) {
-            return;
+
+    function getFilenameWithoutExtension(
+      value
+    ) {
+
+      return String(
+        value ?? ""
+      )
+        .replace(
+          /\.[^.]+$/,
+          ""
+        );
+
+    }
+
+
+    function titleFromFilename(
+      value
+    ) {
+
+      return getFilenameWithoutExtension(
+        value
+      )
+        .replace(
+          /[_-]+/g,
+          " "
+        )
+        .replace(
+          /([a-z])([A-Z])/g,
+          "$1 $2"
+        )
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim()
+        .replace(
+          /\b\w/g,
+          character =>
+            character.toUpperCase()
+        );
+
+    }
+
+
+    function buildDropboxApiUrl(
+      endpoint,
+      parameters = {}
+    ) {
+
+      const url =
+        new URL(
+          String(
+            endpoint
+          ).replace(
+            /^\/+/,
+            ""
+          ),
+
+          `${DROPBOX_API_BASE}/`
+        );
+
+
+      Object
+        .entries(
+          parameters
+        )
+        .forEach(
+          (
+            [
+              key,
+              value
+            ]
+          ) => {
+
+            if (
+              value !==
+                undefined
+              &&
+              value !==
+                null
+            ) {
+
+              url.searchParams.set(
+                key,
+                String(
+                  value
+                )
+              );
+
+            }
+
           }
-
-          sections.push({
-            ...section,
-            actualFolderName
-          });
-        }
-      );
-
-    return sections;
-  }
-
-
-  async function connectWorksFoldersToTree() {
-    const people = [
-      ...document.querySelectorAll(
-        ".tree-person[data-person]"
-      )
-    ];
-
-    people.forEach(
-      personElement => {
-        personElement.removeAttribute(
-          "href"
         );
 
-        personElement.classList.remove(
-          "has-page"
-        );
 
-        personElement.removeAttribute(
-          "aria-label"
-        );
+      return url.toString();
 
-        delete personElement.dataset.worksFolder;
-      }
-    );
+    }
 
-    try {
+
+    async function fetchDropboxFolder(
+      path,
+      recursive = false
+    ) {
+
       const response =
         await fetch(
           buildDropboxApiUrl(
-            "folder",
+            "/folder",
             {
-              path:
-                DROPBOX_WORKS_FOLDER
+              path,
+              recursive:
+                recursive
+                  ? "true"
+                  : "false"
             }
           )
         );
 
-      if (!response.ok) {
+
+      if (
+        !response.ok
+      ) {
+
         throw new Error(
-          `Could not load Works folders. HTTP ${response.status}.`
+          `Could not load Dropbox folder ${path}. HTTP ${response.status}.`
         );
+
       }
+
 
       const entries =
         await response.json();
 
+
+      return Array.isArray(
+        entries
+      )
+        ? entries
+        : [];
+
+    }
+
+
+    async function fetchDropboxText(
+      path
+    ) {
+
+      const response =
+        await fetch(
+          buildDropboxApiUrl(
+            "/text",
+            {
+              path
+            }
+          )
+        );
+
+
+      if (
+        !response.ok
+      ) {
+
+        throw new Error(
+          `Could not load text file ${path}. HTTP ${response.status}.`
+        );
+
+      }
+
+
+      return response.text();
+
+    }
+
+
+    function parseStandaloneUrl(
+      text
+    ) {
+
+      const value =
+        String(
+          text ?? ""
+        ).trim();
+
+
+      if (
+        !value
+        ||
+        /\s/.test(
+          value
+        )
+      ) {
+
+        return "";
+
+      }
+
+
+      try {
+
+        const url =
+          new URL(
+            value
+          );
+
+
+        return (
+          url.protocol ===
+            "http:"
+          ||
+          url.protocol ===
+            "https:"
+        )
+          ? url.toString()
+          : "";
+
+      } catch (
+        error
+      ) {
+
+        return "";
+
+      }
+
+    }
+
+
+    function buildPersonPageUrl(
+      page,
+      person,
+      section = ""
+    ) {
+
+      const url =
+        new URL(
+          page,
+          window.location.href
+        );
+
+
+      url.searchParams.set(
+        "person",
+        person
+      );
+
+
+      if (
+        section
+      ) {
+
+        url.searchParams.set(
+          "section",
+          section
+        );
+
+      }
+
+
+      url.searchParams.set(
+        "peek",
+        "true"
+      );
+
+
+      return (
+        url.pathname
+        +
+        url.search
+      );
+
+    }
+
+
+    async function discoverRootUrlLinks(
+      entries
+    ) {
+
+      const textFiles =
+        entries.filter(
+          entry => {
+
+            if (
+              String(
+                entry?.type ?? ""
+              ).toLowerCase() !==
+                "file"
+            ) {
+              return false;
+            }
+
+
+            const name =
+              String(
+                entry.name ?? ""
+              );
+
+
+            const lowerName =
+              name.toLowerCase();
+
+
+            return (
+              lowerName.endsWith(
+                ".txt"
+              )
+              &&
+              !IGNORED_WORKS_ROOT_FILES.has(
+                lowerName
+              )
+              &&
+              !lowerName.startsWith(
+                "."
+              )
+            );
+
+          }
+        );
+
+
+      const results =
+        await Promise.all(
+          textFiles.map(
+            async entry => {
+
+              const path =
+                getDropboxEntryPath(
+                  entry
+                );
+
+
+              try {
+
+                const text =
+                  await fetchDropboxText(
+                    path
+                  );
+
+
+                const url =
+                  parseStandaloneUrl(
+                    text
+                  );
+
+
+                if (
+                  !url
+                ) {
+                  return null;
+                }
+
+
+                return {
+                  id:
+                    `url-${normalizePersonName(
+                      entry.name
+                    )}`,
+
+                  type:
+                    "external",
+
+                  label:
+                    titleFromFilename(
+                      entry.name
+                    ),
+
+                  url,
+
+                  sourcePath:
+                    path
+                };
+
+              } catch (
+                error
+              ) {
+
+                console.warn(
+                  `Could not inspect ${path}:`,
+                  error
+                );
+
+
+                return null;
+
+              }
+
+            }
+          )
+        );
+
+
+      return results.filter(
+        Boolean
+      );
+
+    }
+
+
+    function isIgnoredWorksEntry(
+      entry
+    ) {
+
+      const name =
+        String(
+          entry?.name ?? ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        !name
+        ||
+        name.startsWith(
+          "."
+        )
+      ) {
+
+        return true;
+
+      }
+
+
+      if (
+        String(
+          entry?.type ?? ""
+        ).toLowerCase() ===
+          "file"
+        &&
+        IGNORED_WORKS_ROOT_FILES.has(
+          name
+        )
+      ) {
+
+        return true;
+
+      }
+
+
+      return false;
+
+    }
+
+
+    async function getPersonalMerchLabel(
+      personFolderName,
+      merchFolderName
+    ) {
+
+      const namePath =
+        `${DROPBOX_WORKS_FOLDER}/${personFolderName}/${merchFolderName}/name.txt`;
+
+
+      try {
+
+        const name =
+          String(
+            await fetchDropboxText(
+              namePath
+            )
+          )
+            .replace(
+              /\r\n?/g,
+              "\n"
+            )
+            .split(
+              "\n"
+            )
+            .map(
+              line =>
+                line.trim()
+            )
+            .filter(
+              Boolean
+            )
+            .join(
+              " "
+            )
+            .replace(
+              /\s+/g,
+              " "
+            )
+            .trim();
+
+
+        return name
+          ||
+          "Merch";
+
+      } catch (
+        error
+      ) {
+
+        return "Merch";
+
+      }
+
+    }
+
+
+    async function inspectPersonFolder(
+      personFolderName
+    ) {
+
+      const personRoot =
+        `${DROPBOX_WORKS_FOLDER}/${personFolderName}`;
+
+
+      const entries =
+        await fetchDropboxFolder(
+          personRoot,
+          false
+        );
+
+
       const foldersByName =
         new Map();
+
 
       entries
         .filter(
           entry =>
-            String(entry.type ?? "")
-              .toLowerCase() === "folder"
+            String(
+              entry?.type ?? ""
+            ).toLowerCase() ===
+              "folder"
         )
         .forEach(
           folder => {
+
             foldersByName.set(
-              normalizePersonName(
-                folder.name
-              ),
-              folder.name
+              String(
+                folder.name ?? ""
+              )
+                .trim()
+                .toLowerCase(),
+
+              folder
             );
+
           }
         );
+
+
+      const rootUrlLinks =
+        await discoverRootUrlLinks(
+          entries
+        );
+
+
+      const rootUrlPaths =
+        new Set(
+          rootUrlLinks.map(
+            link =>
+              normalizeDropboxPath(
+                link.sourcePath
+              ).toLowerCase()
+          )
+        );
+
+
+      /*
+        Works exists only when the person's Works root contains
+        something besides:
+        - Recipes / Merch / Travel / Memories folders
+        - URL-only root .txt nav links
+        - hidden/system files and root metadata files
+
+        So a person whose folder is only Recipes + Travel will not
+        get a meaningless Works tab.
+      */
+      const hasWorks =
+        entries.some(
+          entry => {
+
+            if (
+              isIgnoredWorksEntry(
+                entry
+              )
+            ) {
+              return false;
+            }
+
+
+            const type =
+              String(
+                entry?.type ?? ""
+              ).toLowerCase();
+
+
+            const name =
+              String(
+                entry?.name ?? ""
+              )
+                .trim()
+                .toLowerCase();
+
+
+            if (
+              type ===
+                "folder"
+              &&
+              RESERVED_PERSONAL_FOLDER_NAMES.has(
+                name
+              )
+            ) {
+
+              return false;
+
+            }
+
+
+            if (
+              type ===
+                "file"
+              &&
+              rootUrlPaths.has(
+                getDropboxEntryPath(
+                  entry
+                ).toLowerCase()
+              )
+            ) {
+
+              return false;
+
+            }
+
+
+            return true;
+
+          }
+        );
+
+
+      const sections =
+        [];
+
+
+      if (
+        hasWorks
+      ) {
+
+        sections.push({
+          id:
+            "works",
+
+          type:
+            "internal",
+
+          label:
+            "Works",
+
+          url:
+            buildPersonPageUrl(
+              "archive.html",
+              personFolderName
+            )
+        });
+
+      }
+
+
+      for (
+        const definition of
+          PERSON_PAGE_DEFINITIONS
+      ) {
+
+        const folder =
+          foldersByName.get(
+            definition.folder.toLowerCase()
+          );
+
+
+        if (
+          !folder
+        ) {
+          continue;
+        }
+
+
+        let label =
+          definition.label;
+
+
+        if (
+          definition.id ===
+            "merch"
+        ) {
+
+          label =
+            await getPersonalMerchLabel(
+              personFolderName,
+              folder.name
+            );
+
+        }
+
+
+        sections.push({
+          id:
+            definition.id,
+
+          type:
+            "internal",
+
+          label,
+
+          url:
+            buildPersonPageUrl(
+              definition.page,
+              personFolderName,
+              folder.name
+            )
+        });
+
+      }
+
+
+      rootUrlLinks.forEach(
+        link =>
+          sections.push(
+            link
+          )
+      );
+
+
+      return {
+        person:
+          personFolderName,
+
+        hasWorks,
+
+        sections
+      };
+
+    }
+
+
+    async function connectPersonFoldersToTree() {
+
+      const people = [
+        ...document.querySelectorAll(
+          ".tree-person[data-person]"
+        )
+      ];
+
 
       people.forEach(
         personElement => {
-          const requestedFolderName =
-            personElement.dataset.workPerson ||
-            personElement.dataset.person;
 
-          const matchingFolderName =
-            foldersByName.get(
-              normalizePersonName(
-                requestedFolderName
-              )
-            );
+          personElement.removeAttribute(
+            "href"
+          );
 
-          if (!matchingFolderName) {
-            return;
-          }
-
-          personElement.href =
-            `archive.html?person=${encodeURIComponent(
-              matchingFolderName
-            )}&peek=true`;
-
-          personElement.dataset.worksFolder =
-            matchingFolderName;
-
-          personElement.classList.add(
+          personElement.classList.remove(
             "has-page"
           );
 
-          personElement.setAttribute(
-            "aria-label",
-            `Open ${personElement.textContent.trim()}'s family pages`
+          personElement.removeAttribute(
+            "aria-label"
           );
+
         }
       );
-    }
 
-    catch (error) {
-      console.error(
-        "Could not connect Works folders to the family tree:",
+
+      try {
+
+        const entries =
+          await fetchDropboxFolder(
+            DROPBOX_WORKS_FOLDER,
+            false
+          );
+
+
+        const foldersByName =
+          new Map();
+
+
+        entries
+          .filter(
+            entry =>
+              String(
+                entry?.type ?? ""
+              ).toLowerCase() ===
+                "folder"
+          )
+          .forEach(
+            folder => {
+
+              foldersByName.set(
+                normalizePersonName(
+                  folder.name
+                ),
+                folder.name
+              );
+
+            }
+          );
+
+
+        await Promise.all(
+          people.map(
+            async personElement => {
+
+              const lookupName =
+                personElement.dataset.workPerson
+                ||
+                personElement.dataset.person;
+
+
+              const matchingFolderName =
+                foldersByName.get(
+                  normalizePersonName(
+                    lookupName
+                  )
+                );
+
+
+              if (
+                !matchingFolderName
+              ) {
+                return;
+              }
+
+
+              try {
+
+                const config =
+                  await inspectPersonFolder(
+                    matchingFolderName
+                  );
+
+
+                if (
+                  config.sections.length ===
+                    0
+                ) {
+                  return;
+                }
+
+
+                personPageConfigs.set(
+                  matchingFolderName,
+                  config
+                );
+
+
+                const firstInternal =
+                  config.sections.find(
+                    section =>
+                      section.type ===
+                        "internal"
+                  );
+
+
+                const firstSection =
+                  firstInternal
+                  ||
+                  config.sections[0];
+
+
+                personElement.href =
+                  firstSection.url;
+
+
+                personElement.dataset.personFolder =
+                  matchingFolderName;
+
+
+                personElement.classList.add(
+                  "has-page"
+                );
+
+
+                personElement.setAttribute(
+                  "aria-label",
+                  `Open ${personElement.textContent.trim()}'s pages`
+                );
+
+              } catch (
+                error
+              ) {
+
+                console.error(
+                  `Could not inspect ${matchingFolderName}:`,
+                  error
+                );
+
+              }
+
+            }
+          )
+        );
+
+      } catch (
         error
-      );
-    }
-  }
+      ) {
 
-
-  async function openArchivePeek(
-    worksFolderName,
-    displayName
-  ) {
-    if (
-      !archivePeek ||
-      !archivePeekFrame ||
-      !archivePeekTabs
-    ) {
-      return;
-    }
-
-    const requestId =
-      ++personalSectionRequestId;
-
-    activeWorksFolderName =
-      cleanDropboxFolderName(
-        worksFolderName
-      );
-
-    activePersonalSectionKey =
-      "works";
-
-    activePersonalSections = [
-      {
-        ...PERSONAL_PAGE_SECTIONS[0]
-      }
-    ];
-
-    if (archivePeekPerson) {
-      archivePeekPerson.textContent =
-        String(displayName || worksFolderName || "Family")
-          .trim();
-    }
-
-    if (archivePeekStatus) {
-      archivePeekStatus.textContent =
-        "Checking pages…";
-    }
-
-    renderPersonalSectionTabs();
-    showPersonalSection("works");
-
-    archivePeek.classList.add(
-      "is-open"
-    );
-
-    archivePeek.setAttribute(
-      "aria-hidden",
-      "false"
-    );
-
-    document.body.classList.add(
-      "archive-peek-open"
-    );
-
-    archivePeekClose?.focus();
-
-    try {
-      const sections =
-        await getPersonalSections(
-          activeWorksFolderName
+        console.error(
+          "Could not connect Works folders to the family tree:",
+          error
         );
 
-      if (
-        requestId !==
-        personalSectionRequestId
-      ) {
-        return;
       }
 
-      activePersonalSections =
-        sections;
-
-      renderPersonalSectionTabs();
     }
 
-    catch (error) {
-      console.error(
-        "Could not load personalized page tabs:",
-        error
-      );
-    }
 
-    finally {
-      if (
-        requestId ===
-        personalSectionRequestId &&
-        archivePeekStatus
-      ) {
-        archivePeekStatus.textContent =
-          "";
-      }
-    }
-  }
+    /* ======================================================
+       PERSON QUICK VIEW NAVIGATION
+       ====================================================== */
 
-
-  function closeArchivePeek() {
-    if (
-      !archivePeek ||
-      !archivePeekFrame
-    ) {
-      return;
-    }
-
-    personalSectionRequestId += 1;
-
-    archivePeek.classList.remove(
-      "is-open"
-    );
-
-    archivePeek.setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-    document.body.classList.remove(
-      "archive-peek-open"
-    );
-
-    archivePeekClose?.classList.remove(
-      "is-hidden"
-    );
-
-    archivePeekFrame.src =
-      "about:blank";
-
-    if (archivePeekTabs) {
-      archivePeekTabs.innerHTML =
-        "";
-    }
-
-    if (archivePeekStatus) {
-      archivePeekStatus.textContent =
-        "";
-    }
-  }
-
-
-  window.addEventListener(
-    "message",
-    event => {
-      if (
-        event.origin !==
-        window.location.origin
-      ) {
-        return;
-      }
-
-      if (
-        event.data?.type !==
-        "archive-preview-state"
-      ) {
-        return;
-      }
-
-      archivePeekClose?.classList.toggle(
-        "is-hidden",
-        Boolean(
-          event.data.isOpen
-        )
-      );
-    }
-  );
-
-
-  document.addEventListener(
-    "click",
-    event => {
-      const personLink =
-        event.target.closest(
-          ".tree-person.has-page"
-        );
-
-      if (personLink) {
-        event.preventDefault();
-
-        openArchivePeek(
-          personLink.dataset.worksFolder ||
-          personLink.dataset.workPerson ||
-          personLink.dataset.person,
-          personLink.textContent.trim()
-        );
-
-        return;
-      }
-
-      const sectionButton =
-        event.target.closest(
-          "[data-personal-section]"
-        );
-
-      if (
-        sectionButton &&
-        archivePeek?.contains(
-          sectionButton
-        )
-      ) {
-        showPersonalSection(
-          sectionButton.dataset.personalSection
-        );
-
-        return;
-      }
-
-      if (
-        event.target.closest(
-          "[data-close-archive-peek]"
-        )
-      ) {
-        closeArchivePeek();
-      }
-    }
-  );
-
-
-  document.addEventListener(
-    "keydown",
-    event => {
-      if (
-        event.key === "Escape" &&
-        archivePeek?.classList.contains(
-          "is-open"
-        )
-      ) {
-        closeArchivePeek();
-      }
-    }
-  );
-
-
-  connectWorksFoldersToTree();
-</script>
-
-<script>
-  const HOME_PHOTOS = [
-    "assets/faves/alon-frown.png",
-    "assets/faves/coby-yael-kids.png",
-    "assets/faves/family-photo.png",
-    "assets/faves/house-coat.png",
-    "assets/faves/house.png",
-    "assets/faves/kids in coats.png",
-    "assets/faves/matching-haircut.png",
-    "assets/faves/new-baby.png",
-    "assets/faves/newly-weds.png",
-    "assets/faves/park.png",
-    "assets/faves/sabba-driving.png",
-    "assets/faves/siblings.png",
-    "assets/faves/tennis.png",
-    "assets/faves/tweens.png",
-    "assets/faves/yal-alon-couch.png",
-    "assets/faves/yal-ball.png",
-    "assets/faves/yal-on-bike.png",
-    "assets/faves/yal-sabba.png",
-    "assets/faves/yal-tree.png",
-    "assets/faves/yal-wedding-sabba.png"
-  ];
-
-
-  function shuffleHomePhotos(
-    photos
-  ) {
-    const shuffled =
-      [...photos];
-
-    for (
-      let index =
-        shuffled.length - 1;
-
-      index > 0;
-
-      index -= 1
-    ) {
-      const randomIndex =
-        Math.floor(
-          Math.random() *
-          (index + 1)
-        );
-
-      [
-        shuffled[index],
-        shuffled[randomIndex]
-      ] = [
-        shuffled[randomIndex],
-        shuffled[index]
-      ];
-    }
-
-    return shuffled;
-  }
-
-
-  function createPhotoAltText(
-    path,
-    index
-  ) {
-    const filename =
-      path
-        .split("/")
-        .pop()
-        .replace(
-          /\.[^.]+$/,
-          ""
-        )
-        .replace(
-          /[-_]+/g,
-          " "
-        );
-
-    return filename
-      ? filename
-      : `Family photograph ${index + 1}`;
-  }
-
-
-  function loadHomePhotoStack() {
-    const stack =
+    const archivePeek =
       document.getElementById(
-        "home-photo-stack"
+        "archivePeek"
       );
 
-    if (
-      !stack
+
+    const archivePeekFrame =
+      document.getElementById(
+        "archivePeekFrame"
+      );
+
+
+    const archivePeekClose =
+      document.querySelector(
+        ".archive-peek-close"
+      );
+
+
+    const personPeekName =
+      document.getElementById(
+        "personPeekName"
+      );
+
+
+    const personPeekNav =
+      document.getElementById(
+        "personPeekNav"
+      );
+
+
+    const personPeekEmpty =
+      document.getElementById(
+        "personPeekEmpty"
+      );
+
+
+    function setActivePersonSection(
+      section
     ) {
-      return;
-    }
 
-    const positions = [
-  { x: "-500px", y: "-125px", rotation: "-8deg" },
-  { x: "-330px", y: "-145px", rotation: "5deg" },
-  { x: "-165px", y: "-130px", rotation: "-4deg" },
-  { x: "0px", y: "-145px", rotation: "7deg" },
-  { x: "165px", y: "-130px", rotation: "-6deg" },
-  { x: "330px", y: "-145px", rotation: "4deg" },
-  { x: "500px", y: "-120px", rotation: "-5deg" },
+      if (
+        !section
+      ) {
+        return;
+      }
 
-  { x: "-525px", y: "25px", rotation: "6deg" },
-  { x: "-350px", y: "5px", rotation: "-3deg" },
-  { x: "-175px", y: "20px", rotation: "4deg" },
-  { x: "0px", y: "0px", rotation: "-7deg" },
-  { x: "175px", y: "18px", rotation: "3deg" },
-  { x: "350px", y: "3px", rotation: "-5deg" },
-  { x: "525px", y: "25px", rotation: "6deg" },
 
-  { x: "-410px", y: "165px", rotation: "-4deg" },
-  { x: "-205px", y: "180px", rotation: "6deg" },
-  { x: "0px", y: "165px", rotation: "-2deg" },
-  { x: "205px", y: "180px", rotation: "5deg" },
-  { x: "410px", y: "165px", rotation: "-7deg" }
-];
-    const photos =
-      shuffleHomePhotos(
-        HOME_PHOTOS
-      )
-        .slice(
-          0,
-          positions.length
+      if (
+        section.type ===
+          "external"
+      ) {
+
+        window.open(
+          section.url,
+          "_blank",
+          "noopener"
         );
 
-    stack.innerHTML =
-      "";
+        return;
+      }
 
-    photos.forEach(
-      (
-        photoPath,
-        index
-      ) => {
-        const position =
-          positions[index];
 
-        const image =
-          document.createElement(
-            "img"
-          );
+      activePersonSectionId =
+        section.id;
 
-        image.className =
-          "home-stack-photo";
 
-        image.src =
-          photoPath;
+      personPeekNav
+        ?.querySelectorAll(
+          "[data-person-section]"
+        )
+        .forEach(
+          element => {
 
-        image.alt =
-          createPhotoAltText(
-            photoPath,
-            index
-          );
+            element.classList.toggle(
+              "is-active",
 
-        image.loading =
-          index < 4
-            ? "eager"
-            : "lazy";
-
-        image.tabIndex =
-          0;
-
-        image.style.setProperty(
-          "--photo-x",
-          position.x
-        );
-
-        image.style.setProperty(
-          "--photo-y",
-          position.y
-        );
-
-        image.style.setProperty(
-          "--photo-rotation",
-          position.rotation
-        );
-
-        image.style.zIndex =
-          String(index + 1);
-
-        image.addEventListener(
-          "error",
-          () => {
-            console.error(
-              `Could not load ${photoPath}`
+              element.dataset.personSection ===
+                activePersonSectionId
             );
 
-            image.remove();
           }
         );
 
-        stack.appendChild(
-          image
+
+      if (
+        archivePeekFrame
+      ) {
+
+        archivePeekFrame.src =
+          section.url;
+
+        archivePeekFrame.title =
+          `${activePersonConfig?.person || "Family"} ${section.label}`;
+
+      }
+
+
+      if (
+        personPeekEmpty
+      ) {
+
+        personPeekEmpty.hidden =
+          true;
+
+      }
+
+    }
+
+
+    function renderPersonPeekNav(
+      config
+    ) {
+
+      if (
+        !personPeekNav
+      ) {
+        return;
+      }
+
+
+      personPeekNav.innerHTML =
+        "";
+
+
+      config.sections.forEach(
+        section => {
+
+          if (
+            section.type ===
+              "external"
+          ) {
+
+            const link =
+              document.createElement(
+                "a"
+              );
+
+
+            link.className =
+              "person-peek-link person-peek-external";
+
+            link.href =
+              section.url;
+
+            link.target =
+              "_blank";
+
+            link.rel =
+              "noopener";
+
+            link.textContent =
+              section.label;
+
+
+            personPeekNav.appendChild(
+              link
+            );
+
+
+            return;
+
+          }
+
+
+          const button =
+            document.createElement(
+              "button"
+            );
+
+
+          button.type =
+            "button";
+
+          button.className =
+            "person-peek-link";
+
+          button.dataset.personSection =
+            section.id;
+
+          button.textContent =
+            section.label;
+
+
+          button.addEventListener(
+            "click",
+            () =>
+              setActivePersonSection(
+                section
+              )
+          );
+
+
+          personPeekNav.appendChild(
+            button
+          );
+
+        }
+      );
+
+    }
+
+
+    function openPersonPeek(
+      config,
+      displayName
+    ) {
+
+      if (
+        !archivePeek
+        ||
+        !archivePeekFrame
+      ) {
+        return;
+      }
+
+
+      activePersonConfig =
+        config;
+
+
+      activePersonSectionId =
+        "";
+
+
+      if (
+        personPeekName
+      ) {
+
+        personPeekName.textContent =
+          displayName
+          ||
+          config.person;
+
+      }
+
+
+      renderPersonPeekNav(
+        config
+      );
+
+
+      const firstInternal =
+        config.sections.find(
+          section =>
+            section.type ===
+              "internal"
         );
+
+
+      archivePeek.classList.add(
+        "is-open"
+      );
+
+
+      archivePeek.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+
+      document.body.classList.add(
+        "archive-peek-open"
+      );
+
+
+      if (
+        firstInternal
+      ) {
+
+        setActivePersonSection(
+          firstInternal
+        );
+
+      } else {
+
+        archivePeekFrame.src =
+          "about:blank";
+
+
+        if (
+          personPeekEmpty
+        ) {
+
+          personPeekEmpty.hidden =
+            false;
+
+          personPeekEmpty.textContent =
+            "Use the link above to open this page.";
+
+        }
+
+      }
+
+    }
+
+
+    function closeArchivePeek() {
+
+      if (
+        !archivePeek
+        ||
+        !archivePeekFrame
+      ) {
+        return;
+      }
+
+
+      archivePeek.classList.remove(
+        "is-open"
+      );
+
+
+      archivePeek.setAttribute(
+        "aria-hidden",
+        "true"
+      );
+
+
+      document.body.classList.remove(
+        "archive-peek-open"
+      );
+
+
+      archivePeekClose
+        ?.classList
+        .remove(
+          "is-hidden"
+        );
+
+
+      archivePeekFrame.src =
+        "about:blank";
+
+
+      activePersonConfig =
+        null;
+
+
+      activePersonSectionId =
+        "";
+
+
+      if (
+        personPeekNav
+      ) {
+
+        personPeekNav.innerHTML =
+          "";
+
+      }
+
+    }
+
+
+    window.addEventListener(
+      "message",
+      event => {
+
+        if (
+          event.origin !==
+            window.location.origin
+        ) {
+          return;
+        }
+
+
+        /*
+          Existing archive behavior: hide the outer X while a
+          Works quick-view/modal is open inside the iframe.
+        */
+        if (
+          event.data?.type ===
+            "archive-preview-state"
+        ) {
+
+          archivePeekClose
+            ?.classList
+            .toggle(
+              "is-hidden",
+              Boolean(
+                event.data.isOpen
+              )
+            );
+
+
+          return;
+        }
+
+
+        /*
+          Merch also reports name.txt after loading. This keeps
+          the parent nav synchronized even if the name file is
+          changed while the site is open.
+        */
+        if (
+          event.data?.type ===
+            "person-page-title"
+          &&
+          String(
+            event.data.section ?? ""
+          ).toLowerCase() ===
+            "merch"
+          &&
+          activePersonConfig
+        ) {
+
+          const merchSection =
+            activePersonConfig
+              .sections
+              .find(
+                section =>
+                  section.id ===
+                    "merch"
+              );
+
+
+          const title =
+            String(
+              event.data.title ?? ""
+            ).trim();
+
+
+          if (
+            merchSection
+            &&
+            title
+          ) {
+
+            merchSection.label =
+              title;
+
+
+            const merchButton =
+              personPeekNav
+                ?.querySelector(
+                  '[data-person-section="merch"]'
+                );
+
+
+            if (
+              merchButton
+            ) {
+
+              merchButton.textContent =
+                title;
+
+            }
+
+          }
+
+        }
+
       }
     );
 
-    if (
-      photos.length === 0
+
+    document.addEventListener(
+      "click",
+      event => {
+
+        const personLink =
+          event.target.closest(
+            ".tree-person.has-page"
+          );
+
+
+        if (
+          personLink
+        ) {
+
+          event.preventDefault();
+
+
+          const folderName =
+            personLink.dataset.personFolder;
+
+
+          const config =
+            personPageConfigs.get(
+              folderName
+            );
+
+
+          if (
+            config
+          ) {
+
+            /*
+              If this person's only page is one URL-only .txt file,
+              skip the quick-view popup and open that website directly.
+            */
+            if (
+              config.sections.length === 1
+              &&
+              config.sections[0].type === "external"
+            ) {
+
+              window.open(
+                config.sections[0].url,
+                "_blank",
+                "noopener"
+              );
+
+            } else {
+
+              openPersonPeek(
+                config,
+                personLink.textContent.trim()
+              );
+
+            }
+
+          }
+
+
+          return;
+
+        }
+
+
+        if (
+          event.target.closest(
+            "[data-close-archive-peek]"
+          )
+        ) {
+
+          closeArchivePeek();
+
+        }
+
+      }
+    );
+
+
+    document.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key ===
+            "Escape"
+          &&
+          archivePeek
+            ?.classList
+            .contains(
+              "is-open"
+            )
+        ) {
+
+          closeArchivePeek();
+
+        }
+
+      }
+    );
+
+
+    connectPersonFoldersToTree();
+  </script>
+
+
+  <script>
+    /* ======================================================
+       HOME PHOTO STACK
+       ====================================================== */
+
+    const HOME_PHOTOS = [
+      "assets/faves/alon-frown.png",
+      "assets/faves/coby-yael-kids.png",
+      "assets/faves/family-photo.png",
+      "assets/faves/house-coat.png",
+      "assets/faves/house.png",
+      "assets/faves/kids in coats.png",
+      "assets/faves/matching-haircut.png",
+      "assets/faves/new-baby.png",
+      "assets/faves/newly-weds.png",
+      "assets/faves/park.png",
+      "assets/faves/sabba-driving.png",
+      "assets/faves/siblings.png",
+      "assets/faves/tennis.png",
+      "assets/faves/tweens.png",
+      "assets/faves/yal-alon-couch.png",
+      "assets/faves/yal-ball.png",
+      "assets/faves/yal-on-bike.png",
+      "assets/faves/yal-sabba.png",
+      "assets/faves/yal-tree.png",
+      "assets/faves/yal-wedding-sabba.png"
+    ];
+
+
+    function shuffleHomePhotos(
+      photos
     ) {
-      stack.innerHTML = `
-        <p class="home-photo-message">
-          No family photographs have been added yet.
-        </p>
-      `;
+
+      const shuffled =
+        [
+          ...photos
+        ];
+
+
+      for (
+        let index =
+          shuffled.length - 1;
+
+        index > 0;
+
+        index -= 1
+      ) {
+
+        const randomIndex =
+          Math.floor(
+            Math.random()
+            *
+            (
+              index + 1
+            )
+          );
+
+
+        [
+          shuffled[index],
+          shuffled[randomIndex]
+        ] = [
+          shuffled[randomIndex],
+          shuffled[index]
+        ];
+
+      }
+
+
+      return shuffled;
+
     }
-  }
 
 
-  loadHomePhotoStack();
-</script>
+    function createPhotoAltText(
+      path,
+      index
+    ) {
+
+      const filename =
+        path
+          .split(
+            "/"
+          )
+          .pop()
+          .replace(
+            /\.[^.]+$/,
+            ""
+          )
+          .replace(
+            /[-_]+/g,
+            " "
+          );
+
+
+      return filename
+        ||
+        `Family photograph ${index + 1}`;
+
+    }
+
+
+    function loadHomePhotoStack() {
+
+      const stack =
+        document.getElementById(
+          "home-photo-stack"
+        );
+
+
+      if (
+        !stack
+      ) {
+        return;
+      }
+
+
+      const positions = [
+        { x: "-500px", y: "-125px", rotation: "-8deg" },
+        { x: "-330px", y: "-145px", rotation: "5deg" },
+        { x: "-165px", y: "-130px", rotation: "-4deg" },
+        { x: "0px", y: "-145px", rotation: "7deg" },
+        { x: "165px", y: "-130px", rotation: "-6deg" },
+        { x: "330px", y: "-145px", rotation: "4deg" },
+        { x: "500px", y: "-120px", rotation: "-5deg" },
+
+        { x: "-525px", y: "25px", rotation: "6deg" },
+        { x: "-350px", y: "5px", rotation: "-3deg" },
+        { x: "-175px", y: "20px", rotation: "4deg" },
+        { x: "0px", y: "0px", rotation: "-7deg" },
+        { x: "175px", y: "18px", rotation: "3deg" },
+        { x: "350px", y: "3px", rotation: "-5deg" },
+        { x: "525px", y: "25px", rotation: "6deg" },
+
+        { x: "-410px", y: "165px", rotation: "-4deg" },
+        { x: "-205px", y: "180px", rotation: "6deg" },
+        { x: "0px", y: "165px", rotation: "-2deg" },
+        { x: "205px", y: "180px", rotation: "5deg" },
+        { x: "410px", y: "165px", rotation: "-7deg" }
+      ];
+
+
+      const photos =
+        shuffleHomePhotos(
+          HOME_PHOTOS
+        )
+          .slice(
+            0,
+            positions.length
+          );
+
+
+      stack.innerHTML =
+        "";
+
+
+      photos.forEach(
+        (
+          photoPath,
+          index
+        ) => {
+
+          const position =
+            positions[index];
+
+
+          const image =
+            document.createElement(
+              "img"
+            );
+
+
+          image.className =
+            "home-stack-photo";
+
+          image.src =
+            photoPath;
+
+          image.alt =
+            createPhotoAltText(
+              photoPath,
+              index
+            );
+
+          image.loading =
+            index < 4
+              ? "eager"
+              : "lazy";
+
+          image.tabIndex =
+            0;
+
+
+          image.style.setProperty(
+            "--photo-x",
+            position.x
+          );
+
+
+          image.style.setProperty(
+            "--photo-y",
+            position.y
+          );
+
+
+          image.style.setProperty(
+            "--photo-rotation",
+            position.rotation
+          );
+
+
+          image.style.zIndex =
+            String(
+              index + 1
+            );
+
+
+          image.addEventListener(
+            "error",
+            () => {
+
+              console.error(
+                `Could not load ${photoPath}`
+              );
+
+
+              image.remove();
+
+            }
+          );
+
+
+          stack.appendChild(
+            image
+          );
+
+        }
+      );
+
+
+      if (
+        photos.length ===
+          0
+      ) {
+
+        stack.innerHTML = `
+          <p class="home-photo-message">
+            No family photographs have been added yet.
+          </p>
+        `;
+
+      }
+
+    }
+
+
+    loadHomePhotoStack();
+  </script>
 
 </body>
 </html>

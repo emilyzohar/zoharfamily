@@ -510,6 +510,14 @@ const CATEGORY_SETTINGS = {
 let ARCHIVE_DATA =
   [];
 
+/*
+  Top-level .txt files in a person's Works folder that contain
+  only an HTTP/HTTPS URL are rendered as linked subheadings,
+  rather than as archive cards.
+*/
+let ARCHIVE_ROOT_LINKS =
+  [];
+
 let activeSectionIndex =
   0;
 
@@ -2852,9 +2860,9 @@ async function loadArchiveFromDropbox() {
 
 
     ARCHIVE_DATA =
-  await buildArchiveData(
-    rootTree
-  );
+      await buildArchiveData(
+        rootTree
+      );
 
 
     if (
@@ -2962,6 +2970,57 @@ function buildArchiveTabs() {
    RENDER ACTIVE CATEGORY
 ========================================================= */
 
+function renderRootWebsiteLinks() {
+  if (
+    !archiveStageContent
+    ||
+    ARCHIVE_ROOT_LINKS.length === 0
+  ) {
+    return;
+  }
+
+  const linksWrap =
+    document.createElement(
+      "div"
+    );
+
+  linksWrap.className =
+    "archive-root-links";
+
+  ARCHIVE_ROOT_LINKS.forEach(
+    linkItem => {
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.className =
+        "archive-root-link";
+
+      link.href =
+        linkItem.url;
+
+      link.target =
+        "_blank";
+
+      link.rel =
+        "noopener";
+
+      link.textContent =
+        linkItem.title;
+
+      linksWrap.appendChild(
+        link
+      );
+    }
+  );
+
+  archiveStageContent.appendChild(
+    linksWrap
+  );
+}
+
+
 function renderActiveSection() {
   const section =
     ARCHIVE_DATA[
@@ -2969,8 +3028,6 @@ function renderActiveSection() {
     ];
 
   if (
-    !section
-    ||
     !archiveStageContent
   ) {
     return;
@@ -3000,6 +3057,12 @@ function renderActiveSection() {
 
   archiveStageContent.scrollTop =
     0;
+
+  if (
+    !section
+  ) {
+    return;
+  }
 
 
   if (

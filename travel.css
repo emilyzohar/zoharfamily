@@ -2047,3 +2047,62 @@ body.travel-modal-open {
   }
 
 }
+/* =========================================================
+   PERSON WORKS QUICK-VIEW MODE
+========================================================= */
+
+body.person-peek-mode .travel-main {
+  min-height: 100vh;
+
+  padding:
+    18px
+    clamp(22px, 3vw, 48px)
+    42px;
+}
+
+body.person-peek-mode .travel-controls {
+  width: min(1180px, 100%);
+
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  gap: 10px 14px;
+
+  margin-bottom: 14px;
+}
+
+body.person-peek-mode .travel-control-button {
+  min-width: 150px;
+
+  padding:
+    8px
+    12px;
+
+  font-size: 0.98rem;
+}
+
+body.person-peek-mode .travel-map-wrap {
+  width: min(1180px, 100%);
+}
+
+body.person-peek-mode .travel-modal {
+  padding: 12px 30px;
+}
+
+body.person-peek-mode .travel-modal-panel {
+  width: min(1120px, calc(100vw - 60px));
+  max-height: calc(100vh - 24px);
+
+  padding:
+    28px
+    34px
+    32px;
+}
+
+body.person-peek-mode .travel-modal-title {
+  font-size: clamp(2.8rem, 5vw, 4.4rem);
+}
+
+body.person-peek-mode .travel-carousel-stage {
+  height: min(58vh, 540px);
+}

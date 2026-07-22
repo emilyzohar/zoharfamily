@@ -1765,3 +1765,86 @@ video {
   }
 
 }
+/* =========================================================
+   PERSON WORKS QUICK-VIEW MODE
+========================================================= */
+
+body.person-peek-mode .memories-main {
+  min-height: 100vh;
+
+  padding-bottom: 45px;
+}
+
+body.person-peek-mode .memories-heading-section {
+  padding:
+    12px
+    clamp(22px, 3vw, 48px)
+    0;
+}
+
+body.person-peek-mode .memories-page-subtitle {
+  font-size: 1.15rem;
+}
+
+body.person-peek-mode .memories-content {
+  min-height: 0;
+
+  padding:
+    10px
+    clamp(22px, 3vw, 48px)
+    45px;
+}
+
+body.person-peek-mode .memory-folder-stage {
+  min-height: 0;
+
+  padding:
+    24px
+    20px
+    45px;
+}
+
+body.person-peek-mode .memory-folder-card {
+  width:
+    clamp(
+      190px,
+      19vw,
+      275px
+    );
+
+  margin:
+    -18px
+    -24px;
+}
+
+body.person-peek-mode .memory-folder-card:hover,
+body.person-peek-mode .memory-folder-card:focus-visible {
+  transform:
+    translate(
+      var(--folder-x),
+      calc(var(--folder-y) - 18px)
+    )
+    rotate(0deg)
+    scale(1.025);
+}
+
+body.person-peek-mode .memory-album-grid {
+  columns: 5;
+
+  column-gap: 14px;
+}
+
+body.person-peek-mode .memory-album-item {
+  margin-bottom: 14px;
+}
+
+body.person-peek-mode .memory-lightbox-window {
+  width: min(1120px, 94vw);
+  height: min(760px, 92vh);
+}
+
+@media (max-width: 1000px) {
+  body.person-peek-mode .memory-album-grid {
+    columns: 3;
+  }
+}

@@ -1157,3 +1157,58 @@ body.person-peek-mode .recipes-main {
 body.person-peek-mode .merch-main {
   padding-top: 42px;
 }
+
+/* =========================================================
+   COMPACT PERSONAL MERCH QUICK-VIEW MODE
+========================================================= */
+
+body.person-peek-mode .merch-main {
+  min-height: 100vh;
+
+  padding:
+    28px
+    3%
+    55px;
+}
+
+body.person-peek-mode .merch-grid {
+  grid-template-columns:
+    repeat(
+      auto-fill,
+      minmax(210px, 1fr)
+    );
+
+  gap: 28px;
+
+  max-width: none;
+}
+
+body.person-peek-mode .merch-card {
+  max-width: 260px;
+}
+
+body.person-peek-mode .quick-view-card {
+  width: min(900px, 92vw);
+  max-height: 92vh;
+
+  padding: 34px;
+}
+
+body.person-peek-mode .quick-view-layout {
+  gap: 34px;
+}
+
+body.person-peek-mode .quick-view-image {
+  width: 112%;
+
+  transform:
+    translateX(-34px);
+}
+
+body.person-peek-mode .quick-view-info h2 {
+  font-size: 2.35rem;
+}
+
+body.person-peek-mode .quick-view-description {
+  font-size: 1.08rem;
+}

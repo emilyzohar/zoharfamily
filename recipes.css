@@ -2004,3 +2004,148 @@ body.recipe-modal-open {
   transform: none !important;
   padding-top: 0;
 }
+/* =========================================================
+   PERSON WORKS QUICK-VIEW MODE
+   Personalized recipe pages open directly as a compact grid.
+========================================================= */
+
+body.person-peek-mode {
+  --recipe-card-grid-width:
+    clamp(
+      190px,
+      19vw,
+      245px
+    );
+}
+
+body.person-peek-mode .recipes-main {
+  min-height: 100vh;
+
+  padding:
+    28px
+    clamp(24px, 3vw, 48px)
+    55px;
+}
+
+body.person-peek-mode .recipes-toolbar {
+  margin-bottom: 24px;
+
+  gap: 18px;
+}
+
+body.person-peek-mode .recipes-filter-button {
+  min-width: 145px;
+
+  padding:
+    8px
+    12px;
+}
+
+body.person-peek-mode .recipes-search,
+body.person-peek-mode .recipes-search:focus {
+  width: 205px;
+  height: 42px;
+
+  border-width: 3px;
+
+  font-size: 1.2rem;
+}
+
+body.person-peek-mode .recipes-grid.is-piled {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(
+        190px,
+        var(--recipe-card-grid-width)
+      )
+    );
+
+  justify-content: center;
+
+  min-height: auto;
+}
+
+body.person-peek-mode .recipes-grid.is-piled .recipe-card,
+body.person-peek-mode .recipes-grid.is-grid .recipe-card {
+  position: relative;
+
+  left: auto;
+  top: auto;
+
+  width: var(--recipe-card-grid-width);
+
+  margin: 0;
+
+  transform: none;
+  opacity: 1;
+
+  pointer-events: auto;
+}
+
+body.person-peek-mode .recipes-grid.is-grid {
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(
+        190px,
+        var(--recipe-card-grid-width)
+      )
+    );
+
+  column-gap: 8px;
+  row-gap: 10px;
+}
+
+body.person-peek-mode .recipes-grid .recipe-card-title {
+  left: 36px;
+  right: 30px;
+  top: 52%;
+
+  font-size:
+    clamp(
+      1.15rem,
+      1.7vw,
+      1.65rem
+    );
+
+  line-height: 0.95;
+}
+
+body.person-peek-mode .recipes-grid .recipe-card-category {
+  top: 22px;
+  right: 31px;
+
+  padding:
+    4px
+    10px;
+
+  font-size: 0.78rem;
+}
+
+body.person-peek-mode .recipe-pile-cover {
+  display: none !important;
+}
+
+body.person-peek-mode .recipe-card {
+  transition:
+    opacity 180ms ease;
+
+  will-change: auto;
+}
+
+body.person-peek-mode .recipe-modal {
+  padding: 12px;
+}
+
+body.person-peek-mode .recipe-modal-card {
+  width: min(1180px, calc(100vw - 24px));
+  height: calc(100vh - 24px);
+
+  padding:
+    28px
+    34px
+    34px;
+}
