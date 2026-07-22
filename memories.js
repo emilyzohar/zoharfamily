@@ -48,10 +48,43 @@ const memoriesPageContext =
     "Memories"
   );
 
-const DROPBOX_MEMORIES_ROOT =
+/*
+  All actual memory folders and media live in one shared Dropbox location.
+
+  Person-specific Memories pages do NOT duplicate those files. Instead they
+  read a small manifest at:
+
+  /Zohar Family/Works/{Person}/Memories/albums.txt
+
+  The manifest defines virtual personalized folders using:
+
+  New Folder Name ->
+  image-or-folder-reference
+  another-image-reference
+
+  The real media stays in /Zohar Family/Memories. Blank lines and # comments
+  are ignored.
+*/
+
+const SHARED_MEMORIES_ROOT =
+  "/Zohar Family/Memories";
+
+const PERSON_MEMORIES_ROOT =
   memoriesPageContext.person
     ? `/Zohar Family/Works/${memoriesPageContext.person}/${memoriesPageContext.section}`
-    : "/Zohar Family/Memories";
+    : "";
+
+const PERSON_MEMORIES_MANIFEST =
+  PERSON_MEMORIES_ROOT
+    ? `${PERSON_MEMORIES_ROOT}/albums.txt`
+    : "";
+
+/*
+  The rendered tree always uses paths from the shared Memories library so
+  existing media URLs, breadcrumbs and folder navigation continue to work.
+*/
+const DROPBOX_MEMORIES_ROOT =
+  SHARED_MEMORIES_ROOT;
 
 if (memoriesPageContext.person) {
   document.title =
@@ -567,6 +600,812 @@ function getDropboxFileUrl(
       path
     }
 
+  );
+
+}
+
+
+/* =========================================================
+   DROPBOX TEXT FILE
+========================================================= */
+
+async function getDropboxText(
+  path
+) {
+
+  const response =
+    await fetch(
+      buildDropboxApiUrl(
+        "/text",
+        {
+          path
+        }
+      )
+    );
+
+  if (
+    !response.ok
+  ) {
+
+    throw new Error(
+      `Text file could not be loaded: ${path}`
+    );
+
+  }
+
+  return response.text();
+
+}
+
+
+/* =========================================================
+   PERSON MEMORIES MANIFEST
+
+   albums.txt creates VIRTUAL folders for a person while all real media
+   remains stored once in /Zohar Family/Memories.
+
+   Recommended format:
+
+   Family Holidays ->
+   IMG_1234.jpg
+   Italy 1984/IMG_5678.jpg
+   Cottage
+
+   Old Family Photos ->
+   1970s/photo1.jpg
+   1970s/photo2.jpg
+
+   You may also put references on the same line:
+
+   Family Holidays -> IMG_1234.jpg, IMG_5678.jpg
+
+   Rules:
+   - text before -> is the NEW folder name shown on the personal page
+   - following lines belong to that folder until the next -> heading
+   - a reference may be a shared folder name/path OR a media filename/path
+   - folder references contribute all supported photos/videos beneath them
+   - blank lines and # comments are ignored
+   - matching is case-insensitive
+========================================================= */
+
+function cleanVirtualMemoryFolderName(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .trim()
+    .replace(
+      /[\\/]+/g,
+      " - "
+    )
+    .replace(
+      /\s+/g,
+      " "
+    );
+
+}
+
+
+function splitManifestReferences(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .split(
+      ","
+    )
+    .map(
+      reference =>
+        trimSlashes(
+          reference.trim()
+        )
+    )
+    .filter(
+      Boolean
+    );
+
+}
+
+
+function parsePersonMemoriesManifest(
+  text
+) {
+
+  const groups = [];
+
+  let currentGroup = null;
+
+
+  function ensureGroup(
+    name
+  ) {
+
+    const cleanName =
+      cleanVirtualMemoryFolderName(
+        name
+      );
+
+    if (
+      !cleanName
+    ) {
+      return null;
+    }
+
+    const existing =
+      groups.find(
+        group =>
+          group.name.toLocaleLowerCase() ===
+            cleanName.toLocaleLowerCase()
+      );
+
+    if (
+      existing
+    ) {
+      return existing;
+    }
+
+    const group = {
+      name:
+        cleanName,
+      references:
+        []
+    };
+
+    groups.push(
+      group
+    );
+
+    return group;
+
+  }
+
+
+  String(
+    text ?? ""
+  )
+    .split(
+      /\r?\n/
+    )
+    .forEach(
+      rawLine => {
+
+        const line =
+          rawLine.trim();
+
+        if (
+          !line
+          ||
+          line.startsWith(
+            "#"
+          )
+        ) {
+          return;
+        }
+
+        const arrowIndex =
+          line.indexOf(
+            "->"
+          );
+
+        if (
+          arrowIndex !==
+            -1
+        ) {
+
+          const folderName =
+            line.slice(
+              0,
+              arrowIndex
+            );
+
+          currentGroup =
+            ensureGroup(
+              folderName
+            );
+
+          if (
+            !currentGroup
+          ) {
+            return;
+          }
+
+          const sameLineReferences =
+            splitManifestReferences(
+              line.slice(
+                arrowIndex + 2
+              )
+            );
+
+          currentGroup.references.push(
+            ...sameLineReferences
+          );
+
+          return;
+
+        }
+
+        /*
+          Backwards compatibility: if an old albums.txt contains plain
+          references before any -> heading, place them in one virtual folder.
+        */
+        if (
+          !currentGroup
+        ) {
+          currentGroup =
+            ensureGroup(
+              "Selected Memories"
+            );
+        }
+
+        currentGroup.references.push(
+          ...splitManifestReferences(
+            line
+          )
+        );
+
+      }
+    );
+
+
+  groups.forEach(
+    group => {
+
+      const seen =
+        new Set();
+
+      group.references =
+        group.references.filter(
+          reference => {
+
+            const key =
+              reference.toLocaleLowerCase();
+
+            if (
+              seen.has(
+                key
+              )
+            ) {
+              return false;
+            }
+
+            seen.add(
+              key
+            );
+
+            return true;
+
+          }
+        );
+
+    }
+  );
+
+
+  return groups.filter(
+    group =>
+      group.references.length >
+        0
+  );
+
+}
+
+
+function getMemoryRelativePath(
+  path
+) {
+
+  const normalizedRoot =
+    normalizePathKey(
+      SHARED_MEMORIES_ROOT
+    );
+
+  const normalizedPath =
+    normalisePath(
+      path
+    );
+
+  const normalizedPathKey =
+    normalizePathKey(
+      normalizedPath
+    );
+
+  if (
+    normalizedPathKey ===
+      normalizedRoot
+  ) {
+    return "";
+  }
+
+  if (
+    normalizedPathKey.startsWith(
+      `${normalizedRoot}/`
+    )
+  ) {
+
+    return trimSlashes(
+      normalizedPath.slice(
+        SHARED_MEMORIES_ROOT.length
+      )
+    );
+
+  }
+
+  return trimSlashes(
+    normalizedPath
+  );
+
+}
+
+
+function isSupportedMemoryMediaEntry(
+  entry
+) {
+
+  if (
+    String(
+      entry?.type ?? ""
+    ).toLowerCase() !==
+      "file"
+  ) {
+    return false;
+  }
+
+  const extension =
+    getExtension(
+      getEntryPath(
+        entry
+      )
+    );
+
+  return (
+    MEMORY_IMAGE_EXTENSIONS.has(
+      extension
+    )
+    ||
+    MEMORY_VIDEO_EXTENSIONS.has(
+      extension
+    )
+  );
+
+}
+
+
+function createPersonMemoryEntryIndex(
+  entries
+) {
+
+  return entries.map(
+    entry => {
+
+      const path =
+        getEntryPath(
+          entry
+        );
+
+      return {
+        entry,
+        path,
+        pathKey:
+          normalizePathKey(
+            path
+          ),
+        relativePath:
+          getMemoryRelativePath(
+            path
+          ),
+        relativePathKey:
+          getMemoryRelativePath(
+            path
+          ).toLocaleLowerCase(),
+        name:
+          String(
+            entry.name
+            ||
+            getFilename(
+              path
+            )
+            ||
+            ""
+          ),
+        nameKey:
+          String(
+            entry.name
+            ||
+            getFilename(
+              path
+            )
+            ||
+            ""
+          ).toLocaleLowerCase(),
+        type:
+          String(
+            entry.type ?? ""
+          ).toLowerCase()
+      };
+
+    }
+  );
+
+}
+
+
+function resolvePersonMemoryReference(
+  reference,
+  indexedEntries
+) {
+
+  const cleanReference =
+    trimSlashes(
+      reference
+    );
+
+  const referenceKey =
+    cleanReference.toLocaleLowerCase();
+
+  const looksLikePath =
+    cleanReference.includes(
+      "/"
+    );
+
+  const selected = [];
+
+  const selectedKeys =
+    new Set();
+
+
+  function addMedia(
+    item
+  ) {
+
+    if (
+      !item
+      ||
+      !isSupportedMemoryMediaEntry(
+        item.entry
+      )
+      ||
+      selectedKeys.has(
+        item.pathKey
+      )
+    ) {
+      return;
+    }
+
+    selectedKeys.add(
+      item.pathKey
+    );
+
+    selected.push(
+      item.entry
+    );
+
+  }
+
+
+  function addFolderMedia(
+    folderItem
+  ) {
+
+    const folderKey =
+      folderItem.pathKey;
+
+    indexedEntries.forEach(
+      item => {
+
+        if (
+          item.type ===
+            "file"
+          &&
+          item.pathKey.startsWith(
+            `${folderKey}/`
+          )
+        ) {
+          addMedia(
+            item
+          );
+        }
+
+      }
+    );
+
+  }
+
+
+  /* Exact shared relative path first. */
+  const exactMatches =
+    indexedEntries.filter(
+      item =>
+        item.relativePathKey ===
+          referenceKey
+    );
+
+  if (
+    exactMatches.length
+  ) {
+
+    exactMatches.forEach(
+      item => {
+
+        if (
+          item.type ===
+            "folder"
+        ) {
+          addFolderMedia(
+            item
+          );
+        }
+        else {
+          addMedia(
+            item
+          );
+        }
+
+      }
+    );
+
+    return selected;
+
+  }
+
+
+  if (
+    looksLikePath
+  ) {
+
+    console.warn(
+      `Memory reference listed in ${PERSON_MEMORIES_MANIFEST} was not found in ${SHARED_MEMORIES_ROOT}: ${reference}`
+    );
+
+    return selected;
+
+  }
+
+
+  /* Bare folder name. */
+  const folderMatches =
+    indexedEntries.filter(
+      item =>
+        item.type ===
+          "folder"
+        &&
+        item.nameKey ===
+          referenceKey
+    );
+
+  if (
+    folderMatches.length
+  ) {
+
+    if (
+      folderMatches.length >
+        1
+    ) {
+      console.warn(
+        `Multiple Memories folders are named "${reference}". All matches were included. Use a relative path in ${PERSON_MEMORIES_MANIFEST} for precision.`
+      );
+    }
+
+    folderMatches.forEach(
+      addFolderMedia
+    );
+
+    return selected;
+
+  }
+
+
+  /* Bare media filename. */
+  const mediaMatches =
+    indexedEntries.filter(
+      item =>
+        item.type ===
+          "file"
+        &&
+        item.nameKey ===
+          referenceKey
+        &&
+        isSupportedMemoryMediaEntry(
+          item.entry
+        )
+    );
+
+  if (
+    mediaMatches.length
+  ) {
+
+    if (
+      mediaMatches.length >
+        1
+    ) {
+      console.warn(
+        `Multiple Memories files are named "${reference}". All matches were included. Use a relative path in ${PERSON_MEMORIES_MANIFEST} for precision.`
+      );
+    }
+
+    mediaMatches.forEach(
+      addMedia
+    );
+
+    return selected;
+
+  }
+
+
+  console.warn(
+    `Memory reference listed in ${PERSON_MEMORIES_MANIFEST} was not found in ${SHARED_MEMORIES_ROOT}: ${reference}`
+  );
+
+  return selected;
+
+}
+
+
+function buildPersonMemoryFolderTree(
+  groups,
+  allEntries
+) {
+
+  const root = {
+    name:
+      "Memories",
+    path:
+      DROPBOX_MEMORIES_ROOT,
+    files:
+      [],
+    folders:
+      [],
+    parent:
+      null
+  };
+
+  const indexedEntries =
+    createPersonMemoryEntryIndex(
+      allEntries
+    );
+
+
+  groups.forEach(
+    group => {
+
+      const folder = {
+        name:
+          group.name,
+        path:
+          `${DROPBOX_MEMORIES_ROOT}/${group.name}`,
+        files:
+          [],
+        folders:
+          [],
+        parent:
+          root
+      };
+
+      const seenMediaPaths =
+        new Set();
+
+
+      group.references.forEach(
+        reference => {
+
+          const matchedMedia =
+            resolvePersonMemoryReference(
+              reference,
+              indexedEntries
+            );
+
+          matchedMedia.forEach(
+            entry => {
+
+              const sourcePath =
+                getEntryPath(
+                  entry
+                );
+
+              const sourceKey =
+                normalizePathKey(
+                  sourcePath
+                );
+
+              if (
+                seenMediaPaths.has(
+                  sourceKey
+                )
+              ) {
+                return;
+              }
+
+              seenMediaPaths.add(
+                sourceKey
+              );
+
+              folder.files.push({
+                type:
+                  "file",
+                name:
+                  entry.name
+                  ||
+                  getFilename(
+                    sourcePath
+                  ),
+                /*
+                  Keep the REAL Dropbox path here. The folder is virtual,
+                  but image/video URLs must still point to the shared file.
+                */
+                path:
+                  sourcePath,
+                size:
+                  entry.size
+                  ??
+                  null
+              });
+
+            }
+          );
+
+        }
+      );
+
+      folder.files.sort(
+        (
+          fileA,
+          fileB
+        ) =>
+          compareNaturally(
+            fileA.name,
+            fileB.name
+          )
+      );
+
+      if (
+        folder.files.length
+      ) {
+        root.folders.push(
+          folder
+        );
+      }
+
+    }
+  );
+
+
+  root.folders.sort(
+    (
+      folderA,
+      folderB
+    ) =>
+      compareNaturally(
+        folderA.name,
+        folderB.name
+      )
+  );
+
+
+  return root;
+
+}
+
+
+async function getPersonMemoryTree(
+  allEntries
+) {
+
+  const manifestText =
+    await getDropboxText(
+      PERSON_MEMORIES_MANIFEST
+    );
+
+  const groups =
+    parsePersonMemoriesManifest(
+      manifestText
+    );
+
+  return buildPersonMemoryFolderTree(
+    groups,
+    allEntries
   );
 
 }
@@ -3248,16 +4087,22 @@ async function initialiseMemories() {
 
   try {
 
-    const entries =
+    const allEntries =
 
       await fetchAllMemoryEntries();
 
 
     memoryRootTree =
 
-      buildMemoryFolderTree(
-        entries
-      );
+      memoriesPageContext.person
+
+        ? await getPersonMemoryTree(
+            allEntries
+          )
+
+        : buildMemoryFolderTree(
+            allEntries
+          );
 
 
     const requestedPath =
