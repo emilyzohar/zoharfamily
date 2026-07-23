@@ -2110,7 +2110,18 @@ function renderTravelForm(data) {
   els.formArea.innerHTML = `
     <form class="editor-form" data-kind="travel">
       <div class="form-heading"><h2>${edit ? "Edit trip" : "Add trip"}</h2></div>
-      ${edit ? `<label class="field"><span>Folder name</span><input name="folderName" value="${escapeHtml(filename(data.root))}"></label>` : ""}
+      ${edit ? `
+        <div class="notice">
+          <label class="check-row">
+            <input name="renameTravelFolder" type="checkbox">
+            <span>Rename this trip folder</span>
+          </label>
+          <label class="field" style="margin-top:10px">
+            <span>Folder name</span>
+            <input name="folderName" value="${escapeHtml(filename(data.root))}">
+          </label>
+        </div>
+      ` : ""}
       <div class="form-grid two-column">
         <label class="field"><span>Trip title *</span><input name="title" required value="${escapeHtml(data?.title || "")}"></label>
         <label class="field"><span>Year</span><input name="year" value="${escapeHtml(data?.year || "")}"></label>
@@ -2468,15 +2479,32 @@ async function publishRecipe() {
 }
 
 function tripTextFromForm() {
+  const filterName = value("filterName");
+  const normalizedFilterName = filterName
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+
   const lines = [
     `Title: ${value("title")}`,
     `Year: ${value("year")}`,
     `Travelers: ${value("travelers")}`,
-    `Filter: ${value("filterName")}`,
+    `Filter: ${filterName}`
+  ];
+
+  if (
+    normalizedFilterName === "sabba & safta"
+    ||
+    normalizedFilterName === "sabba and safta"
+  ) {
+    lines.push("Generation: first");
+  }
+
+  lines.push(
     `Blurb: ${value("blurb")}`,
     `X: ${value("x")}`,
     `Y: ${value("y")}`
-  ];
+  );
   value("links").split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
     const index = line.indexOf("|");
     if (index > 0) lines.push(`Link: ${line.slice(0,index).trim()} | ${line.slice(index+1).trim()}`);
@@ -2495,23 +2523,110 @@ async function availableFolder(root, preferred) {
 }
 
 async function publishTravel() {
-  const edit = Boolean(state.selectedData);
-  const root = edit ? state.selectedData.root : await availableFolder(state.rootPath, [value("title"), value("year")].filter(Boolean).join(" ") || "Trip");
-  await ensureFolder(root);
-  if (!value("x") || !value("y")) throw new Error("Choose a location on the map.");
-  await uploadText(joinDropboxPath(root, "trip.txt"), tripTextFromForm(), edit);
-  const removals = selectedRemovePaths("delete");
-  for (const path of removals) await deletePath(path);
+  const edit = Boolean(state.selectedData?.root);
+
+  let root;
+
+  if (edit) {
+    /*
+     * Editing must NEVER create a folder. The selected existing trip folder
+     * has to still exist; otherwise stop instead of silently creating a new
+     * empty folder containing only trip.txt.
+     */
+    root = normalizePath(state.selectedData.root);
+
+    if (
+      !root ||
+      pathKey(root) === pathKey(state.rootPath)
+    ) {
+      throw new Error("The existing trip folder could not be identified.");
+    }
+
+    try {
+      await fetchFolder(root, false, false);
+    } catch {
+      throw new Error(
+        `The original trip folder "${filename(root)}" could not be found. Nothing was changed.`
+      );
+    }
+
+  } else {
+    root = await availableFolder(
+      state.rootPath,
+      [value("title"), value("year")]
+        .filter(Boolean)
+        .join(" ") || "Trip"
+    );
+
+    await ensureFolder(root);
+  }
+
+  if (!value("x") || !value("y")) {
+    throw new Error("Choose a location on the map.");
+  }
+
+  /*
+   * Only trip.txt is intentionally overwritten.
+   * Existing photos, videos and documents remain exactly where they are.
+   */
+  await uploadText(
+    joinDropboxPath(root, "trip.txt"),
+    tripTextFromForm(),
+    edit
+  );
+
+  /*
+   * Existing files are removed only when the user explicitly checked Remove.
+   */
+  for (const path of selectedRemovePaths("delete")) {
+    await deletePath(path);
+  }
+
+  /*
+   * New uploads are additive. Existing files are not replaced.
+   */
   const media = files("images");
-  if (media.length) { const folder = joinDropboxPath(root, "images"); await ensureFolder(folder); await uploadFiles(folder, media); }
-  if (files("documents").length) await uploadFiles(root, files("documents"));
-  if (edit && value("folderName")) {
-    const target = joinDropboxPath(parentPath(root), safeSegment(value("folderName"), filename(root)));
+
+  if (media.length) {
+    const imageFolder = joinDropboxPath(root, "images");
+    await ensureFolder(imageFolder);
+    await uploadFiles(imageFolder, media);
+  }
+
+  const documents = files("documents");
+
+  if (documents.length) {
+    await uploadFiles(root, documents);
+  }
+
+  /*
+   * Folder renaming is a separate, explicit action. Moving the folder moves
+   * the entire existing folder tree, including all photos and documents.
+   */
+  if (
+    edit &&
+    checked("renameTravelFolder")
+  ) {
+    const newName = safeSegment(
+      value("folderName"),
+      filename(root)
+    );
+
+    const target = joinDropboxPath(
+      parentPath(root),
+      newName
+    );
+
     if (pathKey(target) !== pathKey(root)) {
       const moved = await movePath(root, target);
-      return moved.entry?.displayPath || moved.entry?.path || target;
+
+      root =
+        moved.entry?.displayPath ||
+        moved.entry?.path ||
+        target;
     }
   }
+
   return root;
 }
 
