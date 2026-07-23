@@ -2542,11 +2542,8 @@ body.peek-mode .archive-carousel {
 }
 
 body.peek-mode .archive-carousel .archive-card {
-  flex-basis:
-    min(
-      280px,
-      calc(100vw - 50px)
-    );
+  flex-basis: min(160px, calc(100vw - 190px));
+  max-width: 160px;
 }
 
 body.peek-mode .archive-card {
@@ -2648,5 +2645,17 @@ body.peek-mode .site-admin-footer {
 
   .text-file-body {
     font-size: 17px;
+  }
+}
+
+@media (max-width: 850px) {
+  .archive-carousel .archive-card,
+  body.peek-mode .archive-carousel .archive-card {
+    flex: 0 0 60vw !important;
+    width: 60vw !important;
+    min-width: 60vw !important;
+    max-width: 60vw !important;
+    min-height: 120vw !important;
+    max-height: 120vw !important;
   }
 }

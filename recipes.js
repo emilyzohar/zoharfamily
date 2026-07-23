@@ -58,6 +58,20 @@ if (recipePageContext.person) {
 }
 
 
+
+/* =========================================================
+   MOBILE / PERSONAL PAGE LAYOUT
+   Skip the decorative pile on mobile and in person peek pages.
+========================================================= */
+
+function shouldSkipRecipePile() {
+  return (
+    Boolean(recipePageContext.person)
+    ||
+    window.matchMedia("(max-width: 850px)").matches
+  );
+}
+
 /* =========================================================
    RECIPE DATA
 ========================================================= */
@@ -1941,9 +1955,7 @@ function resetRecipeInterface() {
 
 
   hasSnappedToGrid =
-    Boolean(
-      recipePageContext.person
-    );
+    shouldSkipRecipePile();
 
 
   currentRecipeIndex =
@@ -2412,7 +2424,7 @@ function renderRecipes() {
 
 
   if (
-    !recipePageContext.person
+    !shouldSkipRecipePile()
   ) {
     const pileCover =
 
@@ -2865,6 +2877,8 @@ recipeGrid
 
       if (
         !hasSnappedToGrid
+        &&
+        !shouldSkipRecipePile()
       ) {
 
         openRecipeGrid();

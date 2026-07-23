@@ -2149,3 +2149,75 @@ body.person-peek-mode .recipe-modal-card {
     34px
     34px;
 }
+
+/* =========================================================
+   MOBILE — NO RECIPE PILE
+   Even before JavaScript finishes loading, render any
+   temporary .is-piled state exactly like the mobile grid.
+========================================================= */
+
+@media (max-width: 850px) {
+  .recipes-grid.is-piled {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    justify-items: center !important;
+    row-gap: 40px !important;
+
+    min-height: auto !important;
+
+    cursor: default !important;
+  }
+
+  .recipes-grid.is-piled .recipe-card {
+    position: relative !important;
+
+    left: auto !important;
+    top: auto !important;
+
+    width: var(--recipe-card-grid-width) !important;
+
+    margin: 0 !important;
+
+    transform: none !important;
+    opacity: 1 !important;
+
+    pointer-events: auto !important;
+  }
+
+  .recipes-grid.is-piled .recipe-pile-cover {
+    display: none !important;
+  }
+
+  .recipes-grid.is-piled .recipe-card-title {
+    left: 45px !important;
+    right: 35px !important;
+    top: 52% !important;
+
+    font-size: clamp(1rem, 5vw, 2rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  .recipes-grid.is-piled .recipe-card-category {
+    top: 27px !important;
+    right: 40px !important;
+
+    padding: 5px 12px !important;
+
+    border: 1px solid rgba(94, 11, 17, 0.12) !important;
+    border-radius: 999px !important;
+
+    background: #d8c7ad !important;
+
+    font-size: 0.9rem !important;
+    line-height: 1 !important;
+
+    white-space: nowrap !important;
+  }
+
+  /* No pile-to-grid movement/width animation on mobile. */
+  .recipe-card {
+    transition: none !important;
+    will-change: auto !important;
+  }
+}
+
