@@ -1108,7 +1108,7 @@ body.modal-open {
     height: 65px;
     min-height: 65px;
 
-    background: var(--line);
+    background: var(--ink);
     background-image: none !important;
   }
 

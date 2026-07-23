@@ -2245,7 +2245,7 @@ body.peek-mode .archive-loading {
     flex:
       0
       0
-      calc(100vw - 70px);
+      calc(100vw - 100px);
   }
 
 
