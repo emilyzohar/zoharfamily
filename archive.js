@@ -1553,6 +1553,9 @@ if (
           return {
             file,
 
+            textContent:
+              text,
+
             websiteUrl:
               getWebsiteUrlFromText(
                 text
@@ -1577,6 +1580,18 @@ if (
         return;
       }
 
+      /*
+        Keep the text we already fetched. URL-only TXT files
+        still behave as website links; every other TXT file can
+        be rendered directly in the Works viewer.
+      */
+      result.value.file.textContent =
+        String(
+          result.value.textContent
+          ??
+          ""
+        );
+
       if (
         result.value.websiteUrl
       ) {
@@ -1585,6 +1600,130 @@ if (
       }
     }
   );
+}
+
+
+/* =========================================================
+   TEXT FILE PARSING
+
+   Supported structured TXT format:
+
+   Story: The title
+   Car: Optional subheading
+   Description: Main text...
+
+   Values may continue on following lines until the next
+   recognised field. Plain TXT files are also supported.
+========================================================= */
+
+function parseArchiveTextFile(
+  text,
+  fallbackTitle = "Text"
+) {
+  const cleanText =
+    String(
+      text ?? ""
+    )
+      .replace(
+        /\r\n?/g,
+        "\n"
+      )
+      .trim();
+
+  const fields = {
+    story:
+      "",
+
+    car:
+      "",
+
+    description:
+      ""
+  };
+
+  let currentField =
+    "";
+
+  cleanText
+    .split("\n")
+    .forEach(
+      line => {
+        const match =
+          line.match(
+            /^\s*(Story|Car|Description)\s*:\s*(.*)$/i
+          );
+
+        if (
+          match
+        ) {
+          currentField =
+            match[1]
+              .toLowerCase();
+
+          fields[currentField] =
+            match[2]
+              .trim();
+
+          return;
+        }
+
+        if (
+          currentField
+        ) {
+          fields[currentField] +=
+            `${
+              fields[currentField]
+                ? "\n"
+                : ""
+            }${line}`;
+        }
+      }
+    );
+
+  Object.keys(
+    fields
+  )
+    .forEach(
+      key => {
+        fields[key] =
+          fields[key]
+            .trim();
+      }
+    );
+
+  const hasStructuredFields =
+    Boolean(
+      fields.story
+      ||
+      fields.car
+      ||
+      fields.description
+    );
+
+  return {
+    title:
+      fields.story
+      ||
+      fallbackTitle,
+
+    subheading:
+      fields.car,
+
+    description:
+      fields.description
+      ||
+      (
+        hasStructuredFields
+          ? ""
+          : cleanText
+      ),
+
+    rawText:
+      cleanText,
+
+    structured:
+      hasStructuredFields
+  };
 }
 
 
@@ -1628,6 +1767,13 @@ function classifyFile(
     )
   ) {
     return "pptx";
+  }
+
+  if (
+    extension ===
+      "txt"
+  ) {
+    return "text";
   }
 
   if (
@@ -1779,13 +1925,34 @@ function createItemFromFile(
       file.path
     );
 
+  const fallbackTitle =
+    titleFromFilename(
+      file.name
+    );
+
+  const parsedText =
+    classifiedType ===
+      "text"
+      ? parseArchiveTextFile(
+          file.textContent,
+          fallbackTitle
+        )
+      : null;
+
   return {
     title:
       override.title
       ||
-      titleFromFilename(
-        file.name
-      ),
+      parsedText?.title
+      ||
+      fallbackTitle,
+
+    subheading:
+      override.subheading
+      ||
+      parsedText?.subheading
+      ||
+      "",
 
     author:
       override.author
@@ -1799,6 +1966,13 @@ function createItemFromFile(
 
     description:
       override.description
+      ||
+      parsedText?.description
+      ||
+      "",
+
+    rawText:
+      parsedText?.rawText
       ||
       "",
 
@@ -2142,41 +2316,11 @@ function combineRelatedFiles(
 
           file:
             typedFiles.map(
-              entry => {
-                const itemOverride =
-                  getArchiveOverride(
-                    entry.file.path
-                  );
-
-                return {
-                  title:
-                    itemOverride.title
-                    ||
-                    titleFromFilename(
-                      entry.file.name
-                    ),
-
-                  type:
-                    itemOverride.type
-                    ||
-                    entry.type,
-
-                  file:
-                    entry.file.path,
-
-                  url:
-                    itemOverride.url
-                    ||
-                    entry.file.websiteUrl
-                    ||
-                    "",
-
-                  description:
-                    itemOverride.description
-                    ||
-                    ""
-                };
-              }
+              entry =>
+                createItemFromFile(
+                  entry.file,
+                  categoryLabel
+                )
             ),
 
           label:
@@ -3624,6 +3768,9 @@ function getActionText(
     case "pptx":
       return "Preview in Dropbox ↗";
 
+    case "text":
+      return "Read →";
+
     case "document":
       return "Preview in Dropbox ↗";
 
@@ -3689,6 +3836,13 @@ function handleItem(
 
       return;
 
+    case "text":
+      openTextFile(
+        item
+      );
+
+      return;
+
     case "pptx":
       openPowerPoint(
         item
@@ -3747,6 +3901,152 @@ function openDropboxFile(
 
 
 /* =========================================================
+   TEXT FILE QUICK VIEW
+========================================================= */
+
+function openTextFile(
+  item
+) {
+  const modal =
+    document.getElementById(
+      "quickViewModal"
+    );
+
+  if (
+    !modal
+  ) {
+    return;
+  }
+
+  const windowElement =
+    modal.querySelector(
+      ".quick-view-window"
+    );
+
+  windowElement?.classList.remove(
+    "blurb-view",
+    "article-collection-view"
+  );
+
+  windowElement?.classList.add(
+    "text-file-view"
+  );
+
+  document.getElementById(
+    "quickViewCategory"
+  ).textContent =
+    item.label
+    ||
+    "Text";
+
+  document.getElementById(
+    "quickViewTitle"
+  ).textContent =
+    item.title
+    ||
+    "Untitled";
+
+  document.getElementById(
+    "quickViewAuthor"
+  ).textContent =
+    "";
+
+  document.getElementById(
+    "quickViewYear"
+  ).textContent =
+    item.year
+    ||
+    "";
+
+  const description =
+    document.getElementById(
+      "quickViewDescription"
+    );
+
+  description.innerHTML =
+    "";
+
+  if (
+    item.subheading
+  ) {
+    const subheading =
+      document.createElement(
+        "h3"
+      );
+
+    subheading.className =
+      "text-file-subheading";
+
+    subheading.textContent =
+      item.subheading;
+
+    description.appendChild(
+      subheading
+    );
+  }
+
+  const body =
+    document.createElement(
+      "div"
+    );
+
+  body.className =
+    "text-file-body";
+
+  const bodyText =
+    String(
+      item.description
+      ||
+      ""
+    )
+      .trim();
+
+  if (
+    bodyText
+  ) {
+    bodyText
+      .split(
+        /\n\s*\n/
+      )
+      .filter(
+        paragraph =>
+          paragraph.trim()
+      )
+      .forEach(
+        paragraphText => {
+          const paragraph =
+            document.createElement(
+              "p"
+            );
+
+          paragraph.textContent =
+            paragraphText.trim();
+
+          body.appendChild(
+            paragraph
+          );
+        }
+      );
+  }
+
+  description.appendChild(
+    body
+  );
+
+  clearQuickViewImage();
+
+  document.getElementById(
+    "quickViewActions"
+  ).innerHTML =
+    "";
+
+  openModal(
+    modal
+  );
+}
+
+
+/* =========================================================
    BLURB QUICK VIEW
 ========================================================= */
 
@@ -3765,6 +4065,15 @@ function openBlurbQuickView(
     return;
   }
 
+
+  modal
+    .querySelector(
+      ".quick-view-window"
+    )
+    ?.classList.remove(
+      "text-file-view",
+      "article-collection-view"
+    );
 
   modal
     .querySelector(
@@ -3920,7 +4229,8 @@ function openArticleCollection(
     );
 
   windowElement?.classList.remove(
-    "blurb-view"
+    "blurb-view",
+    "text-file-view"
   );
 
   windowElement?.classList.add(
@@ -4044,6 +4354,14 @@ function openArticleCollection(
 
 } else if (
   article.type ===
+    "text"
+) {
+  openTextFile(
+    article
+  );
+
+} else if (
+  article.type ===
     "link"
   &&
   article.url
@@ -4110,7 +4428,9 @@ function openMediaGallery(
       ".quick-view-window"
     )
     ?.classList.remove(
-      "blurb-view"
+      "blurb-view",
+      "text-file-view",
+      "article-collection-view"
     );
 
 
@@ -4186,6 +4506,14 @@ function openMediaGallery(
               "pptx"
             ) {
               openPowerPoint(
+                media
+              );
+
+            } else if (
+              media.type ===
+              "text"
+            ) {
+              openTextFile(
                 media
               );
 
@@ -5313,7 +5641,9 @@ function openQuickView(
       ".quick-view-window"
     )
     ?.classList.remove(
-      "blurb-view"
+      "blurb-view",
+      "text-file-view",
+      "article-collection-view"
     );
 
 

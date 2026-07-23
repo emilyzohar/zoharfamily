@@ -5,6 +5,11 @@
 const DROPBOX_API_BASE =
   "https://family-photo-api.emilyzohar.workers.dev";
 
+
+/* =========================================================
+   PERSONAL PAGE CONTEXT
+========================================================= */
+
 function getPersonalPageContext(defaultSectionName) {
   const parameters =
     new URLSearchParams(
@@ -42,15 +47,18 @@ function getPersonalPageContext(defaultSectionName) {
   };
 }
 
+
 const merchPageContext =
   getPersonalPageContext(
     "Merch"
   );
 
+
 const DROPBOX_MERCH_ROOT =
   merchPageContext.person
     ? `/Zohar Family/Works/${merchPageContext.person}/${merchPageContext.section}`
     : "/Zohar Family/Merch";
+
 
 if (merchPageContext.person) {
   document.title =
@@ -67,6 +75,13 @@ const MERCH_IMAGE_EXTENSIONS =
     "png",
     "svg",
     "webp"
+  ]);
+
+
+const RESERVED_ROOT_TEXT_FILES =
+  new Set([
+    "name.txt",
+    "blurb.txt"
   ]);
 
 
@@ -143,6 +158,143 @@ const ownerRow =
   document.getElementById(
     "owner-row"
   );
+
+const quickViewLayout =
+  quickView?.querySelector(
+    ".quick-view-layout"
+  );
+
+const quickViewGallery =
+  quickView?.querySelector(
+    ".quick-view-gallery"
+  );
+
+
+/*
+  Insert a subtitle element without requiring a merch.html change.
+*/
+let quickViewSubtitle =
+  document.getElementById(
+    "quick-view-subtitle"
+  );
+
+if (
+  !quickViewSubtitle &&
+  quickViewName
+) {
+  quickViewSubtitle =
+    document.createElement(
+      "p"
+    );
+
+  quickViewSubtitle.id =
+    "quick-view-subtitle";
+
+  quickViewSubtitle.className =
+    "quick-view-subtitle";
+
+  quickViewName.insertAdjacentElement(
+    "afterend",
+    quickViewSubtitle
+  );
+}
+
+
+/* =========================================================
+   MERCH-SPECIFIC STYLES
+
+   These are injected here so this update only requires
+   replacing merch.js.
+========================================================= */
+
+function installMerchTextStyles() {
+  if (
+    document.getElementById(
+      "structured-merch-styles"
+    )
+  ) {
+    return;
+  }
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+  style.id =
+    "structured-merch-styles";
+
+  style.textContent = `
+    .merch-card.has-subtitle h2 {
+      margin-bottom: 7px;
+    }
+
+    .merch-card-subtitle {
+      margin:
+        0
+        20px
+        27px;
+
+      text-align: center;
+
+      color: #756c69;
+
+      font-size: 1rem;
+      font-style: italic;
+      line-height: 1.3;
+    }
+
+    .merch-card.no-image {
+      min-height: 235px;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      padding-top: 30px;
+    }
+
+    .merch-card.no-image h2 {
+      margin-top: 18px;
+    }
+
+    .quick-view-subtitle {
+      margin:
+        -14px
+        0
+        24px;
+
+      color: #756c69;
+
+      font-size: 1.25rem;
+      font-style: italic;
+      line-height: 1.35;
+    }
+
+    .quick-view-layout.no-image {
+      display: block;
+    }
+
+    .quick-view-layout.no-image .quick-view-gallery {
+      display: none;
+    }
+
+    .quick-view-layout.no-image .quick-view-info {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .quick-view-layout.no-image .quick-view-description {
+      white-space: pre-wrap;
+    }
+  `;
+
+  document.head.appendChild(
+    style
+  );
+}
+
+installMerchTextStyles();
 
 
 /* =========================================================
@@ -316,20 +468,11 @@ function escapeHtml(
       /[&<>"']/g,
       character => {
         const entities = {
-          "&":
-            "&amp;",
-
-          "<":
-            "&lt;",
-
-          ">":
-            "&gt;",
-
-          "\"":
-            "&quot;",
-
-          "'":
-            "&#039;"
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          "\"": "&quot;",
+          "'": "&#039;"
         };
 
         return entities[
@@ -337,6 +480,38 @@ function escapeHtml(
         ];
       }
     );
+}
+
+
+function escapeRegExp(
+  value
+) {
+  return String(
+    value ?? ""
+  )
+    .replace(
+      /[.*+?^${}()|[\]\\]/g,
+      "\\$&"
+    );
+}
+
+
+function getGroupingStem(
+  filename
+) {
+  return removeExtension(
+    filename
+  )
+    .replace(
+      /(?:[\s_-]*(?:page|scan|image|photo))?[\s_-]*\d+$/i,
+      ""
+    )
+    .replace(
+      /[\s_-]+$/g,
+      ""
+    )
+    .trim()
+    .toLowerCase();
 }
 
 
@@ -409,10 +584,7 @@ function getDropboxFileUrl(
 
 
 /* =========================================================
-   FETCH COMPLETE MERCH TREE
-
-   This uses one recursive folder request instead of
-   requesting every subfolder separately.
+   FETCH MERCH
 ========================================================= */
 
 async function fetchAllMerchEntries() {
@@ -494,10 +666,6 @@ async function fetchDropboxText(
 
 /* =========================================================
    PERSON-SPECIFIC MERCH TITLE
-
-   When Merch is opened from a person's Works folder, a root
-   name.txt file controls both the visible page heading and the
-   browser tab title.
 ========================================================= */
 
 async function applyPersonalMerchTitle() {
@@ -563,17 +731,9 @@ async function applyPersonalMerchTitle() {
         }
       );
 
-
-    /*
-      The personalized navigation belongs to the parent popup,
-      not this iframe. Tell the parent immediately so "Merch"
-      can be replaced there as well.
-    */
     if (
-      window.parent
-      &&
-      window.parent !==
-        window
+      window.parent &&
+      window.parent !== window
     ) {
       window.parent.postMessage(
         {
@@ -597,21 +757,21 @@ async function applyPersonalMerchTitle() {
   } catch (
     error
   ) {
-
-    /*
-      name.txt is optional. Keep the ordinary Merch label when it
-      does not exist.
-    */
     console.info(
       `No personalized Merch name found at ${namePath}.`
     );
-
   }
 }
 
 
 /* =========================================================
-   METADATA
+   STRUCTURED TXT PARSING
+
+   Supported example:
+
+   Story: Road Trip
+   Car: 1967 Mustang
+   Description: Full story text...
 ========================================================= */
 
 function parseMerchMetadata(
@@ -653,16 +813,39 @@ function parseMerchMetadata(
         }
 
         if (
-          currentKey &&
-          line.trim()
+          currentKey
         ) {
-          metadata[
-            currentKey
-          ] = `${
+          const existing =
             metadata[
               currentKey
-            ]
-          } ${line.trim()}`.trim();
+            ] || "";
+
+          /*
+            Preserve paragraph breaks in Description, while
+            retaining the older one-line metadata behavior for
+            other fields.
+          */
+          if (
+            currentKey ===
+            "description"
+          ) {
+            metadata[
+              currentKey
+            ] =
+              `${existing}\n${line}`
+                .replace(
+                  /^\n/,
+                  ""
+                );
+          } else if (
+            line.trim()
+          ) {
+            metadata[
+              currentKey
+            ] =
+              `${existing} ${line.trim()}`
+                .trim();
+          }
         }
       }
     );
@@ -672,63 +855,122 @@ function parseMerchMetadata(
 
 
 /* =========================================================
-   GROUP RECURSIVE RESULTS BY MERCH FOLDER
+   ENTRY HELPERS
 ========================================================= */
 
-function groupEntriesByMerchFolder(
+function getEntryFullPath(
+  entry
+) {
+  return normalizePath(
+    entry?.displayPath ||
+    entry?.path ||
+    ""
+  );
+}
+
+
+function getRelativeMerchPath(
+  fullPath
+) {
+  const normalizedRoot =
+    normalizePath(
+      DROPBOX_MERCH_ROOT
+    )
+      .replace(
+        /\/+$/,
+        ""
+      );
+
+  const normalizedPath =
+    normalizePath(
+      fullPath
+    );
+
+  return normalizedPath
+    .replace(
+      new RegExp(
+        `^${escapeRegExp(normalizedRoot)}/?`,
+        "i"
+      ),
+      ""
+    );
+}
+
+
+function getFileEntries(
   entries
+) {
+  return entries
+    .filter(
+      entry =>
+        String(
+          entry.type ?? ""
+        )
+          .toLowerCase() ===
+        "file"
+    )
+    .map(
+      entry => {
+        const path =
+          getEntryFullPath(
+            entry
+          );
+
+        return {
+          name:
+            entry.name ||
+            getFilename(
+              path
+            ),
+
+          path,
+
+          relativePath:
+            getRelativeMerchPath(
+              path
+            )
+        };
+      }
+    );
+}
+
+
+function getRootFiles(
+  fileEntries
+) {
+  return fileEntries.filter(
+    file =>
+      !file.relativePath.includes(
+        "/"
+      )
+  );
+}
+
+
+function getFolderFilesMap(
+  fileEntries
 ) {
   const folders =
     new Map();
 
-  entries.forEach(
-    entry => {
-      if (
-        String(
-          entry.type ?? ""
-        )
-          .toLowerCase() !==
-        "file"
-      ) {
-        return;
-      }
-
-      const fullPath =
-        normalizePath(
-          entry.displayPath ||
-          entry.path
+  fileEntries.forEach(
+    file => {
+      const slashIndex =
+        file.relativePath.indexOf(
+          "/"
         );
 
-      const relativePath =
-        trimSlashes(
-          fullPath
-            .replace(
-              new RegExp(
-                `^${DROPBOX_MERCH_ROOT}`,
-                "i"
-              ),
-              ""
-            )
-        );
-
-      const pathParts =
-        relativePath.split("/");
-
-      /*
-        A merch file must be inside:
-
-        /Merch/item-folder/file.ext
-      */
-
       if (
-        pathParts.length <
-        2
+        slashIndex < 0
       ) {
         return;
       }
 
       const folderName =
-        pathParts[0];
+        file.relativePath.slice(
+          0,
+          slashIndex
+        );
 
       if (
         !folders.has(
@@ -737,19 +979,7 @@ function groupEntriesByMerchFolder(
       ) {
         folders.set(
           folderName,
-          {
-            name:
-              folderName,
-
-            path:
-              joinDropboxPath(
-                DROPBOX_MERCH_ROOT,
-                folderName
-              ),
-
-            files:
-              []
-          }
+          []
         );
       }
 
@@ -757,28 +987,18 @@ function groupEntriesByMerchFolder(
         .get(
           folderName
         )
-        .files
-        .push({
-          name:
-            entry.name ||
-            getFilename(
-              fullPath
-            ),
-
-          path:
-            fullPath
-        });
+        .push(
+          file
+        );
     }
   );
 
-  return Array.from(
-    folders.values()
-  );
+  return folders;
 }
 
 
 /* =========================================================
-   IMAGE PATHS
+   IMAGE MATCHING
 ========================================================= */
 
 function resolveMerchImagePath(
@@ -809,43 +1029,98 @@ function resolveMerchImagePath(
 }
 
 
-/* =========================================================
-   BUILD ONE MERCH ITEM
-========================================================= */
-
-async function buildMerchItem(
-  folder
+function getAutomaticImagesForText(
+  textFile,
+  candidateFiles,
+  allowAllWhenOnlyText = false
 ) {
-  const metadataFile =
-    folder.files.find(
+  const images =
+    candidateFiles.filter(
       file =>
-        file.name
-          .toLowerCase() ===
-        "merch.txt"
-    ) ||
-    folder.files.find(
-      file =>
-        getExtension(
-          file.name
-        ) ===
-        "txt"
+        MERCH_IMAGE_EXTENSIONS.has(
+          getExtension(
+            file.name
+          )
+        )
     );
 
-  let metadata = {};
+  const textStem =
+    getGroupingStem(
+      textFile.name
+    );
+
+  const matchingImages =
+    images
+      .filter(
+        imageFile =>
+          getGroupingStem(
+            imageFile.name
+          ) ===
+          textStem
+      )
+      .sort(
+        (
+          fileA,
+          fileB
+        ) =>
+          compareNaturally(
+            fileA.name,
+            fileB.name
+          )
+      );
 
   if (
-    metadataFile
+    matchingImages.length > 0
   ) {
-    const metadataText =
-      await fetchDropboxText(
-        metadataFile.path
-      );
+    return matchingImages.map(
+      file =>
+        file.path
+    );
+  }
 
-    metadata =
-      parseMerchMetadata(
-        metadataText
+  if (
+    allowAllWhenOnlyText
+  ) {
+    return images
+      .sort(
+        (
+          fileA,
+          fileB
+        ) =>
+          compareNaturally(
+            fileA.name,
+            fileB.name
+          )
+      )
+      .map(
+        file =>
+          file.path
       );
   }
+
+  return [];
+}
+
+
+/* =========================================================
+   BUILD ITEM FROM ONE TXT FILE
+========================================================= */
+
+async function buildMerchItemFromText({
+  textFile,
+  siblingFiles,
+  folderPath,
+  allowAllImages = false
+}) {
+  const metadataText =
+    await fetchDropboxText(
+      textFile.path
+    );
+
+  const metadata =
+    parseMerchMetadata(
+      metadataText
+    );
 
   let imagePaths = [];
 
@@ -859,7 +1134,7 @@ async function buildMerchItem(
           imagePath =>
             resolveMerchImagePath(
               imagePath.trim(),
-              folder.path
+              folderPath
             )
         )
         .filter(
@@ -867,52 +1142,36 @@ async function buildMerchItem(
         );
   } else {
     imagePaths =
-      folder.files
-        .filter(
-          file =>
-            MERCH_IMAGE_EXTENSIONS.has(
-              getExtension(
-                file.name
-              )
-            )
-        )
-        .sort(
-          (
-            fileA,
-            fileB
-          ) =>
-            compareNaturally(
-              fileA.name,
-              fileB.name
-            )
-        )
-        .map(
-          file =>
-            file.path
-        );
-  }
-
-  if (
-    imagePaths.length ===
-    0
-  ) {
-    console.warn(
-      `Skipping ${folder.path}: no images found.`
-    );
-
-    return null;
+      getAutomaticImagesForText(
+        textFile,
+        siblingFiles,
+        allowAllImages
+      );
   }
 
   return {
     id:
       metadata.id ||
-      folder.name,
+      textFile.path,
 
+    /*
+      Story is the preferred title for the new text format.
+      Name remains supported for older Merch metadata.
+    */
     name:
+      metadata.story ||
       metadata.name ||
       titleFromFilename(
-        folder.name
+        textFile.name
       ),
+
+    /*
+      Car is the preferred subtitle.
+    */
+    subtitle:
+      metadata.car ||
+      metadata.subtitle ||
+      "",
 
     description:
       metadata.description ||
@@ -951,7 +1210,227 @@ async function buildMerchItem(
 
 
 /* =========================================================
-   PRELOAD SECONDARY IMAGES
+   BUILD LEGACY ITEM FOLDER
+
+   Keeps support for:
+   /Merch/Some Item/merch.txt
+========================================================= */
+
+async function buildLegacyFolderItem(
+  folderName,
+  folderFiles
+) {
+  const metadataFile =
+    folderFiles.find(
+      file =>
+        file.name
+          .toLowerCase() ===
+        "merch.txt"
+    );
+
+  if (
+    !metadataFile
+  ) {
+    return null;
+  }
+
+  return buildMerchItemFromText({
+    textFile:
+      metadataFile,
+
+    siblingFiles:
+      folderFiles,
+
+    folderPath:
+      joinDropboxPath(
+        DROPBOX_MERCH_ROOT,
+        folderName
+      ),
+
+    allowAllImages:
+      true
+  });
+}
+
+
+/* =========================================================
+   BUILD ALL MERCH ITEMS
+
+   New behavior:
+   - Every .txt directly in /Merch is an item.
+   - name.txt and blurb.txt are reserved.
+   - Images are optional.
+   - Subfolders still work.
+   - A subfolder with several structured .txt files can show
+     each one as its own item.
+========================================================= */
+
+async function buildAllMerchItems(
+  entries
+) {
+  const files =
+    getFileEntries(
+      entries
+    );
+
+  const items =
+    [];
+
+  const rootFiles =
+    getRootFiles(
+      files
+    );
+
+  const rootTextFiles =
+    rootFiles.filter(
+      file =>
+        getExtension(
+          file.name
+        ) ===
+          "txt" &&
+        !RESERVED_ROOT_TEXT_FILES.has(
+          file.name.toLowerCase()
+        )
+    );
+
+  const rootResults =
+    await Promise.all(
+      rootTextFiles.map(
+        textFile =>
+          buildMerchItemFromText({
+            textFile,
+            siblingFiles:
+              rootFiles,
+            folderPath:
+              DROPBOX_MERCH_ROOT
+          })
+            .catch(
+              error => {
+                console.error(
+                  `Could not load ${textFile.path}:`,
+                  error
+                );
+
+                return null;
+              }
+            )
+      )
+    );
+
+  items.push(
+    ...rootResults.filter(
+      Boolean
+    )
+  );
+
+
+  const folderMap =
+    getFolderFilesMap(
+      files
+    );
+
+  for (
+    const [
+      folderName,
+      folderFiles
+    ]
+    of folderMap.entries()
+  ) {
+    const legacyMetadata =
+      folderFiles.find(
+        file =>
+          file.name
+            .toLowerCase() ===
+          "merch.txt"
+      );
+
+    if (
+      legacyMetadata
+    ) {
+      try {
+        const legacyItem =
+          await buildLegacyFolderItem(
+            folderName,
+            folderFiles
+          );
+
+        if (
+          legacyItem
+        ) {
+          items.push(
+            legacyItem
+          );
+        }
+      } catch (
+        error
+      ) {
+        console.error(
+          `Could not load ${legacyMetadata.path}:`,
+          error
+        );
+      }
+
+      continue;
+    }
+
+    const textFiles =
+      folderFiles.filter(
+        file =>
+          getExtension(
+            file.name
+          ) ===
+          "txt"
+      );
+
+    for (
+      const textFile
+      of textFiles
+    ) {
+      try {
+        const item =
+          await buildMerchItemFromText({
+            textFile,
+
+            siblingFiles:
+              folderFiles,
+
+            folderPath:
+              joinDropboxPath(
+                DROPBOX_MERCH_ROOT,
+                folderName
+              ),
+
+            /*
+              When a folder contains one TXT, preserve the old
+              convenient behavior where any images in that
+              folder belong to that item.
+            */
+            allowAllImages:
+              textFiles.length ===
+              1
+          });
+
+        items.push(
+          item
+        );
+
+      } catch (
+        error
+      ) {
+        console.error(
+          `Could not load ${textFile.path}:`,
+          error
+        );
+      }
+    }
+  }
+
+  return items;
+}
+
+
+/* =========================================================
+   PRELOAD IMAGES
 ========================================================= */
 
 function preloadImages(
@@ -1044,36 +1523,12 @@ async function loadMerch() {
 
     await applyPersonalMerchTitle();
 
-    const folders =
-      groupEntriesByMerchFolder(
-        entries
-      );
-
-    const results =
-      await Promise.all(
-        folders.map(
-          folder =>
-            buildMerchItem(
-              folder
-            )
-              .catch(
-                error => {
-                  console.error(
-                    `Could not load ${folder.path}:`,
-                    error
-                  );
-
-                  return null;
-                }
-              )
-        )
-      );
-
     const merchItems =
-      results
-        .filter(
-          Boolean
+      (
+        await buildAllMerchItems(
+          entries
         )
+      )
         .sort(
           (
             itemA,
@@ -1108,12 +1563,6 @@ async function loadMerch() {
     renderMerchInventory(
       merchItems
     );
-
-    /*
-      Load secondary pictures after the page is usable.
-    */
-
-    
 
   } catch (
     error
@@ -1170,6 +1619,7 @@ function setActiveImage({
   index
 }) {
   if (
+    !imageElement ||
     !images[index]
   ) {
     return;
@@ -1177,6 +1627,12 @@ function setActiveImage({
 
   imageElement.src =
     images[index];
+
+  if (
+    !dotsContainer
+  ) {
+    return;
+  }
 
   dotsContainer
     .querySelectorAll(
@@ -1217,6 +1673,12 @@ function createImageDots({
   container,
   onChange
 }) {
+  if (
+    !container
+  ) {
+    return;
+  }
+
   container.innerHTML =
     "";
 
@@ -1276,9 +1738,12 @@ function createImageDots({
 
           setActiveImage({
             imageElement,
+
             dotsContainer:
               container,
+
             images,
+
             index
           });
 
@@ -1316,6 +1781,23 @@ function createMerchCard(
   card.className =
     "merch-card";
 
+  if (
+    item.subtitle
+  ) {
+    card.classList.add(
+      "has-subtitle"
+    );
+  }
+
+  if (
+    item.images.length ===
+    0
+  ) {
+    card.classList.add(
+      "no-image"
+    );
+  }
+
   card.tabIndex =
     0;
 
@@ -1329,55 +1811,76 @@ function createMerchCard(
     `View ${item.name}`
   );
 
+
+  const imageMarkup =
+    item.images.length > 0
+      ? `
+        <div class="merch-image-wrap">
+          <img
+            class="merch-image"
+            src="${escapeHtml(item.images[0])}"
+            alt="${escapeHtml(item.name)}"
+            loading="lazy"
+            decoding="async"
+            fetchpriority="low"
+          >
+        </div>
+
+        <div class="merch-card-dots"></div>
+      `
+      : "";
+
+
+  const subtitleMarkup =
+    item.subtitle
+      ? `
+        <p class="merch-card-subtitle">
+          ${escapeHtml(item.subtitle)}
+        </p>
+      `
+      : "";
+
+
   card.innerHTML = `
-    <div class="merch-image-wrap">
-
-      <img
-        class="merch-image"
-        src="${escapeHtml(item.images[0])}"
-        alt="${escapeHtml(item.name)}"
-        loading="lazy"
-decoding="async"
-fetchpriority="low"
-      >
-
-    </div>
-
-    <div class="merch-card-dots"></div>
+    ${imageMarkup}
 
     <h2>
       ${escapeHtml(item.name)}
     </h2>
+
+    ${subtitleMarkup}
   `;
 
-  const image =
-    card.querySelector(
-      ".merch-image"
-    );
 
-  const dotsContainer =
-    card.querySelector(
-      ".merch-card-dots"
-    );
+  if (
+    item.images.length > 0
+  ) {
+    const image =
+      card.querySelector(
+        ".merch-image"
+      );
 
-  createImageDots({
-    images:
-      item.images,
+    const dotsContainer =
+      card.querySelector(
+        ".merch-card-dots"
+      );
 
-    imageElement:
-      image,
+    createImageDots({
+      images:
+        item.images,
 
-    container:
-      dotsContainer
-  });
+      imageElement:
+        image,
+
+      container:
+        dotsContainer
+    });
+  }
+
 
   card.addEventListener(
     "click",
     event => {
-      /*
-        Do not open the modal when a dot was clicked.
-      */
-
       if (
         event.target.closest(
           ".merch-dot"
@@ -1391,6 +1894,7 @@ fetchpriority="low"
       );
     }
   );
+
 
   card.addEventListener(
     "keydown",
@@ -1422,7 +1926,9 @@ function showQuickViewImage(
   index
 ) {
   if (
-    !activeQuickViewItem
+    !activeQuickViewItem ||
+    activeQuickViewItem.images.length ===
+      0
   ) {
     return;
   }
@@ -1467,8 +1973,22 @@ function openQuickView(
   lastFocusedElement =
     document.activeElement;
 
+
   quickViewName.textContent =
     item.name;
+
+
+  if (
+    quickViewSubtitle
+  ) {
+    quickViewSubtitle.textContent =
+      item.subtitle ||
+      "";
+
+    quickViewSubtitle.hidden =
+      !item.subtitle;
+  }
+
 
   quickViewDescription.textContent =
     item.description ||
@@ -1476,6 +1996,7 @@ function openQuickView(
 
   quickViewDescription.hidden =
     !item.description;
+
 
   quickViewCreated.textContent =
     item.created ||
@@ -1489,6 +2010,7 @@ function openQuickView(
     item.owner ||
     "";
 
+
   createdRow.hidden =
     !item.created;
 
@@ -1498,26 +2020,67 @@ function openQuickView(
   ownerRow.hidden =
     !item.owner;
 
-  createImageDots({
-    images:
-      item.images,
 
-    imageElement:
-      quickViewImage,
+  const hasImages =
+    item.images.length >
+    0;
 
-    container:
-      quickViewDots,
+  if (
+    quickViewLayout
+  ) {
+    quickViewLayout.classList.toggle(
+      "no-image",
+      !hasImages
+    );
+  }
 
-    onChange:
-      index => {
-        activeQuickViewImageIndex =
-          index;
-      }
-  });
+  if (
+    quickViewGallery
+  ) {
+    quickViewGallery.hidden =
+      !hasImages;
+  }
 
-  showQuickViewImage(
-    0
-  );
+
+  if (
+    hasImages
+  ) {
+    createImageDots({
+      images:
+        item.images,
+
+      imageElement:
+        quickViewImage,
+
+      container:
+        quickViewDots,
+
+      onChange:
+        index => {
+          activeQuickViewImageIndex =
+            index;
+        }
+    });
+
+    showQuickViewImage(
+      0
+    );
+
+    preloadImages(
+      item.images
+    );
+
+  } else {
+    quickViewImage.src =
+      "";
+
+    quickViewImage.alt =
+      "";
+
+    quickViewDots.innerHTML =
+      "";
+  }
+
 
   quickView.classList.add(
     "open"
@@ -1533,10 +2096,6 @@ function openQuickView(
   );
 
   quickViewClose.focus();
-
-  preloadImages(
-    item.images
-  );
 }
 
 
@@ -1574,6 +2133,21 @@ function closeQuickView() {
 
   quickViewDots.innerHTML =
     "";
+
+  if (
+    quickViewLayout
+  ) {
+    quickViewLayout.classList.remove(
+      "no-image"
+    );
+  }
+
+  if (
+    quickViewGallery
+  ) {
+    quickViewGallery.hidden =
+      false;
+  }
 
   activeQuickViewItem =
     null;
