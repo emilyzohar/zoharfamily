@@ -1071,6 +1071,423 @@ function isSupportedMemoryMediaEntry(
 }
 
 
+/* =========================================================
+   DOCUMENT LINKS INSIDE MEMORY ALBUMS
+
+   Any .txt or .pdf file inside a Memories folder is shown as a
+   link at the top of that album. A .txt may contain multiple
+   `Title | URL` lines. A legacy .txt containing one bare URL is
+   also supported. PDFs open the Dropbox-served file directly.
+========================================================= */
+
+function isMemoryLinkTextEntry(
+  entry
+) {
+
+  if (
+    String(
+      entry?.type ?? ""
+    ).toLowerCase() !==
+      "file"
+  ) {
+    return false;
+  }
+
+  const name =
+    String(
+      entry.name
+      ||
+      getFilename(
+        getEntryPath(
+          entry
+        )
+      )
+      ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  return (
+    getExtension(
+      name
+    ) === "txt"
+    &&
+    name !== "albums.txt"
+  );
+
+}
+
+
+
+
+function isMemoryLinkPdfEntry(
+  entry
+) {
+
+  if (
+    String(
+      entry?.type ?? ""
+    ).toLowerCase() !==
+      "file"
+  ) {
+    return false;
+  }
+
+  return (
+    getExtension(
+      entry.name
+      ||
+      getEntryPath(
+        entry
+      )
+    ) === "pdf"
+  );
+
+}
+
+
+function isMemoryAlbumLinkEntry(
+  entry
+) {
+
+  return (
+    isMemoryLinkTextEntry(
+      entry
+    )
+    ||
+    isMemoryLinkPdfEntry(
+      entry
+    )
+  );
+
+}
+
+
+function getMemoryUrlFromText(
+  text
+) {
+
+  const cleanText =
+    String(
+      text ?? ""
+    ).trim();
+
+  if (
+    !/^https?:\/\/\S+$/i.test(
+      cleanText
+    )
+  ) {
+    return "";
+  }
+
+  try {
+
+    const parsedUrl =
+      new URL(
+        cleanText
+      );
+
+    if (
+      parsedUrl.protocol !== "http:"
+      &&
+      parsedUrl.protocol !== "https:"
+    ) {
+      return "";
+    }
+
+    return parsedUrl.toString();
+
+  } catch (
+    error
+  ) {
+    return "";
+  }
+
+}
+
+
+/*
+  One Memories .txt file can define multiple links:
+
+  Family Tree | https://example.com/tree
+  Old Home Movie | https://example.com/video
+
+  Blank lines and # comments are ignored. For backwards
+  compatibility, a file containing only one bare URL still
+  becomes one link whose title comes from the .txt filename.
+*/
+function parseMemoryTextLinks(
+  text,
+  fallbackTitle
+) {
+
+  const cleanText =
+    String(
+      text ?? ""
+    ).trim();
+
+  if (
+    !cleanText
+  ) {
+    return [];
+  }
+
+  const legacyUrl =
+    getMemoryUrlFromText(
+      cleanText
+    );
+
+  if (
+    legacyUrl
+  ) {
+    return [{
+      title:
+        fallbackTitle,
+
+      url:
+        legacyUrl
+    }];
+  }
+
+  const parsedLinks =
+    [];
+
+  cleanText
+    .split(
+      /\r?\n/
+    )
+    .map(
+      line =>
+        line.trim()
+    )
+    .filter(
+      line =>
+        line
+        &&
+        !line.startsWith(
+          "#"
+        )
+    )
+    .forEach(
+      line => {
+
+        const separatorIndex =
+          line.indexOf(
+            "|"
+          );
+
+        if (
+          separatorIndex < 0
+        ) {
+          return;
+        }
+
+        const title =
+          line
+            .slice(
+              0,
+              separatorIndex
+            )
+            .trim();
+
+        const rawUrl =
+          line
+            .slice(
+              separatorIndex + 1
+            )
+            .trim();
+
+        const url =
+          getMemoryUrlFromText(
+            rawUrl
+          );
+
+        if (
+          !title
+          ||
+          !url
+        ) {
+          return;
+        }
+
+        parsedLinks.push({
+          title,
+          url
+        });
+
+      }
+    );
+
+  return parsedLinks;
+
+}
+
+
+async function identifyMemoryFolderLinks(
+  rootFolder
+) {
+
+  const pending =
+    [];
+
+  function collect(
+    folder
+  ) {
+
+    folder.links =
+      [];
+
+    folder.files
+      .filter(
+        file =>
+          isMemoryAlbumLinkEntry(
+            file
+          )
+      )
+      .forEach(
+        file => {
+
+          pending.push(
+            (async () => {
+
+              if (
+                isMemoryLinkTextEntry(
+                  file
+                )
+              ) {
+
+                try {
+
+                  const text =
+                    await getDropboxText(
+                      file.path
+                    );
+
+                  const parsedLinks =
+                    parseMemoryTextLinks(
+                      text,
+                      titleFromFilename(
+                        file.name
+                      )
+                    );
+
+                  if (
+                    parsedLinks.length > 0
+                  ) {
+
+                    parsedLinks.forEach(
+                      parsedLink => {
+
+                        folder.links.push({
+                          title:
+                            parsedLink.title,
+
+                          url:
+                            parsedLink.url,
+
+                          path:
+                            file.path,
+
+                          type:
+                            "text"
+                        });
+
+                      }
+                    );
+
+                    return;
+
+                  }
+
+                } catch (
+                  error
+                ) {
+
+                  console.warn(
+                    `Could not inspect Memories text file: ${file.path}`,
+                    error
+                  );
+
+                }
+
+              }
+
+              /*
+                PDFs always link directly to the file. A text file that
+                contains no valid Title | URL lines also falls back to the
+                original behavior of linking to the .txt file itself.
+              */
+              folder.links.push({
+                title:
+                  titleFromFilename(
+                    file.name
+                  ),
+
+                url:
+                  getDropboxFileUrl(
+                    file.path
+                  ),
+
+                path:
+                  file.path,
+
+                type:
+                  isMemoryLinkPdfEntry(
+                    file
+                  )
+                    ? "pdf"
+                    : "text"
+              });
+
+            })()
+          );
+
+        }
+      );
+
+    folder.folders.forEach(
+      collect
+    );
+
+  }
+
+  collect(
+    rootFolder
+  );
+
+  await Promise.all(
+    pending
+  );
+
+  function sortLinks(
+    folder
+  ) {
+
+    folder.links.sort(
+      (
+        linkA,
+        linkB
+      ) =>
+        compareNaturally(
+          linkA.title,
+          linkB.title
+        )
+    );
+
+    folder.folders.forEach(
+      sortLinks
+    );
+
+  }
+
+  sortLinks(
+    rootFolder
+  );
+
+}
+
+
 function createPersonMemoryEntryIndex(
   entries
 ) {
@@ -1161,8 +1578,14 @@ function resolvePersonMemoryReference(
     if (
       !item
       ||
-      !isSupportedMemoryMediaEntry(
-        item.entry
+      !(
+        isSupportedMemoryMediaEntry(
+          item.entry
+        )
+        ||
+        isMemoryLinkTextEntry(
+          item.entry
+        )
       )
       ||
       selectedKeys.has(
@@ -1305,8 +1728,14 @@ function resolvePersonMemoryReference(
         item.nameKey ===
           referenceKey
         &&
-        isSupportedMemoryMediaEntry(
-          item.entry
+        (
+          isSupportedMemoryMediaEntry(
+            item.entry
+          )
+          ||
+          isMemoryLinkTextEntry(
+            item.entry
+          )
         )
     );
 
@@ -1792,11 +2221,15 @@ function addPersonalMemoryEntriesToTree(
     );
 
 
-  /* Add each local image/video to its actual local subfolder. */
+  /* Add each local image/video or linked .txt/.pdf to its actual local subfolder. */
   personalEntries
     .filter(
       entry =>
         isSupportedMemoryMediaEntry(
+          entry
+        )
+        ||
+        isMemoryAlbumLinkEntry(
           entry
         )
     )
@@ -3130,6 +3563,11 @@ function renderMixedMemoryFolder(
   memoriesContent.innerHTML =
     "";
 
+  const hasLinks =
+    renderMemoryFolderLinks(
+      folder
+    );
+
   const hasSubfolders =
     folder.folders.length > 0;
 
@@ -3265,6 +3703,8 @@ function renderMixedMemoryFolder(
   */
   if (
     !hasSubfolders
+    &&
+    !hasLinks
   ) {
 
     memoriesContent.innerHTML = `
@@ -3289,6 +3729,96 @@ function renderMixedMemoryFolder(
     `;
 
   }
+
+}
+
+
+/* =========================================================
+   ALBUM LINKS
+========================================================= */
+
+function renderMemoryFolderLinks(
+  folder
+) {
+
+  const links =
+    folder?.links
+    ||
+    [];
+
+  if (
+    links.length === 0
+  ) {
+    return false;
+  }
+
+  const section =
+    document.createElement(
+      "section"
+    );
+
+  section.className =
+    "memory-album-links-wrap";
+
+  const heading =
+    document.createElement(
+      "h2"
+    );
+
+  heading.textContent =
+    "Videos";
+
+  section.appendChild(
+    heading
+  );
+
+  const linksWrap =
+    document.createElement(
+      "div"
+    );
+
+  linksWrap.className =
+    "memory-album-links";
+
+  links.forEach(
+    linkData => {
+
+      const link =
+        document.createElement(
+          "a"
+        );
+
+      link.className =
+        "memory-album-link";
+
+      link.href =
+        linkData.url;
+
+      link.textContent =
+        linkData.title;
+
+      link.target =
+        "_blank";
+
+      link.rel =
+        "noopener";
+
+      linksWrap.appendChild(
+        link
+      );
+
+    }
+  );
+
+  section.appendChild(
+    linksWrap
+  );
+
+  memoriesContent.appendChild(
+    section
+  );
+
+  return true;
 
 }
 
@@ -3538,6 +4068,10 @@ function renderFolderLandingPage(
   memoriesContent.innerHTML =
     "";
 
+  renderMemoryFolderLinks(
+    currentMemoryFolder
+  );
+
 
   const stage =
 
@@ -3781,6 +4315,11 @@ function renderDigitalAlbum(
   memoriesContent.innerHTML =
     "";
 
+  const hasLinks =
+    renderMemoryFolderLinks(
+      folder
+    );
+
 
   currentAlbumItems =
 
@@ -3798,27 +4337,35 @@ function renderDigitalAlbum(
       0
   ) {
 
-    memoriesContent.innerHTML = `
+    if (
+      !hasLinks
+    ) {
 
-      <div
-        class="
-          memories-empty
-        "
-      >
+      memoriesContent.insertAdjacentHTML(
+        "beforeend",
+        `
 
-        <h2>
-          No memories yet
-        </h2>
+          <div
+            class="
+              memories-empty
+            "
+          >
 
-        <p>
-          Photos and videos added to this folder
-          will appear here automatically.
-        </p>
+            <h2>
+              No memories yet
+            </h2>
 
-      </div>
+            <p>
+              Photos and videos added to this folder
+              will appear here automatically.
+            </p>
 
-    `;
+          </div>
 
+        `
+      );
+
+    }
 
     return;
 
@@ -4671,6 +5218,11 @@ async function initialiseMemories() {
         : buildMemoryFolderTree(
             allEntries
           );
+
+
+    await identifyMemoryFolderLinks(
+      memoryRootTree
+    );
 
 
     const requestedPath =

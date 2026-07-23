@@ -749,6 +749,140 @@ body.memories-page {
 
 
 /* =========================================================
+   ALBUM LINKS
+========================================================= */
+
+.memory-album-links-wrap {
+  width: 100%;
+
+  margin:
+    0
+    0
+    34px;
+
+  padding:
+    0
+    0
+    22px;
+
+  border-bottom:
+    1px
+    solid
+    rgba(
+      19,
+      81,
+      140,
+      0.2
+    );
+}
+
+
+.memory-album-links-wrap h2 {
+  margin:
+    0
+    0
+    12px;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size:
+    clamp(
+      1.35rem,
+      2vw,
+      1.75rem
+    );
+
+  font-weight: 400;
+
+  font-style: italic;
+
+  color:
+    var(--memories-blue);
+}
+
+
+.memory-album-links {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+}
+
+
+.memory-album-link {
+  display: inline-block;
+
+  padding:
+    7px
+    14px;
+
+  border:
+    1px
+    solid
+    rgba(
+      19,
+      81,
+      140,
+      0.32
+    );
+
+  border-radius: 999px;
+
+  color:
+    var(--memories-blue);
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.18
+    );
+
+  text-decoration: none;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1rem;
+
+  transition:
+    background
+    160ms
+    ease,
+    border-color
+    160ms
+    ease;
+}
+
+
+.memory-album-link:hover,
+.memory-album-link:focus-visible {
+  background:
+    rgba(
+      19,
+      81,
+      140,
+      0.08
+    );
+
+  border-color:
+    rgba(
+      19,
+      81,
+      140,
+      0.52
+    );
+}
+
+
+/* =========================================================
    PHOTOS BELOW SUBFOLDERS
 ========================================================= */
 
