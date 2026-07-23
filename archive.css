@@ -2545,7 +2545,7 @@ body.peek-mode .archive-carousel .archive-card {
   flex-basis:
     min(
       280px,
-      calc(100vw - 70px)
+      calc(100vw - 50px)
     );
 }
 
