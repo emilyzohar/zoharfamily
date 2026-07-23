@@ -61,6 +61,13 @@
           Home
         </a>
 
+         <a
+          class="top-nav-link"
+          href="travel.html"
+        >
+          Travel
+        </a>
+
         <a
           class="top-nav-link"
           href="recipes.html"
@@ -70,23 +77,16 @@
 
         <a
           class="top-nav-link"
-          href="merch.html"
-        >
-          Merch
-        </a>
-
-        <a
-          class="top-nav-link"
-          href="travel.html"
-        >
-          Travel
-        </a>
-
-        <a
-          class="top-nav-link"
           href="memories.html"
         >
           Memories
+        </a>
+
+        <a
+          class="top-nav-link"
+          href="merch.html"
+        >
+          Merch
         </a>
 
         <a
@@ -271,6 +271,48 @@
 
         <div class="pdf-toolbar-actions">
 
+          <div
+            class="document-zoom-controls"
+            aria-label="PDF zoom controls"
+          >
+            <button
+              id="pdfZoomOut"
+              class="document-zoom-button"
+              type="button"
+              aria-label="Zoom out"
+              title="Zoom out"
+            >
+              −
+            </button>
+
+            <span
+              id="pdfZoomValue"
+              class="document-zoom-value"
+              aria-live="polite"
+            >
+              100%
+            </span>
+
+            <button
+              id="pdfZoomIn"
+              class="document-zoom-button"
+              type="button"
+              aria-label="Zoom in"
+              title="Zoom in"
+            >
+              +
+            </button>
+
+            <button
+              id="pdfZoomReset"
+              class="document-zoom-reset"
+              type="button"
+              title="Reset zoom"
+            >
+              Reset
+            </button>
+          </div>
+
           <a
             id="pdfNewTab"
             class="secondary-button"
@@ -340,13 +382,59 @@
         ×
       </button>
 
-
-      <img
-        id="lightboxImage"
-        class="lightbox-image"
-        src=""
-        alt=""
+      <div
+        class="image-zoom-toolbar"
+        aria-label="Image zoom controls"
       >
+        <button
+          id="imageZoomOut"
+          class="image-zoom-button"
+          type="button"
+          aria-label="Zoom out"
+          title="Zoom out"
+        >
+          −
+        </button>
+
+        <span
+          id="imageZoomValue"
+          class="image-zoom-value"
+          aria-live="polite"
+        >
+          100%
+        </span>
+
+        <button
+          id="imageZoomIn"
+          class="image-zoom-button"
+          type="button"
+          aria-label="Zoom in"
+          title="Zoom in"
+        >
+          +
+        </button>
+
+        <button
+          id="imageZoomReset"
+          class="image-zoom-reset"
+          type="button"
+          title="Reset zoom"
+        >
+          Reset
+        </button>
+      </div>
+
+      <div
+        id="imageZoomStage"
+        class="image-zoom-stage"
+      >
+        <img
+          id="lightboxImage"
+          class="lightbox-image"
+          src=""
+          alt=""
+        >
+      </div>
 
 
       <div class="image-caption">
@@ -364,7 +452,13 @@
 
 
 
-  <script src="archive.js"></script>
+  
+  <!-- Site administration -->
+  <footer class="site-admin-footer" aria-label="Site administration">
+    <a href="admin.html">Add Website Content</a>
+  </footer>
+
+<script src="archive.js"></script>
 
 </body>
 

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Add Website Content | Zohar Family</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <header class="admin-site-header">
+    <nav class="top-nav" aria-label="Main navigation">
+      <div class="top-nav-inner">
+      <a class="top-nav-link" href="index.html">Home</a>
+      <a class="top-nav-link" href="travel.html">Travel</a>
+      <a class="top-nav-link" href="recipes.html">Recipes</a>
+      <a class="top-nav-link" href="memories.html">Memories</a>
+      <a class="top-nav-link" href="merch.html">Merch</a>
+      
+      
+      <a class="top-nav-link" href="archive.html?person=Sabba">Sabba's Works</a>
+      <a class="top-nav-link active" href="admin.html" aria-current="page">Add Website Content</a>
+      </div>
+    </nav>
+  </header>
+
+  <div id="app">
+    <section id="authScreen" class="card auth-card" aria-labelledby="loginTitle">
+      <div class="title" id="loginTitle">Zohar Family Website</div>
+      <p class="subtle small">Enter the family admin password.</p>
+      <div class="hr"></div>
+      <label class="field">
+        <span>Password</span>
+        <input id="adminToken" type="password" autocomplete="current-password" autofocus>
+      </label>
+      <div class="row row-left">
+        <button id="connectButton" class="btn btn-primary" type="button">Enter admin</button>
+        <a class="btn btn-quiet" href="index.html">Back to website</a>
+      </div>
+      <div id="loginStatus" class="status-line small" role="status" aria-live="polite"></div>
+    </section>
+
+    <main id="editorScreen" class="admin-stack" hidden>
+      <section class="card header-card">
+        <div class="header-row">
+          <div>
+            <div class="title">Add Website Content</div>
+            <div class="subtle small">Choose where you are working first. Only the next relevant step will appear.</div>
+          </div>
+          <div class="row compact-row">
+            <span class="pill good">Connected</span>
+            <button id="restartButton" class="btn btn-quiet" type="button">Start over</button>
+            <button id="lockButton" class="btn btn-quiet" type="button">Lock</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="stepMode" class="card workflow-step">
+        <div class="step-number">1</div>
+        <div class="section-label">What do you want to do?</div>
+        <div id="modeTabs" class="tab-row mode-tabs" role="tablist" aria-label="Editing mode">
+          <button class="tab-btn" type="button" data-mode="add">＋ Add new</button>
+          <button class="tab-btn" type="button" data-mode="edit">✎ Edit existing</button>
+        </div>
+      </section>
+
+      <section id="stepContent" class="card workflow-step" hidden>
+        <div class="step-number">2</div>
+        <div class="section-label">What are you working on?</div>
+        <div id="contentTabs" class="tab-grid" role="tablist" aria-label="Content type">
+          <button class="tab-btn type-tab" type="button" data-content-type="recipe">Recipe</button>
+          <button class="tab-btn type-tab" type="button" data-content-type="travel">Trip</button>
+          <button class="tab-btn type-tab" type="button" data-content-type="memory">Memories</button>
+          <button class="tab-btn type-tab" type="button" data-content-type="merch">Merch</button>
+          <button class="tab-btn type-tab" type="button" data-content-type="work">Works</button>
+        </div>
+      </section>
+
+      <section id="stepPerson" class="card workflow-step" hidden>
+        <div class="step-number">3</div>
+        <div class="section-label">Whose page?</div>
+        <div id="personChooser"></div>
+      </section>
+
+      <section id="stepPersonalContent" class="card workflow-step" hidden>
+        <div class="step-number">4</div>
+        <div class="section-label">What part of this page?</div>
+        <div id="personalContentTabs" class="tab-grid" role="tablist" aria-label="Personal page section">
+          <button class="tab-btn type-tab" type="button" data-personal-type="work">Works</button>
+          <button class="tab-btn type-tab" type="button" data-personal-type="recipe">Recipes</button>
+          <button class="tab-btn type-tab" type="button" data-personal-type="travel">Travel</button>
+          <button class="tab-btn type-tab" type="button" data-personal-type="memory">Memories</button>
+          <button class="tab-btn type-tab" type="button" data-personal-type="merch">Merch</button>
+        </div>
+      </section>
+
+      <section id="stepLocation" class="card workflow-step" hidden>
+        <div id="locationStepNumber" class="step-number">3</div>
+        <div id="locationStepLabel" class="section-label">Choose a location</div>
+        <div id="locationArea"></div>
+      </section>
+
+      <section id="stepItem" class="card workflow-step" hidden>
+        <div id="itemStepNumber" class="step-number">4</div>
+        <div id="itemStepLabel" class="section-label">Choose what to edit</div>
+        <div id="itemArea"></div>
+      </section>
+
+      <section id="stepEditor" class="card editor-card" hidden>
+        <div id="editorStepNumber" class="step-number">5</div>
+        <div id="editorStepLabel" class="section-label">Edit details</div>
+        <div id="formArea"></div>
+
+        <div class="footer editor-footer">
+          <code id="destinationPreview" hidden></code>
+          <div class="row compact-row action-row">
+            <button id="previewButton" class="btn btn-quiet" type="button">Preview</button>
+            <button id="publishButton" class="btn btn-primary" type="button">Save to website</button>
+          </div>
+        </div>
+        <div class="progressWrap" id="progressWrap" hidden>
+          <div class="progressBar"><div id="progressFill" class="progressFill"></div></div>
+        </div>
+        <div id="publishStatus" class="status-line small" role="status" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="previewModal" class="modal" aria-hidden="true">
+    <button id="previewBackdrop" class="modal-backdrop" type="button" aria-label="Close preview"></button>
+    <section class="card preview-card" role="dialog" aria-modal="true" aria-labelledby="previewHeading">
+      <div class="header-row">
+        <div>
+          <div class="title" id="previewHeading">Preview</div>
+          <div class="subtle small">Local preview only. Nothing changes in Dropbox until you save.</div>
+        </div>
+        <button id="previewClose" class="btn btn-quiet" type="button">Close</button>
+      </div>
+      <div class="hr"></div>
+      <div id="previewContent"></div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

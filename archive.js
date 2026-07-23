@@ -529,6 +529,26 @@ let imageReturnContext =
 
 
 /* =========================================================
+   PREVIEW ZOOM STATE
+========================================================= */
+
+const PREVIEW_ZOOM_MIN =
+  0.5;
+
+const PREVIEW_ZOOM_MAX =
+  3;
+
+const PREVIEW_ZOOM_STEP =
+  0.25;
+
+let pdfZoom =
+  1;
+
+let imageZoom =
+  1;
+
+
+/* =========================================================
    DOM
 ========================================================= */
 
@@ -3602,13 +3622,13 @@ function getActionText(
       return "Preview →";
 
     case "pptx":
-      return "Open presentation ↗";
+      return "Preview in Dropbox ↗";
 
     case "document":
-      return "Open document ↗";
+      return "Preview in Dropbox ↗";
 
     case "download":
-      return "Open file ↗";
+      return "Preview in Dropbox ↗";
 
     case "image":
       return "View image →";
@@ -3719,21 +3739,9 @@ function handleItem(
 function openDropboxFile(
   item
 ) {
-  const fileUrl =
-    getItemFileUrl(
-      item
-    );
-
-  if (
-    !fileUrl
-  ) {
-    return;
-  }
-
-  window.open(
-    fileUrl,
-    "_blank",
-    "noopener"
+  return openDropboxPreview(
+    item,
+    "document"
   );
 }
 
@@ -4600,6 +4608,8 @@ if (
       : null;
 
 
+  resetImageZoom();
+
   showImage();
 
 
@@ -4731,9 +4741,312 @@ function openImage(
     "";
 
 
+  resetImageZoom();
+
+
   openModal(
     modal
   );
+}
+
+
+/* =========================================================
+   PREVIEW ZOOM
+
+   PDFs stay in the site's PDF viewer. These controls magnify
+   the embedded viewer without reloading the file, so the current
+   page/scroll position is preserved.
+
+   Office documents continue to use Dropbox Preview, whose own
+   document viewer supplies its zoom controls.
+========================================================= */
+
+function clampPreviewZoom(
+  value
+) {
+  return Math.min(
+    PREVIEW_ZOOM_MAX,
+    Math.max(
+      PREVIEW_ZOOM_MIN,
+      value
+    )
+  );
+}
+
+
+function formatPreviewZoom(
+  value
+) {
+  return `${Math.round(value * 100)}%`;
+}
+
+
+function applyPdfZoom() {
+  const frame =
+    document.getElementById(
+      "pdfFrame"
+    );
+
+  const value =
+    document.getElementById(
+      "pdfZoomValue"
+    );
+
+  if (
+    frame
+  ) {
+    frame.style.transform =
+      `scale(${pdfZoom})`;
+  }
+
+  if (
+    value
+  ) {
+    value.textContent =
+      formatPreviewZoom(
+        pdfZoom
+      );
+  }
+}
+
+
+function setPdfZoom(
+  value
+) {
+  pdfZoom =
+    clampPreviewZoom(
+      value
+    );
+
+  applyPdfZoom();
+}
+
+
+function resetPdfZoom() {
+  setPdfZoom(
+    1
+  );
+
+  const container =
+    document.querySelector(
+      ".pdf-frame-container"
+    );
+
+  if (
+    container
+  ) {
+    container.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  }
+}
+
+
+function applyImageZoom() {
+  const image =
+    document.getElementById(
+      "lightboxImage"
+    );
+
+  const value =
+    document.getElementById(
+      "imageZoomValue"
+    );
+
+  if (
+    image
+  ) {
+    image.style.transform =
+      `scale(${imageZoom})`;
+  }
+
+  if (
+    value
+  ) {
+    value.textContent =
+      formatPreviewZoom(
+        imageZoom
+      );
+  }
+}
+
+
+function setImageZoom(
+  value
+) {
+  imageZoom =
+    clampPreviewZoom(
+      value
+    );
+
+  applyImageZoom();
+}
+
+
+function resetImageZoom() {
+  setImageZoom(
+    1
+  );
+
+  const stage =
+    document.getElementById(
+      "imageZoomStage"
+    );
+
+  if (
+    stage
+  ) {
+    stage.scrollTo({
+      top: 0,
+      left: 0,
+      behavior: "smooth"
+    });
+  }
+}
+
+
+function setupPreviewZoomControls() {
+  document
+    .getElementById(
+      "pdfZoomOut"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+        setPdfZoom(
+          pdfZoom -
+          PREVIEW_ZOOM_STEP
+        );
+      }
+    );
+
+  document
+    .getElementById(
+      "pdfZoomIn"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+        setPdfZoom(
+          pdfZoom +
+          PREVIEW_ZOOM_STEP
+        );
+      }
+    );
+
+  document
+    .getElementById(
+      "pdfZoomReset"
+    )
+    ?.addEventListener(
+      "click",
+      resetPdfZoom
+    );
+
+  document
+    .getElementById(
+      "imageZoomOut"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+        setImageZoom(
+          imageZoom -
+          PREVIEW_ZOOM_STEP
+        );
+      }
+    );
+
+  document
+    .getElementById(
+      "imageZoomIn"
+    )
+    ?.addEventListener(
+      "click",
+      () => {
+        setImageZoom(
+          imageZoom +
+          PREVIEW_ZOOM_STEP
+        );
+      }
+    );
+
+  document
+    .getElementById(
+      "imageZoomReset"
+    )
+    ?.addEventListener(
+      "click",
+      resetImageZoom
+    );
+
+  const imageStage =
+    document.getElementById(
+      "imageZoomStage"
+    );
+
+  imageStage
+    ?.addEventListener(
+      "wheel",
+      event => {
+        if (
+          !event.ctrlKey
+          &&
+          !event.metaKey
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+
+        setImageZoom(
+          imageZoom +
+          (
+            event.deltaY < 0
+              ? PREVIEW_ZOOM_STEP
+              : -PREVIEW_ZOOM_STEP
+          )
+        );
+      },
+      {
+        passive: false
+      }
+    );
+
+  const pdfContainer =
+    document.querySelector(
+      ".pdf-frame-container"
+    );
+
+  pdfContainer
+    ?.addEventListener(
+      "wheel",
+      event => {
+        if (
+          !event.ctrlKey
+          &&
+          !event.metaKey
+        ) {
+          return;
+        }
+
+        event.preventDefault();
+
+        setPdfZoom(
+          pdfZoom +
+          (
+            event.deltaY < 0
+              ? PREVIEW_ZOOM_STEP
+              : -PREVIEW_ZOOM_STEP
+          )
+        );
+      },
+      {
+        passive: false
+      }
+    );
 }
 
 
@@ -4765,6 +5078,9 @@ function openPDF(
     getDropboxFileUrl(
       item.file
     );
+
+
+  resetPdfZoom();
 
 
   document.getElementById(
@@ -4856,17 +5172,21 @@ async function getDropboxSharedLink(
 
 
 /* =========================================================
-   OPEN POWERPOINT
+   DROPBOX PREVIEW WINDOW
+
+   Used for Office files and other formats that browsers
+   would otherwise download. Dropbox handles the preview.
 ========================================================= */
 
-async function openPowerPoint(
-  item
+async function openDropboxPreview(
+  item,
+  kind = "document"
 ) {
   if (
     !item?.file
   ) {
     console.error(
-      "PowerPoint item has no file path.",
+      "Dropbox preview item has no file path.",
       item
     );
 
@@ -4874,8 +5194,8 @@ async function openPowerPoint(
   }
 
   /*
-    Open the tab synchronously so browsers do not block it
-    after the asynchronous shared-link request.
+    Open immediately so the browser treats this as part of
+    the user's click and does not block it as a pop-up.
   */
 
   const previewWindow =
@@ -4887,12 +5207,8 @@ async function openPowerPoint(
   if (
     !previewWindow
   ) {
-    console.error(
-      "The PowerPoint preview tab was blocked."
-    );
-
     alert(
-      "Please allow pop-ups for this website to open the presentation."
+      "Please allow pop-ups for this website to open the Dropbox preview."
     );
 
     return;
@@ -4902,7 +5218,7 @@ async function openPowerPoint(
     null;
 
   previewWindow.document.title =
-    "Opening presentation…";
+    "Opening Dropbox preview…";
 
   previewWindow.document.body.innerHTML = `
     <p
@@ -4912,7 +5228,7 @@ async function openPowerPoint(
         color: #681116;
       "
     >
-      Opening presentation…
+      Opening ${escapeHtml(kind)} in Dropbox…
     </p>
   `;
 
@@ -4930,17 +5246,12 @@ async function openPowerPoint(
     error
   ) {
     console.error(
-      "Could not open Dropbox presentation preview:",
+      "Could not open Dropbox preview:",
       error
     );
 
-    /*
-      Do not fall back to the direct file endpoint because
-      that may download the PowerPoint.
-    */
-
     previewWindow.document.title =
-      "Presentation unavailable";
+      "Preview unavailable";
 
     previewWindow.document.body.innerHTML = `
       <div
@@ -4951,16 +5262,31 @@ async function openPowerPoint(
         "
       >
         <h1>
-          Presentation unavailable
+          Preview unavailable
         </h1>
 
         <p>
-          The Dropbox preview could not be opened.
+          Dropbox could not open a preview for this ${escapeHtml(kind)}.
         </p>
       </div>
     `;
   }
 }
+
+
+/* =========================================================
+   OPEN POWERPOINT
+========================================================= */
+
+async function openPowerPoint(
+  item
+) {
+  return openDropboxPreview(
+    item,
+    "presentation"
+  );
+}
+
 
 
 /* =========================================================
@@ -5293,7 +5619,13 @@ function closeSingleModal(
     ) {
       frame.src =
         "";
+
+      frame.style.transform =
+        "";
     }
+
+    pdfZoom =
+      1;
 
 
     const context =
@@ -5329,7 +5661,13 @@ function closeSingleModal(
 
       image.src =
         "";
+
+      image.style.transform =
+        "";
     }
+
+    imageZoom =
+      1;
 
 
     const context =
@@ -5411,6 +5749,61 @@ document.addEventListener(
     }
 
 
+    const pdfModal =
+      document.getElementById(
+        "pdfModal"
+      );
+
+
+    if (
+      pdfModal
+      &&
+      pdfModal.classList.contains(
+        "is-open"
+      )
+    ) {
+      if (
+        event.key === "+"
+        ||
+        event.key === "="
+      ) {
+        event.preventDefault();
+
+        setPdfZoom(
+          pdfZoom +
+          PREVIEW_ZOOM_STEP
+        );
+
+        return;
+      }
+
+      if (
+        event.key === "-"
+        ||
+        event.key === "_"
+      ) {
+        event.preventDefault();
+
+        setPdfZoom(
+          pdfZoom -
+          PREVIEW_ZOOM_STEP
+        );
+
+        return;
+      }
+
+      if (
+        event.key === "0"
+      ) {
+        event.preventDefault();
+
+        resetPdfZoom();
+
+        return;
+      }
+    }
+
+
     const imageModal =
       document.getElementById(
         "imageModal"
@@ -5424,6 +5817,49 @@ document.addEventListener(
         "is-open"
       )
     ) {
+      return;
+    }
+
+
+    if (
+      event.key === "+"
+      ||
+      event.key === "="
+    ) {
+      event.preventDefault();
+
+      setImageZoom(
+        imageZoom +
+        PREVIEW_ZOOM_STEP
+      );
+
+      return;
+    }
+
+
+    if (
+      event.key === "-"
+      ||
+      event.key === "_"
+    ) {
+      event.preventDefault();
+
+      setImageZoom(
+        imageZoom -
+        PREVIEW_ZOOM_STEP
+      );
+
+      return;
+    }
+
+
+    if (
+      event.key === "0"
+    ) {
+      event.preventDefault();
+
+      resetImageZoom();
+
       return;
     }
 
@@ -5473,5 +5909,7 @@ document.addEventListener(
 ========================================================= */
 
 updateArchivePageTitle();
+
+setupPreviewZoomControls();
 
 loadArchiveFromDropbox();

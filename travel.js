@@ -742,6 +742,9 @@ async function loadTripMetadata(
     generation:
       metadata.generation,
 
+    filterName:
+      metadata.filterName,
+
     blurb:
       metadata.blurb,
 
@@ -919,7 +922,13 @@ async function performTripContentLoad(
           file:
             makeDropboxFileUrl(
               entry.path
-            )
+            ),
+
+          path:
+            entry.path,
+
+          external:
+            false
 
         })
 
@@ -956,7 +965,13 @@ async function performTripContentLoad(
             link.label,
 
           file:
-            link.file
+            link.file,
+
+          path:
+            "",
+
+          external:
+            true
 
         })
 
@@ -1009,7 +1024,13 @@ async function performTripContentLoad(
             file:
               makeDropboxFileUrl(
                 path
-              )
+              ),
+
+            path:
+              path,
+
+            external:
+              false
 
           };
 
@@ -1498,7 +1519,11 @@ async function prefetchTravelContentWithLimit(
 
 
 /* ============================================
-   GENERATION HELPERS
+   FILTER / GENERATION HELPERS
+
+   New trip.txt files may use a human-readable
+   Filter: field. Generation remains supported
+   for all existing trips and old metadata.
 ============================================ */
 
 function normalizeTravelGeneration(
@@ -1909,6 +1934,8 @@ function registerTravelCategory(
   const category =
 
     getTravelCategory(
+      travel.filterName
+      ||
       travel.generation
     );
 
@@ -2634,11 +2661,26 @@ function renderTravelPin(
     generation
   ) {
 
-    pin.classList.add(
+    const generationClass =
+      generation
+        .replace(
+          /[^a-z0-9_-]+/g,
+          "-"
+        )
+        .replace(
+          /^-+|-+$/g,
+          ""
+        );
 
-      `generation-${generation}`
+    if (
+      generationClass
+    ) {
 
-    );
+      pin.classList.add(
+        `generation-${generationClass}`
+      );
+
+    }
 
   }
 
@@ -2677,6 +2719,8 @@ function renderTravelPin(
     ||
 
     getTravelCategory(
+      travel.filterName
+      ||
       travel.generation
     );
 
@@ -2990,7 +3034,11 @@ function renderTravelModal() {
   ) {
 
     travelModalGeneration.textContent =
-      travel.generation || "";
+      travel.filterName
+      ||
+      travel.generation
+      ||
+      "";
 
   }
 
@@ -3881,6 +3929,199 @@ function showNextTravelImage() {
 
 
 /* ============================================
+   TRAVEL DOCUMENT PREVIEW
+
+   PDFs use the browser's inline PDF viewer. Office documents
+   and other Dropbox-previewable files open in Dropbox Preview
+   rather than downloading.
+============================================ */
+
+function getTravelFileExtension(
+  path
+) {
+  const cleanPath =
+    String(
+      path ?? ""
+    )
+      .split("?")[0]
+      .split("#")[0];
+
+  const match =
+    cleanPath.match(
+      /\.([^.\/]+)$/
+    );
+
+  return match
+    ? match[1].toLowerCase()
+    : "";
+}
+
+
+async function getTravelDropboxSharedLink(
+  path
+) {
+  const response =
+    await fetch(
+      `${PHOTO_API}/shared-link?path=${encodeURIComponent(path)}`
+    );
+
+  if (
+    !response.ok
+  ) {
+    const text =
+      await response.text();
+
+    throw new Error(
+      `Could not open Dropbox preview. HTTP ${response.status}. ${text}`
+    );
+  }
+
+  const result =
+    await response.json();
+
+  if (
+    !result.url
+  ) {
+    throw new Error(
+      "The Worker did not return a Dropbox preview link."
+    );
+  }
+
+  const previewUrl =
+    new URL(
+      result.url
+    );
+
+  previewUrl.searchParams.delete(
+    "raw"
+  );
+
+  previewUrl.searchParams.set(
+    "dl",
+    "0"
+  );
+
+  return previewUrl.toString();
+}
+
+
+async function openTravelDropboxPreview(
+  linkData
+) {
+  if (
+    !linkData?.path
+  ) {
+    return;
+  }
+
+  const previewWindow =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if (
+    !previewWindow
+  ) {
+    alert(
+      "Please allow pop-ups for this website to open the document preview."
+    );
+
+    return;
+  }
+
+  previewWindow.opener =
+    null;
+
+  previewWindow.document.title =
+    "Opening document…";
+
+  previewWindow.document.body.innerHTML = `
+    <p
+      style="
+        font-family: Georgia, serif;
+        padding: 40px;
+        color: #681116;
+      "
+    >
+      Opening document in Dropbox Preview…
+    </p>
+  `;
+
+  try {
+    const previewUrl =
+      await getTravelDropboxSharedLink(
+        linkData.path
+      );
+
+    previewWindow.location.replace(
+      previewUrl
+    );
+
+  } catch (
+    error
+  ) {
+    console.error(
+      "Travel document preview failed:",
+      error
+    );
+
+    previewWindow.document.title =
+      "Preview unavailable";
+
+    previewWindow.document.body.innerHTML = `
+      <div
+        style="
+          font-family: Georgia, serif;
+          padding: 40px;
+          color: #681116;
+        "
+      >
+        <h1>Preview unavailable</h1>
+        <p>This file could not be previewed in Dropbox.</p>
+      </div>
+    `;
+  }
+}
+
+
+function shouldUseDropboxTravelPreview(
+  linkData
+) {
+  if (
+    linkData?.external
+    ||
+    !linkData?.path
+  ) {
+    return false;
+  }
+
+  const extension =
+    getTravelFileExtension(
+      linkData.path
+    );
+
+  /*
+    PDFs and images can be safely shown directly by the browser.
+    Everything else is sent to Dropbox Preview first.
+  */
+  return !new Set([
+    "pdf",
+    "avif",
+    "bmp",
+    "gif",
+    "jpeg",
+    "jpg",
+    "png",
+    "svg",
+    "webp"
+  ]).has(
+    extension
+  );
+}
+
+
+/* ============================================
    TRIP DOCUMENTS + LINKS
 ============================================ */
 
@@ -3974,6 +4215,24 @@ function renderTravelLinks() {
 
       link.className =
         "travel-pdf-link";
+
+
+      if (
+        shouldUseDropboxTravelPreview(
+          linkData
+        )
+      ) {
+        link.addEventListener(
+          "click",
+          event => {
+            event.preventDefault();
+
+            openTravelDropboxPreview(
+              linkData
+            );
+          }
+        );
+      }
 
 
       travelPdfLinks.appendChild(
@@ -4395,6 +4654,9 @@ function parseTripText(
     generation:
       "",
 
+    filterName:
+      "",
+
     blurb:
       "",
 
@@ -4578,6 +4840,16 @@ function parseTripText(
       case "generation":
 
         trip.generation =
+          value;
+
+        break;
+
+
+      case "filter":
+      case "filtername":
+      case "filter name":
+
+        trip.filterName =
           value;
 
         break;

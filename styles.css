@@ -162,7 +162,7 @@ body {
 }
 
 .top-nav-link {
-  color: #fffaf2;
+  color: #fbf6e9;
   text-decoration: none;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.5rem;
@@ -285,17 +285,10 @@ body {
 ======================================== */
 
 .merch-header {
-  min-height: 700px;
+  max-height: 70px;
+  background-image: none !important;
 
-  background:
-    linear-gradient(
-      rgba(80, 0, 12, 0.1),
-      rgba(80, 0, 12, 0.1)
-    ),
-    url("assets/merch-background.jpg");
-
-  background-size: cover;
-  background-position: center;
+  background: var(--ink);
 
   position: relative;
 }
@@ -1211,4 +1204,55 @@ body.person-peek-mode .quick-view-info h2 {
 
 body.person-peek-mode .quick-view-description {
   font-size: 1.08rem;
+}
+
+
+/* =========================================================
+   ADMIN FOOTER LINK
+   ========================================================= */
+.site-admin-footer {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1800;
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.site-admin-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(104, 17, 22, 0.20);
+  border-radius: 999px;
+  background: rgba(245, 240, 231, 0.90);
+  color: #681116;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.72;
+  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease;
+}
+
+.site-admin-footer a:hover,
+.site-admin-footer a:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: rgba(104, 17, 22, 0.42);
+}
+
+body.person-peek-mode .site-admin-footer {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .site-admin-footer {
+    right: 10px;
+    bottom: 9px;
+    font-size: 0.84rem;
+  }
 }

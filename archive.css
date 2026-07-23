@@ -1602,9 +1602,13 @@ body.peek-mode .archive-loading {
 
 
 .pdf-frame-container {
+  position: relative;
+
   flex: 1;
 
   min-height: 0;
+
+  overflow: auto;
 
   background: #444;
 }
@@ -1615,6 +1619,13 @@ body.peek-mode .archive-loading {
   height: 100%;
 
   border: none;
+
+  transform-origin: top left;
+
+  transition:
+    transform
+    120ms
+    ease;
 }
 
 
@@ -1687,6 +1698,155 @@ body.peek-mode .archive-loading {
   margin: 0;
 }
 
+
+
+
+/* ========================================
+   DOCUMENT / IMAGE ZOOM CONTROLS
+======================================== */
+
+.document-zoom-controls,
+.image-zoom-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.document-zoom-button,
+.document-zoom-reset,
+.image-zoom-button,
+.image-zoom-reset {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+
+  border:
+    1px solid
+    rgba(104, 17, 22, 0.28);
+
+  border-radius: 5px;
+
+  background: #fffefa;
+  color: var(--accent);
+
+  font: inherit;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.document-zoom-button:hover,
+.document-zoom-reset:hover {
+  background: #f5f0e7;
+}
+
+.document-zoom-value,
+.image-zoom-value {
+  min-width: 52px;
+
+  text-align: center;
+
+  font-family:
+    "Cormorant Garamond",
+    Georgia,
+    serif;
+
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.image-zoom-toolbar {
+  position: fixed;
+
+  top: 24px;
+  left: 30px;
+
+  z-index: 40;
+
+  padding: 7px;
+
+  border-radius: 7px;
+
+  background:
+    rgba(38, 23, 24, 0.72);
+
+  backdrop-filter: blur(6px);
+}
+
+.image-zoom-button,
+.image-zoom-reset {
+  border-color:
+    rgba(255, 255, 255, 0.34);
+
+  background:
+    rgba(255, 255, 255, 0.12);
+
+  color: white;
+}
+
+.image-zoom-button:hover,
+.image-zoom-reset:hover {
+  background:
+    rgba(255, 255, 255, 0.23);
+}
+
+.image-zoom-value {
+  color: white;
+}
+
+.image-zoom-stage {
+  width: 96vw;
+  max-width: 1600px;
+  height: 84vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: auto;
+
+  scrollbar-width: thin;
+
+  overscroll-behavior: contain;
+}
+
+.image-zoom-stage .lightbox-image {
+  flex: 0 0 auto;
+
+  transform-origin: center center;
+
+  transition:
+    transform
+    120ms
+    ease,
+    opacity
+    150ms
+    ease;
+}
+
+@media (max-width: 760px) {
+  .pdf-toolbar {
+    align-items: flex-start;
+  }
+
+  .pdf-toolbar-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .document-zoom-reset {
+    display: none;
+  }
+
+  .image-zoom-toolbar {
+    top: 14px;
+    left: 14px;
+  }
+
+  .image-zoom-reset {
+    display: none;
+  }
+}
 
 /* ========================================
    IMAGE GALLERY ARROWS
@@ -2331,4 +2491,47 @@ body.peek-mode .carousel-button {
   height: 42px;
 
   font-size: 21px;
+}
+
+
+/* ========================================
+   ADMIN FOOTER LINK
+======================================== */
+.site-admin-footer {
+  position: fixed;
+  right: 16px;
+  bottom: 12px;
+  z-index: 1800;
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.site-admin-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 11px;
+  border: 1px solid rgba(104, 17, 22, 0.20);
+  border-radius: 999px;
+  background: rgba(245, 240, 231, 0.92);
+  color: #681116;
+  text-decoration: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0.76;
+  transition: opacity 140ms ease, transform 140ms ease, border-color 140ms ease;
+}
+
+.site-admin-footer a:hover,
+.site-admin-footer a:focus-visible {
+  opacity: 1;
+  transform: translateY(-1px);
+  border-color: rgba(104, 17, 22, 0.42);
+}
+
+body.peek-mode .site-admin-footer {
+  display: none;
 }
