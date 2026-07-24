@@ -2723,7 +2723,7 @@ async function renderMerchForm(data, workflow) {
   if (workflow.collection) customName = (await fetchText(joinDropboxPath(workflow.root, "name.txt"), true)).trim();
 
   const collectionNameField = workflow.collection
-    ? `<label class="field"><span>Personal merch page name</span><input name="collectionName" value="${escapeHtml(customName)}" placeholder="Optional custom tab/page name"><small>Saving creates or updates name.txt in this person's Merch folder. Leave blank to use the site's default Merch label.</small></label>`
+    ? `<label class="field"><span>Personal merch page name</span><input name="collectionName" value="${escapeHtml(customName)}" placeholder="Optional custom page name"></label>`
     : "";
 
   if (edit) {
@@ -2732,7 +2732,7 @@ async function renderMerchForm(data, workflow) {
         <div class="form-heading"><h2>Edit item</h2></div>
         ${collectionNameField}
         <label class="field"><span>Folder name</span><input name="folderName" value="${escapeHtml(filename(data.root))}"></label>
-        <label class="field"><span>Item name</span><input name="name" value="${escapeHtml(metadata.name || "")}" placeholder="Optional — leave blank for an image-only card"></label>
+        <label class="field"><span>Item name</span><input name="name" value="${escapeHtml(metadata.name || "")}" placeholder="Optional"></label>
         <label class="field"><span>Description</span><textarea name="description" rows="5">${escapeHtml(metadata.description || "")}</textarea></label>
         <div class="form-grid three-column">
           <label class="field"><span>Created</span><input name="created" value="${escapeHtml(metadata.created || "")}"></label>
