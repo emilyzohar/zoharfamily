@@ -57,7 +57,8 @@ const state = {
   selectedItem: null,
   selectedData: null,
   currentEditorKind: null,
-  mapCleanup: null
+  mapCleanup: null,
+  previewObjectUrls: []
 };
 
 els.adminToken.value = sessionStorage.getItem(SESSION_TOKEN_KEY) || "";
@@ -819,7 +820,8 @@ function currentWorkflow() {
         kind: "merch",
         root: joinDropboxPath(personRoot, "Merch"),
         hierarchy: false,
-        personal: true
+        personal: true,
+        collection: true
       };
     }
   }
@@ -2622,28 +2624,180 @@ function merchImagePaths(data) {
     .map(entryPath);
 }
 
+function merchGroupingMode() {
+  return currentForm()?.querySelector('input[name="merchGrouping"]:checked')?.value || "same";
+}
+
+function merchBatchFieldValue(index, field) {
+  const input = els.formArea.querySelector(`[data-merch-batch-index="${index}"][data-merch-batch-field="${field}"]`);
+  return input?.value?.trim?.() || "";
+}
+
+function merchBatchRecords() {
+  return files("images").map((file, index) => ({
+    file,
+    name: merchBatchFieldValue(index, "name"),
+    description: merchBatchFieldValue(index, "description"),
+    created: merchBatchFieldValue(index, "created"),
+    createdBy: merchBatchFieldValue(index, "createdBy"),
+    owner: merchBatchFieldValue(index, "owner")
+  }));
+}
+
+function renderSeparateMerchDetails() {
+  const container = document.getElementById("merchSeparateItems");
+  if (!container) return;
+
+  const selectedFiles = files("images");
+  if (!selectedFiles.length) {
+    container.innerHTML = `<div class="notice small">Choose one or more images above. Each selected image will become its own merch item.</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="merch-batch-list">
+      ${selectedFiles.map((file, index) => `
+        <details class="merch-batch-item">
+          <summary>
+            <strong>${escapeHtml(file.name)}</strong>
+            <span>Optional details</span>
+          </summary>
+          <div class="merch-batch-fields">
+            <label class="field">
+              <span>Item name</span>
+              <input data-merch-batch-index="${index}" data-merch-batch-field="name" placeholder="Leave blank to show only the image">
+            </label>
+            <label class="field">
+              <span>Description</span>
+              <textarea rows="3" data-merch-batch-index="${index}" data-merch-batch-field="description"></textarea>
+            </label>
+            <div class="form-grid three-column">
+              <label class="field"><span>Created</span><input data-merch-batch-index="${index}" data-merch-batch-field="created"></label>
+              <label class="field"><span>Created by</span><input data-merch-batch-index="${index}" data-merch-batch-field="createdBy"></label>
+              <label class="field"><span>Currently with</span><input data-merch-batch-index="${index}" data-merch-batch-field="owner"></label>
+            </div>
+          </div>
+        </details>
+      `).join("")}
+    </div>
+  `;
+}
+
+function setupMerchBatchControls() {
+  const form = currentForm();
+  const fileInput = form?.elements?.images;
+  const sameFields = document.getElementById("merchSameItemFields");
+  const separateFields = document.getElementById("merchSeparateItemsWrap");
+  if (!form || !fileInput || !sameFields || !separateFields) return;
+
+  const refresh = () => {
+    const separate = merchGroupingMode() === "separate";
+    sameFields.hidden = separate;
+    separateFields.hidden = !separate;
+
+    const detailsContainer = document.getElementById("merchSeparateItems");
+    if (separate && detailsContainer && !detailsContainer.childElementCount) {
+      renderSeparateMerchDetails();
+    }
+
+    updateDestinationPreview();
+  };
+
+  form.querySelectorAll('input[name="merchGrouping"]').forEach(input => {
+    input.addEventListener("change", refresh);
+  });
+
+  fileInput.addEventListener("change", () => {
+    renderSeparateMerchDetails();
+    refresh();
+  });
+
+  refresh();
+}
+
 async function renderMerchForm(data, workflow) {
   const edit = Boolean(data);
   const metadata = data?.metadata || {};
   const images = merchImagePaths(data);
   let customName = "";
   if (workflow.collection) customName = (await fetchText(joinDropboxPath(workflow.root, "name.txt"), true)).trim();
+
+  const collectionNameField = workflow.collection
+    ? `<label class="field"><span>Personal merch page name</span><input name="collectionName" value="${escapeHtml(customName)}" placeholder="Optional custom tab/page name"><small>Saving creates or updates name.txt in this person's Merch folder. Leave blank to use the site's default Merch label.</small></label>`
+    : "";
+
+  if (edit) {
+    els.formArea.innerHTML = `
+      <form class="editor-form" data-kind="merch">
+        <div class="form-heading"><h2>Edit item</h2></div>
+        ${collectionNameField}
+        <label class="field"><span>Folder name</span><input name="folderName" value="${escapeHtml(filename(data.root))}"></label>
+        <label class="field"><span>Item name</span><input name="name" value="${escapeHtml(metadata.name || "")}" placeholder="Optional — leave blank for an image-only card"></label>
+        <label class="field"><span>Description</span><textarea name="description" rows="5">${escapeHtml(metadata.description || "")}</textarea></label>
+        <div class="form-grid three-column">
+          <label class="field"><span>Created</span><input name="created" value="${escapeHtml(metadata.created || "")}"></label>
+          <label class="field"><span>Created by</span><input name="createdBy" value="${escapeHtml(metadata.createdby || metadata.creator || "")}"></label>
+          <label class="field"><span>Currently with</span><input name="owner" value="${escapeHtml(metadata.owner || "")}"></label>
+        </div>
+        ${assetRows(images, "Existing item photos", "delete")}
+        <label class="field"><span>Add item photos</span><input name="images" type="file" accept="image/*" multiple></label>
+        <div class="notice merch-delete-panel">
+          <label class="check-row remove-check">
+            <input name="deleteMerchItem" type="checkbox">
+            <span><b>Remove this entire merch item</b></span>
+          </label>
+          <small class="warn">This permanently removes the item folder, its merch.txt file, and all photos inside it.</small>
+        </div>
+      </form>
+    `;
+    return;
+  }
+
   els.formArea.innerHTML = `
     <form class="editor-form" data-kind="merch">
-      <div class="form-heading"><h2>${edit ? "Edit item" : workflow.collection ? "Add collection item" : "Add merch item"}</h2></div>
-      ${edit ? `<label class="field"><span>Folder name</span><input name="folderName" value="${escapeHtml(filename(data.root))}"></label>` : ""}
-      ${workflow.collection ? `<label class="field"><span>Collection tab name *</span><input name="collectionName" required value="${escapeHtml(customName || "Collection")}"><small>This controls the person's tab label.</small></label>` : ""}
-      <label class="field"><span>Item name *</span><input name="name" required value="${escapeHtml(metadata.name || (data ? filename(data.root) : ""))}"></label>
-      <label class="field"><span>Description</span><textarea name="description" rows="5">${escapeHtml(metadata.description || "")}</textarea></label>
-      <div class="form-grid three-column">
-        <label class="field"><span>Created</span><input name="created" value="${escapeHtml(metadata.created || "")}"></label>
-        <label class="field"><span>Created by</span><input name="createdBy" value="${escapeHtml(metadata.createdby || metadata.creator || "")}"></label>
-        <label class="field"><span>Currently with</span><input name="owner" value="${escapeHtml(metadata.owner || "")}"></label>
+      <div class="form-heading">
+        <h2>${workflow.collection ? "Add merch" : "Add merch item(s)"}</h2>
+        <p class="subtle small">Upload one or several images. Multiple images can stay together as one item or become separate items.</p>
       </div>
-      ${assetRows(images, "Existing item photos", "delete")}
-      <label class="field"><span>Add item photos</span><input name="images" type="file" accept="image/*" multiple></label>
+      ${collectionNameField}
+
+      <div class="field">
+        <span>When you upload multiple images</span>
+        <div class="merch-grouping-options">
+          <label class="merch-grouping-option">
+            <input type="radio" name="merchGrouping" value="same" checked>
+            <span><b>Same item</b><small>All selected images appear in one merch item/gallery.</small></span>
+          </label>
+          <label class="merch-grouping-option">
+            <input type="radio" name="merchGrouping" value="separate">
+            <span><b>Different items</b><small>Each selected image becomes its own merch item.</small></span>
+          </label>
+        </div>
+      </div>
+
+      <label class="field"><span>Add item photo(s)</span><input name="images" type="file" accept="image/*" multiple></label>
+
+      <div id="merchSameItemFields">
+        <div class="merch-detail-panel">
+          <div class="section-mini-heading">Optional item details</div>
+          <label class="field"><span>Item name</span><input name="name" placeholder="Optional — leave blank for an image-only card"><small>If blank, merch.txt will contain an empty name and the public card will show no name.</small></label>
+          <label class="field"><span>Description</span><textarea name="description" rows="5"></textarea></label>
+          <div class="form-grid three-column">
+            <label class="field"><span>Created</span><input name="created"></label>
+            <label class="field"><span>Created by</span><input name="createdBy"></label>
+            <label class="field"><span>Currently with</span><input name="owner"></label>
+          </div>
+        </div>
+      </div>
+
+      <div id="merchSeparateItemsWrap" hidden>
+        <div class="section-mini-heading">Optional details for each item</div>
+        <div id="merchSeparateItems"></div>
+      </div>
     </form>
   `;
+
+  setupMerchBatchControls();
 }
 
 function renderWorkForm(data, workflow) {
@@ -2756,7 +2910,16 @@ function updateDestinationPreview() {
   let destination = state.selectedItem ? entryPath(state.selectedItem) : state.destinationFolder || state.rootPath || "";
   if (kind === "recipe" && state.mode === "add" && currentForm()) destination = joinDropboxPath(state.destinationFolder, `${safeSegment(value("name") || "New Recipe")}.txt`);
   if (kind === "travel" && state.mode === "add" && currentForm()) destination = joinDropboxPath(state.rootPath, safeSegment([value("title") || "New Trip", value("year")].filter(Boolean).join(" ")));
-  if (kind === "merch" && state.mode === "add" && currentForm()) destination = joinDropboxPath(state.rootPath, safeSegment(value("name") || "New Item"));
+  if (kind === "merch" && state.mode === "add" && currentForm()) {
+    if (merchGroupingMode() === "separate") {
+      const count = files("images").length;
+      destination = `${state.rootPath} (${count || "multiple"} separate item folder${count === 1 ? "" : "s"})`;
+    } else {
+      const firstImageName = files("images")[0]?.name || "";
+      const preferred = value("name") || withoutExtension(firstImageName) || "New Item";
+      destination = joinDropboxPath(state.rootPath, safeSegment(preferred));
+    }
+  }
   if (kind === "work" && state.mode === "add") destination = state.destinationFolder;
   if (kind === "work" && state.mode === "edit" && state.selectedData?.path && currentForm()) {
     destination = joinDropboxPath(
@@ -2776,36 +2939,326 @@ function updateDestinationPreview() {
   els.destinationPreview.textContent = destination || "";
 }
 
+function clearPreviewObjectUrls() {
+  for (const url of state.previewObjectUrls || []) {
+    try { URL.revokeObjectURL(url); } catch {}
+  }
+  state.previewObjectUrls = [];
+}
+
+function previewObjectUrl(file) {
+  const url = URL.createObjectURL(file);
+  state.previewObjectUrls.push(url);
+  return url;
+}
+
+function previewFiles(fieldName) {
+  return files(fieldName).map(file => ({
+    name: file.name,
+    type: file.type || "",
+    url: previewObjectUrl(file),
+    isImage: String(file.type || "").startsWith("image/") || IMAGE_EXTENSIONS.has(extension(file.name)),
+    isVideo: String(file.type || "").startsWith("video/") || VIDEO_EXTENSIONS.has(extension(file.name))
+  }));
+}
+
+function previewDropboxMedia(path) {
+  return {
+    name: filename(path),
+    type: "",
+    url: buildPublicUrl("/file", path),
+    isImage: IMAGE_EXTENSIONS.has(extension(path)),
+    isVideo: VIDEO_EXTENSIONS.has(extension(path))
+  };
+}
+
+function previewTextHtml(text) {
+  const clean = String(text ?? "").replace(/\r\n?/g, "\n").trim();
+  if (!clean) return "";
+  return clean.split(/\n\s*\n/).map(block => {
+    const lines = block.split("\n").map(line => line.trim()).filter(Boolean);
+    if (!lines.length) return "";
+    if (lines.every(line => /^[-*]\s+/.test(line))) {
+      return `<ul>${lines.map(line => `<li>${escapeHtml(line.replace(/^[-*]\s+/, ""))}</li>`).join("")}</ul>`;
+    }
+    if (lines.every(line => /^\d+[.)]\s+/.test(line))) {
+      return `<ol>${lines.map(line => `<li>${escapeHtml(line.replace(/^\d+[.)]\s+/, ""))}</li>`).join("")}</ol>`;
+    }
+    return `<p>${lines.map(escapeHtml).join("<br>")}</p>`;
+  }).join("");
+}
+
+function previewImageGallery(items, className = "site-preview-gallery") {
+  const visible = items.filter(item => item?.isImage || item?.isVideo);
+  if (!visible.length) return "";
+  return `<div class="${className}">${visible.map(item => item.isVideo
+    ? `<video src="${escapeHtml(item.url)}" controls muted playsinline></video>`
+    : `<img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name || "Preview image")}">`
+  ).join("")}</div>`;
+}
+
+function renderRecipeWebsitePreview() {
+  const existing = (state.selectedData?.images || [])
+    .filter(path => !new Set(selectedRemovePaths("reference").map(pathKey)).has(pathKey(path)))
+    .map(previewDropboxMedia);
+  const added = previewFiles("images").filter(item => item.isImage);
+  const gallery = previewImageGallery([...existing, ...added], "recipe-site-preview-images");
+  const secrets = value("secrets");
+
+  return `
+    <div class="website-preview-shell recipe-site-preview">
+      <div class="website-preview-context">Recipe quick view</div>
+      <section class="recipe-site-modal">
+        <div class="recipe-site-heading">
+          <span class="recipe-site-category">${escapeHtml(value("category") || "Category")}</span>
+          <h2>${escapeHtml(value("name") || "Recipe name")}</h2>
+        </div>
+        ${gallery}
+        <div class="recipe-site-columns">
+          <section><h3>Ingredients</h3>${previewTextHtml(value("ingredients")) || `<p class="site-preview-empty">Ingredients will appear here.</p>`}</section>
+          <section><h3>Procedure</h3>${previewTextHtml(value("preparation")) || `<p class="site-preview-empty">Procedure will appear here.</p>`}</section>
+        </div>
+        ${secrets ? `<section class="recipe-site-secrets"><h3>Safta's Secrets</h3>${previewTextHtml(secrets)}</section>` : ""}
+      </section>
+    </div>`;
+}
+
+function travelPreviewExistingMedia() {
+  const removed = new Set(selectedRemovePaths("delete").map(pathKey));
+  return (state.selectedData?.entries || [])
+    .filter(entry => String(entry.type).toLowerCase() === "file")
+    .map(entryPath)
+    .filter(path => filename(path).toLowerCase() !== "trip.txt" && !removed.has(pathKey(path)))
+    .map(previewDropboxMedia)
+    .filter(item => item.isImage || item.isVideo);
+}
+
+function renderTravelWebsitePreview() {
+  const media = [...travelPreviewExistingMedia(), ...previewFiles("images")].filter(item => item.isImage || item.isVideo);
+  const first = media[0];
+  const x = Number(value("x"));
+  const y = Number(value("y"));
+  const hasPin = Number.isFinite(x) && Number.isFinite(y) && value("x") !== "" && value("y") !== "";
+  const links = String(value("links") || "").split("\n").map(line => line.trim()).filter(Boolean);
+
+  return `
+    <div class="website-preview-shell travel-site-preview">
+      <div class="website-preview-context">Travel page + trip quick view</div>
+      <div class="travel-site-map">
+        <img src="assets/travel/world.svg" alt="World map">
+        ${hasPin ? `<span class="travel-site-pin" style="left:${Math.max(0, Math.min(100, x))}%;top:${Math.max(0, Math.min(100, y))}%" aria-hidden="true"></span>` : ""}
+      </div>
+      <section class="travel-site-modal">
+        <div class="travel-site-media">
+          ${first ? (first.isVideo
+            ? `<video src="${escapeHtml(first.url)}" controls muted playsinline></video>`
+            : `<img src="${escapeHtml(first.url)}" alt="${escapeHtml(first.name)}">`)
+            : `<div class="travel-site-placeholder">Trip media</div>`}
+          ${media.length > 1 ? `<div class="travel-site-counter">1 / ${media.length}</div>` : ""}
+        </div>
+        <div class="travel-site-copy">
+          <div class="travel-site-year">${escapeHtml(value("year"))}</div>
+          <h2>${escapeHtml(value("title") || "Trip title")}</h2>
+          ${value("travelers") ? `<p class="travel-site-travelers">${escapeHtml(value("travelers"))}</p>` : ""}
+          ${value("blurb") ? `<p>${escapeHtml(value("blurb"))}</p>` : ""}
+          ${links.length ? `<div class="travel-site-links">${links.map(line => `<span>${escapeHtml(line.split("|")[0].trim() || "Link")}</span>`).join("")}</div>` : ""}
+        </div>
+      </section>
+    </div>`;
+}
+
+function merchPreviewCard(record, imageItems) {
+  const first = imageItems[0];
+  const name = String(record.name || "");
+  return `
+    <article class="merch-site-card">
+      ${first ? `<div class="merch-site-image-wrap"><img src="${escapeHtml(first.url)}" alt="${escapeHtml(name || "Merch item")}"></div>` : ""}
+      ${imageItems.length > 1 ? `<div class="merch-site-dots">${imageItems.map((_, index) => `<i class="${index === 0 ? "active" : ""}"></i>`).join("")}</div>` : ""}
+      ${name ? `<h2>${escapeHtml(name)}</h2>` : ""}
+    </article>`;
+}
+
+function merchPreviewDetails(record, imageItems) {
+  const first = imageItems[0];
+  const detailRows = [
+    ["Created", record.created],
+    ["Created by", record.createdBy],
+    ["Currently with", record.owner]
+  ].filter(([, detail]) => String(detail || "").trim());
+  return `
+    <section class="merch-site-quick-view">
+      <div class="merch-site-quick-image">${first ? `<img src="${escapeHtml(first.url)}" alt="${escapeHtml(record.name || "Merch item")}">` : ""}</div>
+      <div class="merch-site-quick-info">
+        ${record.name ? `<h2>${escapeHtml(record.name)}</h2>` : ""}
+        ${record.description ? `<p>${escapeHtml(record.description)}</p>` : ""}
+        ${detailRows.length ? `<dl>${detailRows.map(([label, detail]) => `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(detail)}</dd></div>`).join("")}</dl>` : ""}
+      </div>
+    </section>`;
+}
+
+function renderMerchWebsitePreview() {
+  let records = [];
+  if (state.mode === "add" && merchGroupingMode() === "separate") {
+    records = merchBatchRecords().map(record => ({
+      ...record,
+      images: [previewObjectUrl(record.file)]
+    }));
+  } else {
+    const removed = new Set(selectedRemovePaths("delete").map(pathKey));
+    const existing = merchImagePaths(state.selectedData).filter(path => !removed.has(pathKey(path))).map(previewDropboxMedia);
+    const added = previewFiles("images").filter(item => item.isImage);
+    records = [{
+      name: value("name"),
+      description: value("description"),
+      created: value("created"),
+      createdBy: value("createdBy"),
+      owner: value("owner"),
+      imageItems: [...existing, ...added]
+    }];
+  }
+
+  const normalized = records.map(record => ({
+    ...record,
+    imageItems: record.imageItems || (record.images || []).map((url, index) => ({ url, name: record.file?.name || `Image ${index + 1}`, isImage: true }))
+  }));
+
+  const collectionTitle = value("collectionName");
+  return `
+    <div class="website-preview-shell merch-site-preview">
+      ${collectionTitle ? `<h1 class="merch-site-page-name">${escapeHtml(collectionTitle)}</h1>` : ""}
+      <div class="website-preview-context">Merch inventory</div>
+      <div class="merch-site-grid">${normalized.map(record => merchPreviewCard(record, record.imageItems)).join("")}</div>
+      ${normalized.length === 1 ? `<div class="website-preview-context website-preview-context-lower">When the item is opened</div>${merchPreviewDetails(normalized[0], normalized[0].imageItems)}` : ""}
+    </div>`;
+}
+
+function memoryPreviewItems() {
+  const removed = new Set(selectedRemovePaths("delete").map(pathKey));
+  const existing = (state.selectedData?.entries || [])
+    .filter(entry => String(entry.type).toLowerCase() === "file")
+    .map(entryPath)
+    .filter(path => !removed.has(pathKey(path)))
+    .map(previewDropboxMedia)
+    .filter(item => item.isImage || item.isVideo);
+  return [...existing, ...previewFiles("media")].filter(item => item.isImage || item.isVideo);
+}
+
+function renderMemoryWebsitePreview() {
+  const items = memoryPreviewItems();
+  const title = value("folderName") || filename(state.selectedData?.root || state.destinationFolder || state.currentFolder || "Memories");
+  return `
+    <div class="website-preview-shell memory-site-preview">
+      <div class="website-preview-context">Memories album</div>
+      <h2>${escapeHtml(title || "Memories")}</h2>
+      ${items.length ? `<div class="memory-site-grid">${items.map(item => item.isVideo
+        ? `<div class="memory-site-photo"><video src="${escapeHtml(item.url)}" muted playsinline></video><span>Video</span></div>`
+        : `<div class="memory-site-photo"><img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}"></div>`
+      ).join("")}</div>` : `<div class="memory-site-empty">Photos and videos will appear here.</div>`}
+    </div>`;
+}
+
+function workPreviewItems() {
+  const items = [];
+  if (state.selectedData?.path && !checked("deleteSelected")) {
+    if (state.selectedData.links?.length === 1 && state.selectedData.links[0].url) {
+      items.push({
+        name: state.selectedData.links[0].label || withoutExtension(filename(state.selectedData.path)),
+        url: state.selectedData.links[0].url,
+        isLink: true,
+        isImage: false,
+        isVideo: false
+      });
+    } else {
+      items.push(previewDropboxMedia(state.selectedData.path));
+    }
+  }
+  for (const item of previewFiles("workFiles")) items.push(item);
+  const linkTitle = value("linkTitle");
+  const linkUrl = value("linkUrl");
+  if (linkTitle || linkUrl) items.push({ name: linkTitle || linkUrl, url: linkUrl, isLink: true, isImage: false, isVideo: false });
+  return items;
+}
+
+function renderWorkWebsitePreview() {
+  const items = workPreviewItems();
+  return `
+    <div class="website-preview-shell works-site-preview">
+      <div class="website-preview-context">Works carousel</div>
+      <h2 class="works-site-group">${escapeHtml(filename(state.destinationFolder || state.currentFolder || parentPath(state.selectedData?.path || "")) || "Works")}</h2>
+      <div class="works-site-carousel">${items.length ? items.map(item => {
+        const label = item.isLink ? "Website" : (extension(item.name).toUpperCase() || "Work");
+        return `<article class="works-site-card">
+          ${item.isImage ? `<div class="works-site-image"><img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.name)}"></div>` : `<div class="works-site-file-icon">${escapeHtml(label)}</div>`}
+          <div class="works-site-card-copy"><span>${escapeHtml(label)}</span><h3>${escapeHtml(withoutExtension(item.name || "Untitled"))}</h3></div>
+        </article>`;
+      }).join("") : `<div class="works-site-empty">The selected work will appear here.</div>`}</div>
+    </div>`;
+}
+
+function renderPersonalTravelWebsitePreview() {
+  const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-trip]:checked")).map(input => input.dataset.addPersonalTrip);
+  const removals = new Set(Array.from(els.formArea.querySelectorAll("[data-remove-personal-trip]:checked")).map(input => input.dataset.removePersonalTrip));
+  const current = Array.from(els.formArea.querySelectorAll("[data-remove-personal-trip]"))
+    .map(input => input.dataset.removePersonalTrip)
+    .filter(name => !removals.has(name));
+  const names = [...new Set([...current, ...additions])];
+  return `
+    <div class="website-preview-shell travel-site-preview personal-selection-preview">
+      <div class="website-preview-context">${escapeHtml(state.person || "Personal")} Travel page</div>
+      <div class="travel-site-map personal-map-preview"><img src="assets/travel/world.svg" alt="World map"></div>
+      <div class="personal-preview-strip">${names.length ? names.map(name => `<span>${escapeHtml(name)}</span>`).join("") : `<em>No trips selected.</em>`}</div>
+    </div>`;
+}
+
+function renderPersonalMemoryWebsitePreview() {
+  const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-memory]:checked")).map(input => input.dataset.addPersonalMemory);
+  const removals = new Set(Array.from(els.formArea.querySelectorAll("[data-remove-personal-memory]:checked")).map(input => input.dataset.removePersonalMemory));
+  const current = Array.from(els.formArea.querySelectorAll("[data-remove-personal-memory]"))
+    .map(input => input.dataset.removePersonalMemory)
+    .filter(name => !removals.has(name));
+  const names = [...new Set([...current, ...additions])];
+  return `
+    <div class="website-preview-shell memory-site-preview personal-selection-preview">
+      <div class="website-preview-context">${escapeHtml(state.person || "Personal")} Memories page</div>
+      <h2>${escapeHtml(state.person ? `${state.person}'s Memories` : "Memories")}</h2>
+      <div class="personal-memory-folder-grid">${names.length ? names.map(name => `<div class="personal-memory-folder"><span>${escapeHtml(memoryReferenceName(name) || name)}</span></div>`).join("") : `<em>No memories selected.</em>`}</div>
+    </div>`;
+}
+
+function renderFolderWebsitePreview() {
+  return `
+    <div class="website-preview-shell folder-site-preview">
+      <div class="website-preview-context">Website folder label</div>
+      <div class="folder-site-tab">${escapeHtml(value("folderName") || filename(state.selectedData?.path || "Folder"))}</div>
+    </div>`;
+}
+
 function openPreview() {
   const form = currentForm();
   if (!form) return;
+  clearPreviewObjectUrls();
   const kind = form.dataset.kind;
-  let title = "Preview";
-  let body = "";
-  if (kind === "recipe") { title = value("name") || "Recipe"; body = `${value("category")}\n\nIngredients\n${value("ingredients")}\n\nProcedure\n${value("preparation")}`; }
-  else if (kind === "travel") { title = value("title") || "Trip"; body = `${value("year")}\n${value("travelers")}\n${value("blurb")}`; }
-  else if (kind === "merch") { title = value("name") || "Item"; body = value("description"); }
-  else if (kind === "memory") { title = filename(state.destinationFolder || state.selectedData?.root || state.currentFolder); body = "New files and links will be added to this memory folder."; }
-  else if (kind === "work") { title = state.selectedData ? filename(state.selectedData.path) : "Works"; body = "Files and links selected here will be added to the chosen Works folder."; }
-  else if (kind === "folder") { title = `Rename ${filename(state.selectedData?.path || "folder")}`; body = `New folder name: ${value("folderName")}`; }
-  else if (kind === "personalTravel") {
-    title = `${state.person}'s Travel`;
-    const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-trip]:checked")).map(input => input.dataset.addPersonalTrip);
-    const removals = Array.from(els.formArea.querySelectorAll("[data-remove-personal-trip]:checked")).map(input => input.dataset.removePersonalTrip);
-    body = `${additions.length ? `Add: ${additions.join(", ")}` : "No trips added."}${removals.length ? `\nRemove: ${removals.join(", ")}` : ""}`;
-  }
-  else if (kind === "personalMemory") {
-    title = `${state.person}'s Memories`;
-    const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-memory]:checked")).map(input => input.dataset.addPersonalMemory);
-    const removals = Array.from(els.formArea.querySelectorAll("[data-remove-personal-memory]:checked")).map(input => input.dataset.removePersonalMemory);
-    body = `${additions.length ? `Add: ${additions.join(", ")}` : "No memories added."}${removals.length ? `\nRemove: ${removals.join(", ")}` : ""}`;
-  }
-  els.previewContent.innerHTML = `<div class="preview-layout"><h2 class="preview-title">${escapeHtml(title)}</h2><div class="preview-copy">${escapeHtml(body)}</div><div class="notice small"><b>Destination:</b><br><code>${escapeHtml(els.destinationPreview.textContent)}</code></div></div>`;
+  let html = "";
+  if (kind === "recipe") html = renderRecipeWebsitePreview();
+  else if (kind === "travel") html = renderTravelWebsitePreview();
+  else if (kind === "merch") html = renderMerchWebsitePreview();
+  else if (kind === "memory") html = renderMemoryWebsitePreview();
+  else if (kind === "work") html = renderWorkWebsitePreview();
+  else if (kind === "personalTravel") html = renderPersonalTravelWebsitePreview();
+  else if (kind === "personalMemory") html = renderPersonalMemoryWebsitePreview();
+  else if (kind === "folder") html = renderFolderWebsitePreview();
+  else html = `<div class="website-preview-shell"><div class="site-preview-empty">No visual preview is available for this item.</div></div>`;
+
+  els.previewContent.innerHTML = html;
   els.previewModal.classList.add("is-open");
   els.previewModal.setAttribute("aria-hidden", "false");
 }
 
-function closePreview() { els.previewModal.classList.remove("is-open"); els.previewModal.setAttribute("aria-hidden", "true"); }
+function closePreview() {
+  els.previewModal.classList.remove("is-open");
+  els.previewModal.setAttribute("aria-hidden", "true");
+  clearPreviewObjectUrls();
+}
 
 /* ------------------------------ publishing ------------------------------ */
 function confirmExplicitRemovals() {
@@ -2818,6 +3271,10 @@ function requireForm() {
   if (form && !form.reportValidity()) return false;
   if (state.currentEditorKind === "work" && !state.selectedData && files("workFiles").length === 0 && !value("linkUrl")) {
     setPublishStatus("Choose at least one file or enter a website URL.", "error");
+    return false;
+  }
+  if (state.currentEditorKind === "merch" && state.mode === "add" && merchGroupingMode() === "separate" && files("images").length === 0) {
+    setPublishStatus("Choose at least one image before creating separate merch items.", "error");
     return false;
   }
   if (!confirmExplicitRemovals()) return false;
@@ -3292,11 +3749,77 @@ async function nextMerchOrder(root) {
   return finite.length ? Math.max(...finite) + 1 : 1;
 }
 
+async function publishSeparateMerchItems(workflow) {
+  const records = merchBatchRecords();
+  if (!records.length) throw new Error("Choose at least one image.");
+
+  const startingOrder = await nextMerchOrder(workflow.root);
+  const createdRoots = [];
+
+  for (let index = 0; index < records.length; index += 1) {
+    const record = records[index];
+    const imageStem = withoutExtension(record.file.name) || `Item ${index + 1}`;
+    const folder = await availableFolder(workflow.root, record.name || imageStem);
+    await ensureFolder(folder);
+
+    setPublishStatus(`Creating merch item ${index + 1} of ${records.length}…`, "working");
+    const uploadedImages = await uploadFiles(folder, [record.file]);
+    const order = startingOrder + index;
+    const idSource = record.name || imageStem || `item-${order}`;
+    const lines = [
+      `id: ${slugify(idSource)}`,
+      `name: ${record.name}`,
+      `description: ${record.description}`,
+      `created: ${record.created}`,
+      `createdBy: ${record.createdBy}`,
+      `owner: ${record.owner}`,
+      `order: ${order}`,
+      `images: ${uploadedImages.join(", ")}`
+    ];
+
+    await uploadText(joinDropboxPath(folder, "merch.txt"), `${lines.join("\n")}\n`, false);
+    createdRoots.push(folder);
+  }
+
+  return `${createdRoots.length} merch item${createdRoots.length === 1 ? "" : "s"} under ${workflow.root}`;
+}
+
 async function publishMerch(workflow) {
   const edit = Boolean(state.selectedData);
-  const root = edit ? state.selectedData.root : await availableFolder(workflow.root, value("name") || "Item");
+
+  if (workflow.collection) {
+    await ensureFolder(workflow.root);
+    await uploadText(joinDropboxPath(workflow.root, "name.txt"), `${value("collectionName")}\n`, true);
+  }
+
+  if (edit && checked("deleteMerchItem")) {
+    const removedRoot = state.selectedData.root;
+    await deletePath(removedRoot);
+    return `Removed merch item ${filename(removedRoot)}`;
+  }
+
+  if (!edit && merchGroupingMode() === "separate") {
+    return publishSeparateMerchItems(workflow);
+  }
+
+  if (!edit) {
+    const hasItemContent =
+      files("images").length > 0 ||
+      ["name", "description", "created", "createdBy", "owner"].some(field => value(field));
+
+    if (!hasItemContent) {
+      if (workflow.collection) {
+        return joinDropboxPath(workflow.root, "name.txt");
+      }
+      throw new Error("Add at least one image or item detail before saving merch.");
+    }
+  }
+
+  const firstImageName = files("images")[0]?.name || "";
+  const preferredFolderName = value("name") || withoutExtension(firstImageName) || "Item";
+  const root = edit ? state.selectedData.root : await availableFolder(workflow.root, preferredFolderName);
   await ensureFolder(root);
-  if (workflow.collection) await uploadText(joinDropboxPath(workflow.root, "name.txt"), `${value("collectionName")}\n`, true);
+
   for (const path of selectedRemovePaths("delete")) await deletePath(path);
   const newImagePaths = files("images").length ? await uploadFiles(root, files("images")) : [];
   let existingImages = edit ? merchImagePaths(state.selectedData) : [];
@@ -3304,8 +3827,9 @@ async function publishMerch(workflow) {
   existingImages = existingImages.filter(path => !removed.has(pathKey(path)));
   const allImages = [...existingImages, ...newImagePaths];
   const order = edit && state.selectedData.metadata.order ? state.selectedData.metadata.order : await nextMerchOrder(workflow.root);
+  const idSource = value("name") || withoutExtension(firstImageName) || filename(root) || `item-${order}`;
   const lines = [
-    `id: ${slugify(value("name"))}`,
+    `id: ${slugify(idSource)}`,
     `name: ${value("name")}`,
     `description: ${value("description")}`,
     `created: ${value("created")}`,
@@ -3405,6 +3929,14 @@ async function publish() {
     else if (state.currentEditorKind === "folder") result = await publishFolderRename();
     setProgress(100);
     setPublishStatus(`Saved successfully: ${result}`, "success");
+
+    if (state.currentEditorKind === "merch" && state.mode === "edit" && checked("deleteMerchItem")) {
+      state.selectedItem = null;
+      state.selectedData = null;
+      state.currentEditorKind = null;
+      await showDirectItemStep(workflow);
+      els.itemArea.insertAdjacentHTML("afterbegin", `<div class="notice good small" style="margin-bottom:14px">Merch item removed.</div>`);
+    }
   } catch (error) {
     console.error(error);
     setProgress(0);

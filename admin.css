@@ -2215,3 +2215,685 @@ code {
     justify-content: flex-start;
   }
 }
+
+/* =========================================================
+   MERCH BATCH CREATION
+========================================================= */
+
+.merch-grouping-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.merch-grouping-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+.merch-grouping-option:has(input:checked) {
+  border-color: #60a5fa;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.06);
+}
+
+.merch-grouping-option input {
+  margin-top: 3px;
+  accent-color: var(--accent);
+}
+
+.merch-grouping-option > span {
+  display: grid;
+  gap: 3px;
+}
+
+.merch-grouping-option small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.merch-detail-panel,
+.merch-batch-fields {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.section-mini-heading {
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.merch-batch-list {
+  display: grid;
+  gap: 12px;
+}
+
+.merch-batch-item {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.merch-batch-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+
+.merch-batch-item summary span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.merch-batch-item .merch-batch-fields {
+  margin: 0 12px 12px;
+}
+
+@media (max-width: 760px) {
+  .merch-grouping-options {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+   WEBSITE-LIKE ADMIN PREVIEWS
+========================================================= */
+
+.preview-card {
+  width: min(1180px, 96vw);
+  padding: 24px;
+}
+
+#previewContent {
+  margin: 0 -4px -4px;
+}
+
+.website-preview-shell {
+  --site-paper: #f5f0e7;
+  --site-card: #fbf6e9;
+  --site-ink: #5e0b11;
+  --site-deep-ink: #681116;
+  --site-soft: #fffaf2;
+  width: 100%;
+  min-height: 420px;
+  padding: 38px;
+  overflow: hidden;
+  background: var(--site-paper);
+  color: var(--site-ink);
+  font-family: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  border: 1px solid rgba(94, 11, 17, 0.12);
+}
+
+.website-preview-context {
+  margin-bottom: 26px;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: rgba(94, 11, 17, 0.55);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.website-preview-context-lower {
+  margin-top: 42px;
+}
+
+.site-preview-empty,
+.memory-site-empty,
+.works-site-empty {
+  padding: 42px;
+  border: 1px dashed rgba(94, 11, 17, 0.25);
+  color: rgba(94, 11, 17, 0.65);
+  font-size: 1.2rem;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Recipe */
+
+.recipe-site-modal {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  padding: clamp(28px, 5vw, 58px);
+  background: #fffaf2;
+  box-shadow: 0 20px 55px rgba(48, 17, 18, 0.15);
+}
+
+.recipe-site-heading {
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(94, 11, 17, 0.25);
+}
+
+.recipe-site-category {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 1.05rem;
+  font-style: italic;
+  opacity: 0.68;
+}
+
+.recipe-site-heading h2 {
+  margin: 0;
+  color: var(--site-ink);
+  font-size: clamp(2.7rem, 6vw, 5.2rem);
+  font-weight: 500;
+  line-height: 0.95;
+}
+
+.recipe-site-preview-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin: 28px 0;
+}
+
+.recipe-site-preview-images img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.recipe-site-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  margin-top: 34px;
+}
+
+.recipe-site-columns h3,
+.recipe-site-secrets h3 {
+  margin: 0 0 14px;
+  color: var(--site-ink);
+  font-size: 1.65rem;
+  font-weight: 600;
+}
+
+.recipe-site-columns p,
+.recipe-site-columns li,
+.recipe-site-secrets p,
+.recipe-site-secrets li {
+  font-size: 1.12rem;
+  line-height: 1.55;
+}
+
+.recipe-site-columns ul,
+.recipe-site-columns ol,
+.recipe-site-secrets ul,
+.recipe-site-secrets ol {
+  padding-left: 22px;
+}
+
+.recipe-site-secrets {
+  margin-top: 34px;
+  padding: 24px 28px;
+  border: 1px solid rgba(94, 11, 17, 0.22);
+  background: rgba(245, 240, 231, 0.72);
+}
+
+/* Travel */
+
+.travel-site-preview {
+  background: #88a9c2;
+}
+
+.travel-site-preview .website-preview-context {
+  color: rgba(255, 250, 242, 0.78);
+}
+
+.travel-site-map {
+  position: relative;
+  width: 100%;
+  max-height: 330px;
+  overflow: hidden;
+  margin-bottom: 28px;
+  background: rgba(255, 250, 242, 0.16);
+}
+
+.travel-site-map img {
+  display: block;
+  width: 100%;
+  max-height: 330px;
+  object-fit: contain;
+}
+
+.travel-site-pin {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 4px solid #fffaf2;
+  border-radius: 50% 50% 50% 0;
+  background: #681116;
+  box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  transform: translate(-50%, -100%) rotate(-45deg);
+}
+
+.travel-site-modal {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, .85fr);
+  gap: 42px;
+  width: min(980px, 100%);
+  margin: 0 auto;
+  padding: 34px;
+  background: #f5f0e7;
+  box-shadow: 0 22px 60px rgba(25, 40, 52, 0.28);
+}
+
+.travel-site-media {
+  position: relative;
+  min-height: 310px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: rgba(255,255,255,.32);
+}
+
+.travel-site-media img,
+.travel-site-media video {
+  width: 100%;
+  height: 100%;
+  max-height: 430px;
+  object-fit: contain;
+}
+
+.travel-site-placeholder {
+  color: rgba(94,11,17,.5);
+  font-size: 1.4rem;
+  font-style: italic;
+}
+
+.travel-site-counter {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  padding: 5px 9px;
+  background: rgba(94, 11, 17, 0.82);
+  color: #fffaf2;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+}
+
+.travel-site-year {
+  margin-bottom: 4px;
+  color: rgba(94,11,17,.58);
+  font-size: 1.1rem;
+  font-style: italic;
+}
+
+.travel-site-copy h2 {
+  margin: 0 0 12px;
+  font-size: clamp(2.5rem, 5vw, 4.4rem);
+  font-weight: 500;
+  line-height: .95;
+}
+
+.travel-site-copy p {
+  font-size: 1.18rem;
+  line-height: 1.55;
+}
+
+.travel-site-travelers {
+  font-style: italic;
+}
+
+.travel-site-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 24px;
+}
+
+.travel-site-links span,
+.personal-preview-strip span {
+  padding: 8px 12px;
+  border: 1px solid rgba(94,11,17,.25);
+  background: #fffaf2;
+  font-size: 1rem;
+}
+
+/* Merch - mirrors public cream paper cards */
+
+.merch-site-preview {
+  background: #f5f0e7;
+}
+
+.merch-site-page-name {
+  margin: 0 0 24px;
+  color: #681116;
+  font-size: clamp(2.8rem, 6vw, 5rem);
+  font-weight: 500;
+}
+
+.merch-site-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 300px));
+  gap: 42px;
+  align-items: start;
+}
+
+.merch-site-card {
+  width: 100%;
+  max-width: 330px;
+  overflow: hidden;
+  background: #fbf6e9;
+  box-shadow: -10px 0 8px rgba(0, 0, 0, 0.15);
+}
+
+.merch-site-image-wrap {
+  width: 100%;
+  height: 285px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.merch-site-image-wrap img {
+  width: 130%;
+  height: 130%;
+  object-fit: contain;
+  transform: translateY(-12px);
+}
+
+.merch-site-card h2 {
+  margin: 8px 20px 28px;
+  color: #700010;
+  font-size: 1.6rem;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+}
+
+.merch-site-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: -2px 0 8px;
+}
+
+.merch-site-dots i {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #700010;
+  border-radius: 50%;
+  background: #fbf6e9;
+}
+
+.merch-site-dots i.active {
+  background: #700010;
+}
+
+.merch-site-quick-view {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 55px;
+  align-items: center;
+  width: min(1000px, 100%);
+  margin: 0 auto;
+  padding: 50px;
+  background: #f5f0e7;
+  box-shadow: 0 25px 70px rgba(0,0,0,.18);
+}
+
+.merch-site-quick-image {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+}
+
+.merch-site-quick-image img {
+  width: 125%;
+  max-height: 450px;
+  object-fit: contain;
+  transform: translateX(-45px);
+}
+
+.merch-site-quick-info h2 {
+  margin: 0 0 18px;
+  color: #700010;
+  font-size: 3rem;
+  font-weight: 400;
+}
+
+.merch-site-quick-info p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.merch-site-quick-info dl {
+  margin-top: 30px;
+}
+
+.merch-site-quick-info dl div {
+  margin-bottom: 18px;
+}
+
+.merch-site-quick-info dt {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: .75rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  opacity: .6;
+}
+
+.merch-site-quick-info dd {
+  margin: 5px 0 0;
+  font-size: 1.25rem;
+}
+
+.merch-delete-panel {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+/* Memories */
+
+.memory-site-preview h2 {
+  margin: 0 0 28px;
+  font-size: clamp(2.7rem, 5vw, 4.7rem);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.memory-site-grid {
+  columns: 3 210px;
+  column-gap: 16px;
+}
+
+.memory-site-photo {
+  position: relative;
+  break-inside: avoid;
+  margin-bottom: 16px;
+  padding: 8px 8px 26px;
+  background: #fffefa;
+  box-shadow: 0 6px 16px rgba(48, 17, 18, .13);
+}
+
+.memory-site-photo img,
+.memory-site-photo video {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 330px;
+  object-fit: cover;
+}
+
+.memory-site-photo span {
+  display: block;
+  padding: 7px 3px 0;
+  font-size: .9rem;
+  font-style: italic;
+}
+
+/* Works */
+
+.works-site-preview {
+  background: #681116;
+  color: #fbecd8;
+}
+
+.works-site-preview .website-preview-context {
+  color: rgba(251, 236, 216, .58);
+}
+
+.works-site-group {
+  margin: 0 0 15px 10px;
+  color: #fbecd8;
+  font-size: 34px;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.works-site-carousel {
+  display: flex;
+  gap: 25px;
+  padding: 10px 5px 24px 10px;
+  overflow-x: auto;
+}
+
+.works-site-card {
+  flex: 0 0 min(350px, 78vw);
+  overflow: hidden;
+  background: #fffefa;
+  color: #301112;
+  box-shadow: 0 14px 28px rgba(0,0,0,.16);
+}
+
+.works-site-image,
+.works-site-file-icon {
+  height: 260px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #f5f0e7;
+}
+
+.works-site-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.works-site-file-icon {
+  color: #681116;
+  font-size: 2.2rem;
+  font-style: italic;
+}
+
+.works-site-card-copy {
+  padding: 22px 24px 28px;
+}
+
+.works-site-card-copy span {
+  color: #756c69;
+  font-size: .8rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.works-site-card-copy h3 {
+  margin: 7px 0 0;
+  color: #681116;
+  font-size: 1.8rem;
+  font-style: italic;
+  font-weight: 500;
+}
+
+/* Personal selection previews */
+
+.personal-map-preview {
+  opacity: .88;
+}
+
+.personal-preview-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px;
+  background: #f5f0e7;
+  color: #5e0b11;
+}
+
+.personal-memory-folder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 18px;
+}
+
+.personal-memory-folder {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #fffefa;
+  box-shadow: 0 7px 18px rgba(48, 17, 18, .11);
+  font-size: 1.4rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.folder-site-preview {
+  min-height: 300px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+}
+
+.folder-site-preview .website-preview-context {
+  justify-self: start;
+  align-self: start;
+  width: 100%;
+}
+
+.folder-site-tab {
+  padding: 18px 28px;
+  border-bottom: 2px solid #681116;
+  color: #681116;
+  font-size: 2.3rem;
+  font-style: italic;
+}
+
+@media (max-width: 760px) {
+  .website-preview-shell {
+    padding: 22px;
+  }
+
+  .recipe-site-columns,
+  .travel-site-modal,
+  .merch-site-quick-view {
+    grid-template-columns: 1fr;
+  }
+
+  .travel-site-modal,
+  .merch-site-quick-view {
+    gap: 24px;
+    padding: 26px;
+  }
+
+  .merch-site-quick-image img {
+    width: 100%;
+    transform: none;
+  }
+
+  .memory-site-grid {
+    columns: 2 150px;
+  }
+}

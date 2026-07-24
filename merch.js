@@ -1177,9 +1177,11 @@ async function buildMerchItemFromText({
     name:
       metadata.story ||
       metadata.name ||
-      titleFromFilename(
-        textFile.name
-      ),
+      (textFile.name.toLowerCase() === "merch.txt"
+        ? ""
+        : titleFromFilename(
+            textFile.name
+          )),
 
     /*
       Car is the preferred subtitle.
@@ -1825,9 +1827,14 @@ function createMerchCard(
     "button"
   );
 
+  const accessibleItemName =
+    item.name ||
+    item.subtitle ||
+    "merch item";
+
   card.setAttribute(
     "aria-label",
-    `View ${item.name}`
+    `View ${accessibleItemName}`
   );
 
 
@@ -1838,7 +1845,7 @@ function createMerchCard(
           <img
             class="merch-image"
             src="${escapeHtml(item.images[0])}"
-            alt="${escapeHtml(item.name)}"
+            alt="${escapeHtml(item.name || item.subtitle || "Merch item")}"
             loading="lazy"
             decoding="async"
             fetchpriority="low"
@@ -1860,13 +1867,18 @@ function createMerchCard(
       : "";
 
 
+  const nameMarkup =
+    item.name
+      ? `
+        <h2>
+          ${escapeHtml(item.name)}
+        </h2>
+      `
+      : "";
+
   card.innerHTML = `
     ${imageMarkup}
-
-    <h2>
-      ${escapeHtml(item.name)}
-    </h2>
-
+    ${nameMarkup}
     ${subtitleMarkup}
   `;
 
@@ -1968,11 +1980,16 @@ function showQuickViewImage(
     index
   });
 
+  const accessibleItemName =
+    activeQuickViewItem.name ||
+    activeQuickViewItem.subtitle ||
+    "Merch item";
+
   quickViewImage.alt =
     activeQuickViewItem.images.length >
     1
-      ? `${activeQuickViewItem.name}, image ${index + 1}`
-      : activeQuickViewItem.name;
+      ? `${accessibleItemName}, image ${index + 1}`
+      : accessibleItemName;
 }
 
 
@@ -2008,7 +2025,41 @@ function openQuickView(
 
 
   quickViewName.textContent =
-    item.name;
+    item.name ||
+    "";
+
+  quickViewName.hidden =
+    !item.name;
+
+  const quickViewCard =
+    quickView?.querySelector(
+      ".quick-view-card"
+    );
+
+  if (
+    quickViewCard
+  ) {
+    if (
+      item.name
+    ) {
+      quickViewCard.setAttribute(
+        "aria-labelledby",
+        "quick-view-name"
+      );
+      quickViewCard.removeAttribute(
+        "aria-label"
+      );
+    } else {
+      quickViewCard.removeAttribute(
+        "aria-labelledby"
+      );
+      quickViewCard.setAttribute(
+        "aria-label",
+        item.subtitle ||
+          "Merch item"
+      );
+    }
+  }
 
 
   if (
@@ -2128,7 +2179,9 @@ function openQuickView(
     quickViewItemPrev.setAttribute(
       "aria-label",
       canNavigateItems
-        ? `Previous merch item before ${item.name}`
+        ? item.name
+          ? `Previous merch item before ${item.name}`
+          : "Previous merch item"
         : "Previous merch item"
     );
   }
@@ -2142,7 +2195,9 @@ function openQuickView(
     quickViewItemNext.setAttribute(
       "aria-label",
       canNavigateItems
-        ? `Next merch item after ${item.name}`
+        ? item.name
+          ? `Next merch item after ${item.name}`
+          : "Next merch item"
         : "Next merch item"
     );
   }
