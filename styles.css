@@ -16,7 +16,7 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--ink);
   color: var(--ink);
   font-family: "Cormorant Garamond", Georgia, serif;
   overflow-x: hidden;
@@ -162,7 +162,7 @@ body {
 }
 
 .top-nav-link {
-  color: #5e0b11;
+  color: #f5f0e7;
   text-decoration: none;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.5rem;
@@ -326,7 +326,7 @@ body {
 /* Inventory */
 
 .merch-main {
-  background: #f5f0e7;
+  background: var(--line);
   padding: 55px 2.5% 100px;
 }
 
