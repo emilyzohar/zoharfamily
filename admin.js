@@ -3303,7 +3303,6 @@ async function publishMerch(workflow) {
   const removed = new Set(selectedRemovePaths("delete").map(pathKey));
   existingImages = existingImages.filter(path => !removed.has(pathKey(path)));
   const allImages = [...existingImages, ...newImagePaths];
-  if (!allImages.length) throw new Error("A Merch/Collection item needs at least one image.");
   const order = edit && state.selectedData.metadata.order ? state.selectedData.metadata.order : await nextMerchOrder(workflow.root);
   const lines = [
     `id: ${slugify(value("name"))}`,
