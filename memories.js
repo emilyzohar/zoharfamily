@@ -605,6 +605,114 @@ function getDropboxFileUrl(
 }
 
 
+async function getDropboxPreviewUrl(
+  path
+) {
+  const response =
+    await fetch(
+      buildDropboxApiUrl(
+        "/shared-link",
+        {
+          path
+        }
+      )
+    );
+
+  if (
+    !response.ok
+  ) {
+    throw new Error(
+      await response.text()
+        .catch(
+          () =>
+            `Could not preview ${path}`
+        )
+    );
+  }
+
+  const data =
+    await response.json();
+
+  if (
+    !data?.url
+  ) {
+    throw new Error(
+      "Dropbox did not return a preview link."
+    );
+  }
+
+  const previewUrl =
+    new URL(
+      data.url
+    );
+
+  previewUrl.searchParams.delete(
+    "raw"
+  );
+
+  previewUrl.searchParams.set(
+    "dl",
+    "0"
+  );
+
+  return previewUrl.toString();
+}
+
+
+async function openMemoryDocumentPreview(
+  path
+) {
+  const previewWindow =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if (
+    !previewWindow
+  ) {
+    alert(
+      "Please allow pop-ups for this website to preview the document."
+    );
+
+    return;
+  }
+
+  previewWindow.opener =
+    null;
+
+  previewWindow.document.title =
+    "Opening preview…";
+
+  previewWindow.document.body.innerHTML = `
+    <p style="font-family:Georgia,serif;padding:32px;color:#681116">
+      Opening preview…
+    </p>
+  `;
+
+  try {
+    previewWindow.location.replace(
+      await getDropboxPreviewUrl(
+        path
+      )
+    );
+
+  } catch (
+    error
+  ) {
+    previewWindow.document.title =
+      "Preview unavailable";
+
+    previewWindow.document.body.innerHTML = `
+      <div style="font-family:Georgia,serif;padding:32px;color:#681116">
+        <h1>Preview unavailable</h1>
+        <p>${String(error?.message || "The document could not be previewed.")}</p>
+      </div>
+    `;
+  }
+}
+
+
 /* =========================================================
    DROPBOX TEXT FILE
 ========================================================= */
@@ -1793,22 +1901,63 @@ function buildPersonMemoryFolderTree(
       allEntries
     );
 
+  const seenLooseMediaPaths =
+    new Set();
+
 
   groups.forEach(
     group => {
 
-      const folder = {
-        name:
-          group.name,
-        path:
-          `${DROPBOX_MEMORIES_ROOT}/${group.name}`,
-        files:
-          [],
-        folders:
-          [],
-        parent:
-          root
-      };
+      const normalizedGroupName =
+        String(
+          group.name || ""
+        )
+          .trim()
+          .toLowerCase();
+
+      const singleReference =
+        group.references.length === 1
+          ? trimSlashes(group.references[0])
+          : "";
+
+      const singleReferenceExtension =
+        getExtension(
+          singleReference
+        );
+
+      const isLegacySinglePhotoGroup =
+        Boolean(singleReference)
+        &&
+        normalizedGroupName ===
+          getFilename(singleReference).toLowerCase()
+        &&
+        (
+          MEMORY_IMAGE_EXTENSIONS.has(singleReferenceExtension)
+          ||
+          MEMORY_VIDEO_EXTENSIONS.has(singleReferenceExtension)
+        );
+
+      const isLooseGroup =
+        normalizedGroupName ===
+          "@loose"
+        ||
+        isLegacySinglePhotoGroup;
+
+      const folder =
+        isLooseGroup
+          ? null
+          : {
+              name:
+                group.name,
+              path:
+                `${DROPBOX_MEMORIES_ROOT}/${group.name}`,
+              files:
+                [],
+              folders:
+                [],
+              parent:
+                root
+            };
 
       const seenMediaPaths =
         new Set();
@@ -1848,7 +1997,7 @@ function buildPersonMemoryFolderTree(
                 sourceKey
               );
 
-              folder.files.push({
+              const mediaFile = {
                 type:
                   "file",
                 name:
@@ -1857,17 +2006,39 @@ function buildPersonMemoryFolderTree(
                   getFilename(
                     sourcePath
                   ),
-                /*
-                  Keep the REAL Dropbox path here. The folder is virtual,
-                  but image/video URLs must still point to the shared file.
-                */
                 path:
                   sourcePath,
                 size:
                   entry.size
                   ??
                   null
-              });
+              };
+
+              if (
+                isLooseGroup
+              ) {
+                if (
+                  seenLooseMediaPaths.has(
+                    sourceKey
+                  )
+                ) {
+                  return;
+                }
+
+                seenLooseMediaPaths.add(
+                  sourceKey
+                );
+
+                root.files.push(
+                  mediaFile
+                );
+
+                return;
+              }
+
+              folder.files.push(
+                mediaFile
+              );
 
             }
           );
@@ -1875,26 +2046,42 @@ function buildPersonMemoryFolderTree(
         }
       );
 
-      folder.files.sort(
-        (
-          fileA,
-          fileB
-        ) =>
-          compareNaturally(
-            fileA.name,
-            fileB.name
-          )
-      );
-
       if (
-        folder.files.length
+        folder
       ) {
-        root.folders.push(
-          folder
+        folder.files.sort(
+          (
+            fileA,
+            fileB
+          ) =>
+            compareNaturally(
+              fileA.name,
+              fileB.name
+            )
         );
+
+        if (
+          folder.files.length
+        ) {
+          root.folders.push(
+            folder
+          );
+        }
       }
 
     }
+  );
+
+
+  root.files.sort(
+    (
+      fileA,
+      fileB
+    ) =>
+      compareNaturally(
+        fileA.name,
+        fileB.name
+      )
   );
 
 
@@ -1913,7 +2100,6 @@ function buildPersonMemoryFolderTree(
   return root;
 
 }
-
 
 async function fetchPersonMemoryEntries() {
 
@@ -3802,6 +3988,24 @@ function renderMemoryFolderLinks(
 
       link.rel =
         "noopener";
+
+      if (
+        linkData.type ===
+          "pdf"
+        &&
+        linkData.path
+      ) {
+        link.addEventListener(
+          "click",
+          event => {
+            event.preventDefault();
+
+            openMemoryDocumentPreview(
+              linkData.path
+            );
+          }
+        );
+      }
 
       linksWrap.appendChild(
         link

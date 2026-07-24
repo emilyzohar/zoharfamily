@@ -544,6 +544,12 @@ const PREVIEW_ZOOM_STEP =
 let pdfZoom =
   1;
 
+let activePdfObjectUrl =
+  null;
+
+let pdfLoadToken =
+  0;
+
 let imageZoom =
   1;
 
@@ -5382,13 +5388,12 @@ function setupPreviewZoomControls() {
    PDF
 ========================================================= */
 
-function openPDF(
+async function openPDF(
   item,
   returnContext = null
 ) {
   pdfReturnContext =
     returnContext;
-
 
   const modal =
     document.getElementById(
@@ -5397,43 +5402,182 @@ function openPDF(
 
   if (
     !modal
+    ||
+    !item?.file
   ) {
     return;
   }
 
-
-  const fileUrl =
-    getDropboxFileUrl(
-      item.file
+  const frame =
+    document.getElementById(
+      "pdfFrame"
     );
 
+  const newTab =
+    document.getElementById(
+      "pdfNewTab"
+    );
+
+  const title =
+    document.getElementById(
+      "pdfTitle"
+    );
+
+  const loadToken =
+    ++pdfLoadToken;
+
+  if (
+    activePdfObjectUrl
+  ) {
+    URL.revokeObjectURL(
+      activePdfObjectUrl
+    );
+
+    activePdfObjectUrl =
+      null;
+  }
 
   resetPdfZoom();
 
+  if (
+    frame
+  ) {
+    frame.src =
+      "about:blank";
+  }
 
-  document.getElementById(
-    "pdfFrame"
-  ).src =
-    fileUrl;
+  if (
+    title
+  ) {
+    title.textContent =
+      item.title
+      ||
+      "Document";
+  }
 
-
-  document.getElementById(
-    "pdfTitle"
-  ).textContent =
-    item.title
-    ||
-    "Document";
-
-
-  document.getElementById(
-    "pdfNewTab"
-  ).href =
-    fileUrl;
-
+  if (
+    newTab
+  ) {
+    newTab.removeAttribute(
+      "href"
+    );
+  }
 
   openModal(
     modal
   );
+
+  try {
+    /*
+      Fetch the PDF as data instead of navigating to /file directly.
+      The Worker may mark /file responses as attachments, which causes
+      browsers to download the PDF. A PDF Blob always opens in the
+      browser's PDF viewer and can safely be embedded in this modal.
+    */
+    const response =
+      await fetch(
+        getDropboxFileUrl(
+          item.file
+        )
+      );
+
+    if (
+      !response.ok
+    ) {
+      throw new Error(
+        `Could not load PDF. HTTP ${response.status}.`
+      );
+    }
+
+    const bytes =
+      await response.arrayBuffer();
+
+    if (
+      loadToken !==
+      pdfLoadToken
+    ) {
+      return;
+    }
+
+    const blob =
+      new Blob(
+        [bytes],
+        {
+          type:
+            "application/pdf"
+        }
+      );
+
+    activePdfObjectUrl =
+      URL.createObjectURL(
+        blob
+      );
+
+    if (
+      frame
+    ) {
+      frame.src =
+        activePdfObjectUrl;
+    }
+
+    if (
+      newTab
+    ) {
+      newTab.href =
+        activePdfObjectUrl;
+    }
+
+  } catch (
+    error
+  ) {
+    console.error(
+      "Could not load PDF preview:",
+      error
+    );
+
+    try {
+      const sharedLink =
+        await getDropboxSharedLink(
+          item.file
+        );
+
+      if (
+        loadToken !==
+        pdfLoadToken
+      ) {
+        return;
+      }
+
+      if (
+        frame
+      ) {
+        frame.src =
+          sharedLink;
+      }
+
+      if (
+        newTab
+      ) {
+        newTab.href =
+          sharedLink;
+      }
+
+    } catch (
+      fallbackError
+    ) {
+      console.error(
+        "Could not open fallback PDF preview:",
+        fallbackError
+      );
+
+      if (
+        title
+      ) {
+        title.textContent =
+          "Preview unavailable";
+      }
+    }
+  }
 }
 
 
@@ -5952,6 +6096,20 @@ function closeSingleModal(
 
       frame.style.transform =
         "";
+    }
+
+    pdfLoadToken +=
+      1;
+
+    if (
+      activePdfObjectUrl
+    ) {
+      URL.revokeObjectURL(
+        activePdfObjectUrl
+      );
+
+      activePdfObjectUrl =
+        null;
     }
 
     pdfZoom =

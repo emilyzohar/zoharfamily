@@ -144,6 +144,16 @@ const quickViewClose =
     "quick-view-close"
   );
 
+const quickViewItemPrev =
+  document.getElementById(
+    "quick-view-item-prev"
+  );
+
+const quickViewItemNext =
+  document.getElementById(
+    "quick-view-item-next"
+  );
+
 const createdRow =
   document.getElementById(
     "created-row"
@@ -304,8 +314,14 @@ installMerchTextStyles();
 let activeQuickViewItem =
   null;
 
+let activeQuickViewItemIndex =
+  -1;
+
 let activeQuickViewImageIndex =
   0;
+
+let loadedMerchItems =
+  [];
 
 let lastFocusedElement =
   null;
@@ -1587,6 +1603,9 @@ async function loadMerch() {
 function renderMerchInventory(
   merchItems
 ) {
+  loadedMerchItems =
+    merchItems.slice();
+
   merchGrid.innerHTML =
     "";
 
@@ -1964,14 +1983,28 @@ function showQuickViewImage(
 function openQuickView(
   item
 ) {
+  const wasAlreadyOpen =
+    quickView.classList.contains(
+      "open"
+    );
+
   activeQuickViewItem =
     item;
+
+  activeQuickViewItemIndex =
+    loadedMerchItems.indexOf(
+      item
+    );
 
   activeQuickViewImageIndex =
     0;
 
-  lastFocusedElement =
-    document.activeElement;
+  if (
+    !wasAlreadyOpen
+  ) {
+    lastFocusedElement =
+      document.activeElement;
+  }
 
 
   quickViewName.textContent =
@@ -2082,6 +2115,38 @@ function openQuickView(
   }
 
 
+  const canNavigateItems =
+    loadedMerchItems.length >
+      1;
+
+  if (
+    quickViewItemPrev
+  ) {
+    quickViewItemPrev.hidden =
+      !canNavigateItems;
+
+    quickViewItemPrev.setAttribute(
+      "aria-label",
+      canNavigateItems
+        ? `Previous merch item before ${item.name}`
+        : "Previous merch item"
+    );
+  }
+
+  if (
+    quickViewItemNext
+  ) {
+    quickViewItemNext.hidden =
+      !canNavigateItems;
+
+    quickViewItemNext.setAttribute(
+      "aria-label",
+      canNavigateItems
+        ? `Next merch item after ${item.name}`
+        : "Next merch item"
+    );
+  }
+
   quickView.classList.add(
     "open"
   );
@@ -2095,7 +2160,11 @@ function openQuickView(
     "modal-open"
   );
 
-  quickViewClose.focus();
+  if (
+    !wasAlreadyOpen
+  ) {
+    quickViewClose.focus();
+  }
 }
 
 
@@ -2152,6 +2221,9 @@ function closeQuickView() {
   activeQuickViewItem =
     null;
 
+  activeQuickViewItemIndex =
+    -1;
+
   activeQuickViewImageIndex =
     0;
 
@@ -2165,6 +2237,38 @@ function closeQuickView() {
 }
 
 
+function showAdjacentQuickViewItem(
+  direction
+) {
+  if (
+    loadedMerchItems.length <=
+      1
+  ) {
+    return;
+  }
+
+  const currentIndex =
+    activeQuickViewItemIndex >=
+      0
+      ? activeQuickViewItemIndex
+      : 0;
+
+  const nextIndex =
+    (
+      currentIndex +
+      direction +
+      loadedMerchItems.length
+    ) %
+    loadedMerchItems.length;
+
+  openQuickView(
+    loadedMerchItems[
+      nextIndex
+    ]
+  );
+}
+
+
 /* =========================================================
    EVENTS
 ========================================================= */
@@ -2172,6 +2276,22 @@ function closeQuickView() {
 quickViewClose.addEventListener(
   "click",
   closeQuickView
+);
+
+quickViewItemPrev?.addEventListener(
+  "click",
+  () =>
+    showAdjacentQuickViewItem(
+      -1
+    )
+);
+
+quickViewItemNext?.addEventListener(
+  "click",
+  () =>
+    showAdjacentQuickViewItem(
+      1
+    )
 );
 
 

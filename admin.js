@@ -88,6 +88,16 @@ function filename(path) {
   return normalizePath(path).split("/").pop() || "";
 }
 
+function workFileDisplayName(path) {
+  const rawName = filename(path);
+  const lowerName = rawName.toLowerCase();
+
+  if (lowerName === "blurbs.txt") return "Blurbs";
+  if (lowerName === "movies.txt") return "Video links";
+
+  return rawName;
+}
+
 function extension(path) {
   const match = filename(path).match(/\.([^.]+)$/);
   return match ? match[1].toLowerCase() : "";
@@ -206,7 +216,8 @@ async function viewExistingWork(path) {
   if (!path) return;
 
   const ext = extension(path);
-  const directPreview = IMAGE_EXTENSIONS.has(ext) || VIDEO_EXTENSIONS.has(ext) || ext === "pdf";
+  const isPdf = ext === "pdf";
+  const directPreview = IMAGE_EXTENSIONS.has(ext) || VIDEO_EXTENSIONS.has(ext);
 
   // Open immediately so the browser does not block the window after async work.
   const previewWindow = window.open("", "_blank");
@@ -232,6 +243,12 @@ async function viewExistingWork(path) {
 
     if (directPreview) {
       previewWindow.location.replace(buildPublicUrl("/file", path));
+      return;
+    }
+
+    if (isPdf) {
+      const pdfPreview = await getDropboxPreviewUrl(path);
+      previewWindow.location.replace(pdfPreview);
       return;
     }
 
@@ -1197,36 +1214,50 @@ function renderMemoryTreeNode(node, selectedKeys, depth = 0) {
     folderReference &&
     selectedKeys.has(folderReference.toLowerCase());
 
-  const childHtml = [
-    ...node.folders.map(folder =>
-      renderMemoryTreeNode(folder, selectedKeys, depth + 1)
-    ),
-    ...node.files.map(file => {
-      const reference = sharedMemoryRelativePath(file.path);
-      const alreadySelected = selectedKeys.has(reference.toLowerCase());
+  const fileTiles = node.files.map(file => {
+    const reference = sharedMemoryRelativePath(file.path);
+    const alreadySelected = selectedKeys.has(reference.toLowerCase());
+    const src = buildPublicUrl("/file", file.path);
+    const ext = extension(file.path);
+    const parentReference = sharedMemoryRelativePath(parentPath(file.path));
+    const previewReference = parentReference || reference;
+    const mediaMarkup = VIDEO_EXTENSIONS.has(ext)
+      ? `<video muted playsinline preload="metadata" src="${escapeHtml(src)}"></video>`
+      : `<img src="${escapeHtml(src)}" alt="${escapeHtml(file.name)}" loading="lazy">`;
 
-      return `
-        <div
-          class="memory-tree-file ${alreadySelected ? "is-already-selected" : ""}"
-          data-memory-search="${escapeHtml(`${file.name} ${reference}`.toLowerCase())}"
-        >
-          <label class="memory-tree-file-choice">
-            <input
-              type="checkbox"
-              data-add-personal-memory="${escapeHtml(reference)}"
-              ${alreadySelected ? "disabled" : ""}
-            >
-            <span>${escapeHtml(file.name)}</span>
-          </label>
-          <button
-            class="memory-preview-button"
-            type="button"
-            data-memory-preview="${escapeHtml(reference)}"
-          >Preview</button>
-        </div>
-      `;
-    })
-  ].join("");
+    return `
+      <div
+        class="memory-tree-file memory-photo-tile ${alreadySelected ? "is-already-selected" : ""}"
+        data-memory-search="${escapeHtml(`${file.name} ${reference}`.toLowerCase())}"
+      >
+        <label class="memory-photo-select" title="Select ${escapeHtml(file.name)}">
+          <input
+            type="checkbox"
+            data-add-personal-memory="${escapeHtml(reference)}"
+            data-memory-kind="file"
+            ${alreadySelected ? "disabled" : ""}
+          >
+          <span class="memory-photo-thumb">${mediaMarkup}</span>
+        </label>
+        <button
+          class="memory-photo-open"
+          type="button"
+          data-memory-preview="${escapeHtml(previewReference)}"
+          data-memory-preview-start="${escapeHtml(reference)}"
+          aria-label="Open ${escapeHtml(file.name)} larger"
+        >↗</button>
+      </div>
+    `;
+  }).join("");
+
+  const folderHtml = node.folders.map(folder =>
+    renderMemoryTreeNode(folder, selectedKeys, depth + 1)
+  ).join("");
+
+  const childHtml = `
+    ${fileTiles ? `<div class="memory-photo-grid">${fileTiles}</div>` : ""}
+    ${folderHtml}
+  `;
 
   if (!folderReference) return childHtml;
 
@@ -1243,15 +1274,16 @@ function renderMemoryTreeNode(node, selectedKeys, depth = 0) {
           <input
             type="checkbox"
             data-add-personal-memory="${escapeHtml(folderReference)}"
+            data-memory-kind="folder"
             ${folderAlreadySelected ? "disabled" : ""}
           >
-          <span>Select this folder</span>
+          <span>Select this whole album</span>
         </label>
         <button
           class="memory-preview-button"
           type="button"
           data-memory-preview="${escapeHtml(folderReference)}"
-        >Preview folder</button>
+        >Preview album</button>
       </div>
 
       <div class="memory-tree-children">
@@ -1261,8 +1293,7 @@ function renderMemoryTreeNode(node, selectedKeys, depth = 0) {
   `;
 }
 
-
-function openPersonalMemoryPreview(reference) {
+function openPersonalMemoryPreview(reference, startReference = "") {
   const cleanReference = cleanMemoryReference(reference);
   if (!cleanReference) return;
 
@@ -1288,53 +1319,80 @@ function openPersonalMemoryPreview(reference) {
     );
   }
 
-  const title = memoryReferenceName(cleanReference) || "Memory";
-  const visibleMedia = media.slice(0, 40);
+  media.sort((a, b) =>
+    String(entryPath(a)).localeCompare(String(entryPath(b)), undefined, {
+      numeric: true,
+      sensitivity: "base"
+    })
+  );
 
-  let mediaHtml = "";
-
-  if (!visibleMedia.length) {
-    mediaHtml = `<div class="browser-empty">No previewable photos or videos in this selection.</div>`;
-  } else {
-    mediaHtml = `
-      <div class="personal-memory-preview-grid">
-        ${visibleMedia.map(entry => {
-          const path = entryPath(entry);
-          const src = buildPublicUrl("/file", path);
-          const ext = extension(path);
-          const label = filename(path);
-
-          if (VIDEO_EXTENSIONS.has(ext)) {
-            return `
-              <figure class="personal-memory-preview-item">
-                <video controls preload="metadata" src="${escapeHtml(src)}"></video>
-                <figcaption>${escapeHtml(label)}</figcaption>
-              </figure>
-            `;
-          }
-
-          return `
-            <figure class="personal-memory-preview-item">
-              <img src="${escapeHtml(src)}" alt="${escapeHtml(label)}" loading="lazy">
-              <figcaption>${escapeHtml(label)}</figcaption>
-            </figure>
-          `;
-        }).join("")}
+  if (!media.length) {
+    els.previewContent.innerHTML = `
+      <div class="preview-layout memory-preview-layout">
+        <h2 class="preview-title">${escapeHtml(memoryReferenceName(cleanReference) || "Memory")}</h2>
+        <div class="browser-empty">No previewable photos or videos in this selection.</div>
       </div>
-      ${media.length > visibleMedia.length
-        ? `<div class="small subtle">${media.length - visibleMedia.length} more item${media.length - visibleMedia.length === 1 ? "" : "s"} in this folder.</div>`
-        : ""}
     `;
+    els.previewModal.classList.add("is-open");
+    els.previewModal.setAttribute("aria-hidden", "false");
+    return;
   }
+
+  const cleanStart = cleanMemoryReference(startReference);
+  let activeIndex = Math.max(
+    0,
+    media.findIndex(entry =>
+      pathKey(sharedMemoryRelativePath(entryPath(entry))) === pathKey(cleanStart)
+    )
+  );
+
+  const title = memoryReferenceName(cleanReference) || "Memory";
 
   els.previewContent.innerHTML = `
     <div class="preview-layout memory-preview-layout">
       <h2 class="preview-title">${escapeHtml(title)}</h2>
       <div class="memory-preview-path">${escapeHtml(cleanReference)}</div>
-      ${mediaHtml}
+      <div class="personal-memory-carousel">
+        <button id="personalMemoryPreviewPrev" class="personal-memory-carousel-arrow" type="button" aria-label="Previous photo">‹</button>
+        <div id="personalMemoryPreviewStage" class="personal-memory-carousel-stage"></div>
+        <button id="personalMemoryPreviewNext" class="personal-memory-carousel-arrow" type="button" aria-label="Next photo">›</button>
+      </div>
+      <div id="personalMemoryPreviewCounter" class="personal-memory-carousel-counter"></div>
     </div>
   `;
 
+  const stage = document.getElementById("personalMemoryPreviewStage");
+  const counter = document.getElementById("personalMemoryPreviewCounter");
+  const previous = document.getElementById("personalMemoryPreviewPrev");
+  const next = document.getElementById("personalMemoryPreviewNext");
+
+  const paint = () => {
+    const entry = media[activeIndex];
+    const path = entryPath(entry);
+    const src = buildPublicUrl("/file", path);
+    const ext = extension(path);
+    const label = filename(path);
+
+    stage.innerHTML = VIDEO_EXTENSIONS.has(ext)
+      ? `<video controls autoplay preload="metadata" src="${escapeHtml(src)}"></video>`
+      : `<img src="${escapeHtml(src)}" alt="${escapeHtml(label)}">`;
+
+    counter.textContent = `${activeIndex + 1} of ${media.length} · ${label}`;
+    previous.hidden = media.length <= 1;
+    next.hidden = media.length <= 1;
+  };
+
+  previous.addEventListener("click", () => {
+    activeIndex = (activeIndex - 1 + media.length) % media.length;
+    paint();
+  });
+
+  next.addEventListener("click", () => {
+    activeIndex = (activeIndex + 1) % media.length;
+    paint();
+  });
+
+  paint();
   els.previewModal.classList.add("is-open");
   els.previewModal.setAttribute("aria-hidden", "false");
 }
@@ -1368,6 +1426,14 @@ async function showPersonalMemoryEditor(workflow) {
       currentReferences.map(item => item.reference.toLowerCase())
     );
 
+    const currentAlbumNames = Array.from(
+      new Set(
+        groups
+          .map(group => String(group.name || "").trim())
+          .filter(name => name && name.toLowerCase() !== "@loose")
+      )
+    ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: "base" }));
+
     const tree = buildSharedMemoryTree(sharedEntries);
 
     state.selectedData = {
@@ -1385,31 +1451,50 @@ async function showPersonalMemoryEditor(workflow) {
         </div>
 
         ${currentReferences.length ? `
-          <div class="field">
-            <span>Currently shown</span>
-            <div class="choice-grid">
-              ${currentReferences.map(item => `
-                <div class="choice-item memory-current-item">
-                  <label class="choice-item-main">
-                    <input
-                      type="checkbox"
-                      data-remove-personal-memory="${escapeHtml(item.reference)}"
-                    >
-                    <span>
-                      ${escapeHtml(item.groupName)}
+          <details class="personal-memory-existing-details">
+            <summary>
+              <span>Currently shown — reorganize existing photos</span>
+              <span class="personal-memory-existing-count">${currentReferences.length}</span>
+            </summary>
+            <div class="personal-memory-existing-body">
+              <div class="small subtle">Change the album/folder name for any existing item. Leave it blank to show the item as a loose image.</div>
+              <datalist id="personalMemoryExistingAlbums">
+                ${currentAlbumNames.map(name => `<option value="${escapeHtml(name)}"></option>`).join("")}
+              </datalist>
+              <div class="current-memory-organizer">
+                ${currentReferences.map(item => `
+                  <div class="current-memory-row">
+                    <div class="current-memory-main">
+                      <strong>${escapeHtml(memoryReferenceName(item.reference))}</strong>
                       <small>${escapeHtml(item.reference)}</small>
-                      <small class="warn">Remove</small>
-                    </span>
-                  </label>
-                  <button
-                    class="memory-preview-button"
-                    type="button"
-                    data-memory-preview="${escapeHtml(item.reference)}"
-                  >Preview</button>
-                </div>
-              `).join("")}
+                    </div>
+                    <label class="field current-memory-folder-field">
+                      <span>Album / folder</span>
+                      <input
+                        type="text"
+                        list="personalMemoryExistingAlbums"
+                        data-existing-memory-group-reference="${escapeHtml(item.reference)}"
+                        value="${escapeHtml(item.groupName === "@loose" ? "" : item.groupName)}"
+                        placeholder="Loose image"
+                      >
+                    </label>
+                    <button
+                      class="memory-preview-button"
+                      type="button"
+                      data-memory-preview="${escapeHtml(item.reference)}"
+                    >Preview</button>
+                    <label class="check-row remove-check current-memory-remove">
+                      <input
+                        type="checkbox"
+                        data-remove-personal-memory="${escapeHtml(item.reference)}"
+                      >
+                      <span>Remove</span>
+                    </label>
+                  </div>
+                `).join("")}
+              </div>
             </div>
-          </div>
+          </details>
         ` : ""}
 
         <div class="field">
@@ -1424,6 +1509,21 @@ async function showPersonalMemoryEditor(workflow) {
         <div id="personalMemoryTree" class="memory-selector-tree">
           ${renderMemoryTreeNode(tree, currentKeys)}
         </div>
+
+        <fieldset id="personalMemoryGroupingPanel" class="memory-grouping-panel" hidden>
+          <legend>How should selected individual photos appear?</legend>
+          <div class="small subtle">Selected whole albums stay as albums. These choices apply only to individual photos.</div>
+          <div class="memory-grouping-options">
+            <label class="check-row"><input type="radio" name="personalMemoryGrouping" value="loose" checked> <span>Loose images on the personal Memories page</span></label>
+            <label class="check-row"><input type="radio" name="personalMemoryGrouping" value="one"> <span>Put all selected photos into one album</span></label>
+            <label class="check-row"><input type="radio" name="personalMemoryGrouping" value="multiple"> <span>Organize selected photos into one or more albums</span></label>
+          </div>
+          <label id="personalMemoryOneAlbumField" class="field memory-grouping-one" hidden>
+            <span>Album name</span>
+            <input name="personalMemoryAlbumName" placeholder="Family favourites">
+          </label>
+          <div id="personalMemoryMultipleGroups" class="memory-multiple-groups" hidden></div>
+        </fieldset>
       </form>
     `;
 
@@ -1434,9 +1534,64 @@ async function showPersonalMemoryEditor(workflow) {
       button.addEventListener("click", event => {
         event.preventDefault();
         event.stopPropagation();
-        openPersonalMemoryPreview(button.dataset.memoryPreview);
+        openPersonalMemoryPreview(
+          button.dataset.memoryPreview,
+          button.dataset.memoryPreviewStart || ""
+        );
       });
     });
+
+    const groupingPanel = document.getElementById("personalMemoryGroupingPanel");
+    const oneAlbumField = document.getElementById("personalMemoryOneAlbumField");
+    const multipleGroups = document.getElementById("personalMemoryMultipleGroups");
+
+    const updateGroupingPanel = () => {
+      const selectedFiles = Array.from(
+        els.formArea.querySelectorAll('[data-add-personal-memory][data-memory-kind="file"]:checked')
+      );
+
+      groupingPanel.hidden = selectedFiles.length === 0;
+      if (!selectedFiles.length) return;
+
+      const mode = els.formArea.querySelector('input[name="personalMemoryGrouping"]:checked')?.value || "loose";
+      oneAlbumField.hidden = mode !== "one";
+      multipleGroups.hidden = mode !== "multiple";
+
+      if (mode === "multiple") {
+        const previousValues = new Map(
+          Array.from(multipleGroups.querySelectorAll("[data-memory-group-reference]"))
+            .map(input => [input.dataset.memoryGroupReference, input.value])
+        );
+
+        multipleGroups.innerHTML = selectedFiles.map(input => {
+          const reference = cleanMemoryReference(input.dataset.addPersonalMemory);
+          const defaultAlbum = memoryReferenceName(parentPath(reference)) || "";
+          const currentValue = previousValues.get(reference) ?? defaultAlbum;
+
+          return `
+            <label class="field memory-group-assignment">
+              <span>${escapeHtml(memoryReferenceName(reference))}</span>
+              <input
+                type="text"
+                data-memory-group-reference="${escapeHtml(reference)}"
+                value="${escapeHtml(currentValue)}"
+                placeholder="Album name"
+              >
+            </label>
+          `;
+        }).join("");
+      }
+    };
+
+    els.formArea.querySelectorAll("[data-add-personal-memory]").forEach(input => {
+      input.addEventListener("change", updateGroupingPanel);
+    });
+
+    els.formArea.querySelectorAll('input[name="personalMemoryGrouping"]').forEach(input => {
+      input.addEventListener("change", updateGroupingPanel);
+    });
+
+    updateGroupingPanel();
 
     search?.addEventListener("input", () => {
       const term = search.value.trim().toLowerCase();
@@ -1489,7 +1644,13 @@ async function showPersonalMemoryEditor(workflow) {
 
 /* ------------------------------ folder browser ------------------------------ */
 function filteredEntriesForWorkflow(workflow, entries) {
-  return entries;
+  if (workflow?.kind !== "work" || !workflow.personal) return entries;
+
+  return entries.filter(entry => {
+    const relative = relativePath(workflow.root, entryPath(entry));
+    const firstSegment = relative.split("/").filter(Boolean)[0]?.toLowerCase() || "";
+    return !RESERVED_PERSON_FOLDERS.has(firstSegment);
+  });
 }
 
 async function showFolderStep(workflow) {
@@ -1547,6 +1708,45 @@ function humanFolderLabel(workflow, path) {
   return humanFolderSegments(workflow, path).join(" › ");
 }
 
+function destinationFolderPaths(workflow, movingPath = "") {
+  if (!workflow) return [];
+
+  const root = normalizePath(workflow.root);
+  const movingKey = movingPath ? pathKey(movingPath) : "";
+  const seen = new Set();
+
+  return [root, ...allFolders().map(entryPath)]
+    .map(normalizePath)
+    .filter(path => {
+      const key = pathKey(path);
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      if (!movingKey) return true;
+      if (key === movingKey) return false;
+      if (key.startsWith(`${movingKey}/`)) return false;
+      return true;
+    })
+    .sort((a, b) =>
+      humanFolderLabel(workflow, a).localeCompare(
+        humanFolderLabel(workflow, b),
+        undefined,
+        { numeric: true, sensitivity: "base" }
+      )
+    );
+}
+
+function renderDestinationFolderOptions(workflow, selectedPath, movingPath = "") {
+  const selectedKey = pathKey(selectedPath || workflow?.root || "");
+  return destinationFolderPaths(workflow, movingPath)
+    .map(path => `
+      <option value="${escapeHtml(path)}" ${pathKey(path) === selectedKey ? "selected" : ""}>
+        ${escapeHtml(humanFolderLabel(workflow, path))}
+      </option>
+    `)
+    .join("");
+}
+
 function renderBreadcrumbs(root, current, workflow) {
   const rel = relativePath(root, current);
   const relSegments = rel ? rel.split("/").filter(Boolean) : [];
@@ -1575,6 +1775,12 @@ function renderBreadcrumbs(root, current, workflow) {
 function renderFolderBrowser(workflow) {
   const current = state.currentFolder;
   const folders = childFolders(current);
+  const workFiles =
+    workflow.kind === "work" && state.mode === "edit"
+      ? state.entries
+          .filter(entry => isDirectChild(entry, current) && itemMatchesWorkflow(workflow, entry))
+          .sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: "base" }))
+      : [];
 
   const navigateTo = nextFolder => {
     state.currentFolder = nextFolder;
@@ -1587,7 +1793,7 @@ function renderFolderBrowser(workflow) {
   };
 
   const canRenameCurrent =
-    (workflow.kind === "work" || pathKey(current) !== pathKey(workflow.root));
+    pathKey(current) !== pathKey(workflow.root);
 
   els.locationArea.innerHTML = `
     <div class="folder-browser simple-folder-browser">
@@ -1616,6 +1822,22 @@ function renderFolderBrowser(workflow) {
           : `<div class="browser-empty simple-browser-empty">No folders here yet.</div>`}
       </div>
 
+      ${workflow.kind === "work" && state.mode === "edit" ? `
+        <div class="folder-file-section">
+          <div class="folder-file-heading">Files in this folder</div>
+          <div class="folder-file-list">
+            ${workFiles.length
+              ? workFiles.map(item => `
+                  <button class="folder-file-card" type="button" data-folder-file-path="${escapeHtml(entryPath(item))}">
+                    <strong>${escapeHtml(workFileDisplayName(entryPath(item)))}</strong>
+                    ${workFileDisplayName(entryPath(item)) !== item.name ? `<small>${escapeHtml(item.name)}</small>` : ""}
+                  </button>
+                `).join("")
+              : `<div class="browser-empty">No files in this folder.</div>`}
+          </div>
+        </div>
+      ` : ""}
+
       <div class="simple-folder-actions">
         ${state.mode === "add" ? `
           <button id="useLocationButton" class="btn folder-primary-action" type="button">
@@ -1634,7 +1856,7 @@ function renderFolderBrowser(workflow) {
             : ""}
 
           ${canRenameCurrent
-            ? `<button id="renameFolderButton" class="btn folder-secondary-action" type="button">Rename folder</button>`
+            ? `<button id="renameFolderButton" class="btn folder-secondary-action" type="button">Rename / move folder</button>`
             : ""}
 
           <button id="showNewFolderButton" class="btn folder-secondary-action" type="button">
@@ -1667,6 +1889,17 @@ function renderFolderBrowser(workflow) {
     .querySelectorAll("[data-open-folder]")
     .forEach(button =>
       button.addEventListener("click", () => navigateTo(button.dataset.openFolder))
+    );
+
+  els.locationArea
+    .querySelectorAll("[data-folder-file-path]")
+    .forEach(button =>
+      button.addEventListener("click", async () => {
+        state.selectedItem = state.entries.find(
+          entry => pathKey(entryPath(entry)) === pathKey(button.dataset.folderFilePath)
+        ) || null;
+        await loadAndShowSelected(workflow);
+      })
     );
 
   const search = document.getElementById("folderSearch");
@@ -1804,7 +2037,8 @@ function showItemsForFolder(workflow, folder) {
       ${items.length ? items.map(item => `
         <div class="item-card-shell">
           <button class="item-card item-card-main" type="button" data-item-path="${escapeHtml(entryPath(item))}">
-            <strong>${escapeHtml(item.name)}</strong>
+            <strong>${escapeHtml(workflow.kind === "work" ? workFileDisplayName(entryPath(item)) : item.name)}</strong>
+            ${workflow.kind === "work" && workFileDisplayName(entryPath(item)) !== item.name ? `<small>${escapeHtml(item.name)}</small>` : ""}
           </button>
           ${workflow.kind === "work" ? `<button class="btn btn-quiet item-view-button" type="button" data-view-work-path="${escapeHtml(entryPath(item))}">View / Preview</button>` : ""}
         </div>
@@ -2025,6 +2259,57 @@ function assetRows(paths, label = "Existing files", removeMode = "delete") {
   `;
 }
 
+function memoryAssetRows(entries) {
+  if (!entries.length) return "";
+
+  return `
+    <div class="existing-assets memory-existing-assets">
+      <strong>Existing files in this folder</strong>
+      ${entries.map(entry => {
+        const path = entryPath(entry);
+        const isText = extension(path) === "txt";
+        const displayName = workFileDisplayName(path);
+
+        return `
+          <div class="asset-row memory-asset-row">
+            <div class="asset-main">
+              <strong>${escapeHtml(displayName)}</strong>
+              <small>${escapeHtml(path)}</small>
+            </div>
+            <div class="memory-asset-actions">
+              ${isText ? `
+                <button
+                  class="btn btn-quiet memory-text-edit-button"
+                  type="button"
+                  data-edit-memory-text="${escapeHtml(path)}"
+                >Edit</button>
+              ` : ""}
+              <label class="check-row remove-check">
+                <input type="checkbox" data-remove-path="${escapeHtml(path)}" data-remove-mode="delete">
+                Remove
+              </label>
+            </div>
+            ${isText ? `
+              <div class="memory-text-editor" hidden>
+                <label class="field">
+                  <span>${escapeHtml(displayName)}</span>
+                  <textarea
+                    rows="8"
+                    data-memory-text-path="${escapeHtml(path)}"
+                    data-memory-text-loaded="false"
+                    data-memory-text-active="false"
+                  ></textarea>
+                  <small>Saving this page will update this text file.</small>
+                </label>
+              </div>
+            ` : ""}
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function selectedRemovePaths(mode = null) {
   return Array.from(els.formArea.querySelectorAll("[data-remove-path]:checked"))
     .filter(input => !mode || input.dataset.removeMode === mode)
@@ -2052,9 +2337,9 @@ async function showEditor(kind, data, workflow) {
 
   if (kind === "recipe") renderRecipeForm(data);
   else if (kind === "travel") renderTravelForm(data);
-  else if (kind === "memory") renderMemoryForm(data);
+  else if (kind === "memory") renderMemoryForm(data, workflow);
   else if (kind === "merch") await renderMerchForm(data, workflow);
-  else if (kind === "work") renderWorkForm(data);
+  else if (kind === "work") renderWorkForm(data, workflow);
   else if (kind === "folder") renderFolderRenameForm(data);
 
   const form = currentForm();
@@ -2072,15 +2357,32 @@ async function showFolderRenameEditor(workflow, folderPath) {
 }
 
 function renderFolderRenameForm(data) {
+  const workflow = currentWorkflow();
+  const currentParent = parentPath(data.path);
+  const canMove =
+    workflow &&
+    ["work", "memory"].includes(workflow.kind) &&
+    pathKey(data.path) !== pathKey(workflow.root);
+
   els.formArea.innerHTML = `
     <form class="editor-form" data-kind="folder">
       <div class="form-heading">
-        <h2>Rename folder</h2>      </div>
-      <div class="folder-being-edited">${escapeHtml(filename(data.path))}</div>
+        <h2>Rename or move folder</h2>
+      </div>
+      <div class="folder-being-edited">${escapeHtml(humanFolderLabel(workflow, data.path))}</div>
       <label class="field">
         <span>Folder name *</span>
         <input name="folderName" required value="${escapeHtml(filename(data.path))}">
       </label>
+      ${canMove ? `
+        <label class="field">
+          <span>Parent folder</span>
+          <select name="parentFolder">
+            ${renderDestinationFolderOptions(workflow, currentParent, data.path)}
+          </select>
+          <small>Choose a different parent folder to reorganize this folder. A folder cannot be moved inside itself.</small>
+        </label>
+      ` : ""}
     </form>
   `;
 }
@@ -2144,18 +2446,166 @@ function renderTravelForm(data) {
   setupTravelMap(data?.x, data?.y);
 }
 
-function renderMemoryForm(data) {
+function setupMemoryCoverChooser({ enabled }) {
+  const form = currentForm();
+  const mediaInput = document.getElementById("memoryMediaInput");
+  const prompt = document.getElementById("memoryCoverPrompt");
+  const choices = document.getElementById("memoryCoverChoices");
+  const toggle = form?.elements?.setMemoryCover;
+
+  if (!enabled || !mediaInput || !prompt || !choices || !toggle) {
+    if (prompt) prompt.hidden = true;
+    return;
+  }
+
+  const redraw = () => {
+    const imageFiles = Array.from(mediaInput.files || []).filter(file =>
+      String(file.type || "").startsWith("image/") ||
+      IMAGE_EXTENSIONS.has(extension(file.name))
+    );
+
+    const alreadyNamedCover = imageFiles.some(file =>
+      withoutExtension(file.name).toLowerCase() === "cover"
+    );
+
+    prompt.hidden = imageFiles.length === 0 || alreadyNamedCover;
+
+    if (prompt.hidden) {
+      toggle.checked = false;
+      choices.hidden = true;
+      choices.innerHTML = "";
+      return;
+    }
+
+    choices.innerHTML = imageFiles.map((file, index) => {
+      const objectUrl = URL.createObjectURL(file);
+      return `
+        <label class="memory-cover-choice">
+          <input
+            type="radio"
+            name="memoryCoverFile"
+            value="${escapeHtml(file.name)}"
+            ${index === 0 ? "checked" : ""}
+          >
+          <img src="${escapeHtml(objectUrl)}" alt="${escapeHtml(file.name)}">
+          <span>${escapeHtml(file.name)}</span>
+        </label>
+      `;
+    }).join("");
+
+    choices.hidden = !toggle.checked;
+  };
+
+  mediaInput.addEventListener("change", redraw);
+  toggle.addEventListener("change", () => {
+    choices.hidden = !toggle.checked;
+  });
+
+  redraw();
+}
+
+function renderMemoryForm(data, workflow) {
   const edit = Boolean(data);
-  const existing = (data?.entries || []).filter(entry => String(entry.type).toLowerCase() === "file").map(entryPath);
+  const existingEntries = (data?.entries || []).filter(
+    entry => String(entry.type).toLowerCase() === "file"
+  );
+  const existing = existingEntries.map(entryPath);
+  const destinationRoot =
+    data?.root ||
+    state.destinationFolder ||
+    state.currentFolder ||
+    "";
+
+  const knownDestinationFiles = (state.entries || [])
+    .filter(entry =>
+      String(entry.type).toLowerCase() === "file" &&
+      destinationRoot &&
+      isDirectChild(entry, destinationRoot)
+    )
+    .map(entryPath);
+
+  const hasExistingCover = [...existing, ...knownDestinationFiles].some(path =>
+    withoutExtension(filename(path)).toLowerCase() === "cover"
+  );
+
+  const canReorganizeFolder =
+    edit &&
+    workflow &&
+    pathKey(data.root) !== pathKey(workflow.root);
+
   els.formArea.innerHTML = `
     <form class="editor-form" data-kind="memory">
       <div class="form-heading"><h2>${edit ? `Edit ${escapeHtml(filename(data.root))}` : "Add memories"}</h2></div>
-      ${edit && pathKey(data.root) !== pathKey(state.rootPath) ? `<label class="field"><span>Folder / album name</span><input name="folderName" value="${escapeHtml(filename(data.root))}"></label>` : ""}
-      ${assetRows(existing, "Existing files in this folder", "delete")}
-      <label class="field"><span>Add photos, videos, PDFs, or other files</span><input name="media" type="file" multiple></label>
+      ${canReorganizeFolder ? `
+        <div class="form-grid two-column">
+          <label class="field">
+            <span>Folder / album name</span>
+            <input name="folderName" value="${escapeHtml(filename(data.root))}">
+          </label>
+          <label class="field">
+            <span>Parent folder</span>
+            <select name="memoryParentFolder">
+              ${renderDestinationFolderOptions(workflow, parentPath(data.root), data.root)}
+            </select>
+          </label>
+        </div>
+        <div class="small subtle">Change the parent folder to reorganize this Memories album.</div>
+      ` : ""}
+      ${memoryAssetRows(existingEntries)}
+      <label class="field"><span>Add photos, videos, PDFs, or other files</span><input id="memoryMediaInput" name="media" type="file" multiple></label>
+      <div id="memoryCoverPrompt" class="memory-cover-prompt" hidden>
+        <div>
+          <strong>This album has no file named “cover”.</strong>
+          <div class="small subtle">Would you like to use one of these photos as the album cover?</div>
+        </div>
+        <label class="check-row memory-cover-toggle">
+          <input name="setMemoryCover" type="checkbox">
+          <span>Yes, set a cover image</span>
+        </label>
+        <div id="memoryCoverChoices" class="memory-cover-choices" hidden></div>
+      </div>
       <label class="field"><span>Add website links</span><textarea name="linksToAdd" rows="5" placeholder="Family video | https://example.com\nPhoto archive | https://example.com"></textarea></label>
     </form>
   `;
+
+  els.formArea.querySelectorAll("[data-edit-memory-text]").forEach(button => {
+    button.addEventListener("click", async () => {
+      const row = button.closest(".memory-asset-row");
+      const editor = row?.querySelector(".memory-text-editor");
+      const textarea = row?.querySelector("[data-memory-text-path]");
+      if (!editor || !textarea) return;
+
+      if (!editor.hidden) {
+        editor.hidden = true;
+        button.textContent = "Edit";
+        return;
+      }
+
+      if (textarea.dataset.memoryTextLoaded !== "true") {
+        button.disabled = true;
+        button.textContent = "Loading…";
+        try {
+          textarea.value = await fetchText(button.dataset.editMemoryText, true);
+          textarea.dataset.memoryTextLoaded = "true";
+        } catch (error) {
+          setPublishStatus(`Could not load ${filename(button.dataset.editMemoryText)}: ${error.message}`, "error");
+          button.disabled = false;
+          button.textContent = "Edit";
+          return;
+        }
+        button.disabled = false;
+      }
+
+      textarea.dataset.memoryTextActive = "true";
+      editor.hidden = false;
+      button.textContent = "Hide editor";
+      textarea.focus();
+    });
+  });
+
+  setupMemoryCoverChooser({
+    enabled: !edit && !hasExistingCover
+  });
 }
 
 function merchImagePaths(data) {
@@ -2196,13 +2646,13 @@ async function renderMerchForm(data, workflow) {
   `;
 }
 
-function renderWorkForm(data) {
+function renderWorkForm(data, workflow) {
   const edit = Boolean(data);
   const isLink = Boolean(data?.links?.length === 1 && data.links[0].url);
   els.formArea.innerHTML = `
     <form class="editor-form" data-kind="work">
-      <div class="form-heading"><h2>${edit ? `Edit ${escapeHtml(filename(data.path))}` : "Add to Works"}</h2></div>
-      ${edit ? `<div class="notice small selected-work-notice"><div><b>Selected:</b> ${escapeHtml(filename(data.path))}</div><button id="viewSelectedWorkButton" class="btn btn-quiet" type="button">View / Preview selected file</button></div>` : ""}
+      <div class="form-heading"><h2>${edit ? `Edit ${escapeHtml(workFileDisplayName(data.path))}` : "Add to Works"}</h2></div>
+      ${edit ? `<div class="notice small selected-work-notice"><div><b>Selected:</b> ${escapeHtml(workFileDisplayName(data.path))}</div><button id="viewSelectedWorkButton" class="btn btn-quiet" type="button">View / Preview selected file</button></div>` : ""}
       <label class="field"><span>Add files</span><input name="workFiles" type="file" multiple></label>
       <div class="hr"></div>
       <div class="form-grid two-column">
@@ -2216,9 +2666,21 @@ function renderWorkForm(data) {
         </div>
       ` : ""}
       ${edit ? `
-        <div class="notice">
-          <label class="check-row"><input name="renameFile" type="checkbox"><span>Rename/move the selected file</span></label>
-          <label class="field" style="margin-top:10px"><span>New filename</span><input name="newFilename" value="${escapeHtml(filename(data.path))}"></label>
+        <div class="notice file-reorganize-panel">
+          <strong>Reorganize this file</strong>
+          <div class="form-grid two-column" style="margin-top:10px">
+            <label class="field">
+              <span>Folder</span>
+              <select name="workParentFolder">
+                ${renderDestinationFolderOptions(workflow, parentPath(data.path))}
+              </select>
+            </label>
+            <label class="field">
+              <span>Filename</span>
+              <input name="newFilename" value="${escapeHtml(filename(data.path))}">
+            </label>
+          </div>
+          <small>Changing either field moves/renames the file when you save.</small>
         </div>
         <div class="notice">
           <label class="check-row remove-check"><input name="deleteSelected" type="checkbox"><span>Remove the selected file from Dropbox</span></label>
@@ -2296,7 +2758,19 @@ function updateDestinationPreview() {
   if (kind === "travel" && state.mode === "add" && currentForm()) destination = joinDropboxPath(state.rootPath, safeSegment([value("title") || "New Trip", value("year")].filter(Boolean).join(" ")));
   if (kind === "merch" && state.mode === "add" && currentForm()) destination = joinDropboxPath(state.rootPath, safeSegment(value("name") || "New Item"));
   if (kind === "work" && state.mode === "add") destination = state.destinationFolder;
-  if (kind === "folder" && state.selectedData?.path && currentForm()) destination = joinDropboxPath(parentPath(state.selectedData.path), safeSegment(value("folderName"), filename(state.selectedData.path)));
+  if (kind === "work" && state.mode === "edit" && state.selectedData?.path && currentForm()) {
+    destination = joinDropboxPath(
+      value("workParentFolder") || parentPath(state.selectedData.path),
+      safeSegment(value("newFilename"), filename(state.selectedData.path))
+    );
+  }
+  if (kind === "memory" && state.mode === "edit" && state.selectedData?.root && currentForm() && value("folderName")) {
+    destination = joinDropboxPath(
+      value("memoryParentFolder") || parentPath(state.selectedData.root),
+      safeSegment(value("folderName"), filename(state.selectedData.root))
+    );
+  }
+  if (kind === "folder" && state.selectedData?.path && currentForm()) destination = joinDropboxPath(value("parentFolder") || parentPath(state.selectedData.path), safeSegment(value("folderName"), filename(state.selectedData.path)));
   if (kind === "personalTravel") destination = joinDropboxPath(state.rootPath, "trips.txt");
   if (kind === "personalMemory") destination = joinDropboxPath(state.rootPath, "albums.txt");
   els.destinationPreview.textContent = destination || "";
@@ -2388,29 +2862,120 @@ async function publishPersonalMemory(workflow) {
     }))
     .filter(group => group.references.length);
 
+  const existingAssignments = new Map(
+    Array.from(
+      els.formArea.querySelectorAll("[data-existing-memory-group-reference]")
+    ).map(input => [
+      cleanMemoryReference(input.dataset.existingMemoryGroupReference).toLowerCase(),
+      input.value.trim() || "@loose"
+    ])
+  );
+
+  if (existingAssignments.size) {
+    const regrouped = [];
+
+    const addExistingToGroup = (groupName, reference) => {
+      const cleanName = String(groupName || "").trim() || "@loose";
+      let group = regrouped.find(item =>
+        String(item.name).toLowerCase() === cleanName.toLowerCase()
+      );
+
+      if (!group) {
+        group = { name: cleanName, references: [] };
+        regrouped.push(group);
+      }
+
+      if (!group.references.some(item => item.toLowerCase() === reference.toLowerCase())) {
+        group.references.push(reference);
+      }
+    };
+
+    groups.forEach(group => {
+      group.references.forEach(reference => {
+        const assignedGroup =
+          existingAssignments.get(reference.toLowerCase()) ?? group.name;
+        addExistingToGroup(assignedGroup, reference);
+      });
+    });
+
+    groups = regrouped;
+  }
+
   const existingKeys = new Set(
     groups.flatMap(group =>
       group.references.map(reference => reference.toLowerCase())
     )
   );
 
-  const additions = Array.from(
+  const selectedInputs = Array.from(
     els.formArea.querySelectorAll("[data-add-personal-memory]:checked")
-  )
+  );
+
+  const folderAdditions = selectedInputs
+    .filter(input => input.dataset.memoryKind === "folder")
     .map(input => cleanMemoryReference(input.dataset.addPersonalMemory))
     .filter(Boolean);
 
-  additions.forEach(reference => {
+  const fileAdditions = selectedInputs
+    .filter(input => input.dataset.memoryKind === "file")
+    .map(input => cleanMemoryReference(input.dataset.addPersonalMemory))
+    .filter(Boolean)
+    .filter(reference =>
+      !folderAdditions.some(folderReference =>
+        reference.toLowerCase().startsWith(
+          `${folderReference.toLowerCase()}/`
+        )
+      )
+    );
+
+  const addToGroup = (groupName, reference) => {
+    const cleanName = String(groupName || "").trim() || "@loose";
     const key = reference.toLowerCase();
     if (existingKeys.has(key)) return;
 
-    groups.push({
-      name: memoryReferenceName(reference),
-      references: [reference]
-    });
+    let group = groups.find(item =>
+      String(item.name).toLowerCase() === cleanName.toLowerCase()
+    );
 
+    if (!group) {
+      group = { name: cleanName, references: [] };
+      groups.push(group);
+    }
+
+    group.references.push(reference);
     existingKeys.add(key);
+  };
+
+  folderAdditions.forEach(reference => {
+    addToGroup(memoryReferenceName(reference), reference);
   });
+
+  const groupingMode =
+    els.formArea.querySelector('input[name="personalMemoryGrouping"]:checked')?.value ||
+    "loose";
+
+  if (groupingMode === "one") {
+    const albumName =
+      currentForm()?.elements?.personalMemoryAlbumName?.value?.trim() ||
+      "Selected memories";
+
+    fileAdditions.forEach(reference => addToGroup(albumName, reference));
+  } else if (groupingMode === "multiple") {
+    const assignments = new Map(
+      Array.from(
+        els.formArea.querySelectorAll("[data-memory-group-reference]")
+      ).map(input => [
+        cleanMemoryReference(input.dataset.memoryGroupReference),
+        input.value.trim()
+      ])
+    );
+
+    fileAdditions.forEach(reference => {
+      addToGroup(assignments.get(reference) || "@loose", reference);
+    });
+  } else {
+    fileAdditions.forEach(reference => addToGroup("@loose", reference));
+  }
 
   await uploadText(
     manifestPath,
@@ -2633,17 +3198,89 @@ async function publishTravel() {
 async function publishMemory() {
   const root = state.selectedData?.root || state.destinationFolder;
   await ensureFolder(root);
-  for (const path of selectedRemovePaths("delete")) await deletePath(path);
-  if (files("media").length) await uploadFiles(root, files("media"));
-  const links = value("linksToAdd").split(/\r?\n/).map(line => line.trim()).filter(Boolean);
-  if (links.length) await uploadText(joinDropboxPath(root, "Links.txt"), `${links.join("\n")}\n`, false);
-  if (state.selectedData && value("folderName") && pathKey(root) !== pathKey(state.rootPath)) {
-    const target = joinDropboxPath(parentPath(root), safeSegment(value("folderName"), filename(root)));
+
+  const pathsToDelete = selectedRemovePaths("delete");
+  const deleteKeys = new Set(pathsToDelete.map(pathKey));
+
+  const activeTextEditors = Array.from(
+    els.formArea.querySelectorAll('[data-memory-text-path][data-memory-text-active="true"]')
+  );
+
+  for (const textarea of activeTextEditors) {
+    const path = textarea.dataset.memoryTextPath;
+    if (!path || deleteKeys.has(pathKey(path))) continue;
+    await uploadText(path, textarea.value, true);
+  }
+
+  for (const path of pathsToDelete) {
+    await deletePath(path);
+  }
+
+  const mediaFiles = files("media");
+  let uploadedMedia = [];
+
+  if (mediaFiles.length) {
+    uploadedMedia = await uploadFiles(root, mediaFiles);
+  }
+
+  if (checked("setMemoryCover")) {
+    const selectedCoverName =
+      currentForm()?.elements?.memoryCoverFile?.value || "";
+
+    if (selectedCoverName) {
+      const selectedIndex = mediaFiles.findIndex(file =>
+        file.name === selectedCoverName
+      );
+
+      const uploadedPath =
+        selectedIndex >= 0
+          ? uploadedMedia[selectedIndex]
+          : "";
+
+      if (uploadedPath) {
+        const ext = extension(uploadedPath) || extension(selectedCoverName) || "jpg";
+        const coverPath = joinDropboxPath(root, `cover.${ext}`);
+
+        if (pathKey(uploadedPath) !== pathKey(coverPath)) {
+          await movePath(uploadedPath, coverPath);
+        }
+      }
+    }
+  }
+
+  const links = value("linksToAdd")
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+
+  if (links.length) {
+    await uploadText(
+      joinDropboxPath(root, "Links.txt"),
+      `${links.join("\n")}\n`,
+      false
+    );
+  }
+
+  if (
+    state.selectedData &&
+    value("folderName") &&
+    pathKey(root) !== pathKey(state.rootPath)
+  ) {
+    const selectedParent =
+      value("memoryParentFolder") ||
+      parentPath(root);
+
+    const target = joinDropboxPath(
+      selectedParent,
+      safeSegment(value("folderName"), filename(root))
+    );
+
     if (pathKey(target) !== pathKey(root)) {
       const moved = await movePath(root, target);
       return moved.entry?.displayPath || moved.entry?.path || target;
     }
   }
+
   return root;
 }
 
@@ -2692,9 +3329,25 @@ async function publishMerch(workflow) {
 async function publishFolderRename() {
   const from = state.selectedData?.path;
   if (!from) throw new Error("No folder is selected.");
+
+  const workflow = currentWorkflow();
   const newName = safeSegment(value("folderName"), filename(from));
-  const target = joinDropboxPath(parentPath(from), newName);
+  const selectedParent = value("parentFolder") || parentPath(from);
+
+  if (workflow) {
+    const rootKey = pathKey(workflow.root);
+    const parentKey = pathKey(selectedParent);
+    if (parentKey !== rootKey && !parentKey.startsWith(`${rootKey}/`)) {
+      throw new Error("The folder must stay inside this section.");
+    }
+  }
+
+  const target = joinDropboxPath(selectedParent, newName);
   if (pathKey(target) === pathKey(from)) return from;
+  if (pathKey(target).startsWith(`${pathKey(from)}/`)) {
+    throw new Error("A folder cannot be moved inside itself.");
+  }
+
   const moved = await movePath(from, target);
   return moved.entry?.displayPath || moved.entry?.path || target;
 }
@@ -2710,12 +3363,24 @@ async function publishWork() {
     await uploadText(state.selectedData.path, value("textContents"), true);
   }
   let selectedPath = edit ? state.selectedData.path : folder;
-  if (edit && checked("renameFile")) {
+  if (edit) {
+    const workflow = currentWorkflow();
+    const selectedParent = value("workParentFolder") || parentPath(state.selectedData.path);
     const newName = safeSegment(value("newFilename"), filename(state.selectedData.path));
-    const target = joinDropboxPath(parentPath(state.selectedData.path), newName);
+
+    if (workflow) {
+      const rootKey = pathKey(workflow.root);
+      const parentKey = pathKey(selectedParent);
+      if (parentKey !== rootKey && !parentKey.startsWith(`${rootKey}/`)) {
+        throw new Error("The file must stay inside this Works section.");
+      }
+    }
+
+    const target = joinDropboxPath(selectedParent, newName);
     if (pathKey(target) !== pathKey(state.selectedData.path)) {
       const moved = await movePath(state.selectedData.path, target);
       selectedPath = moved.entry?.displayPath || moved.entry?.path || target;
+      folder = parentPath(selectedPath);
     }
   }
   if (edit && checked("deleteSelected")) await deletePath(selectedPath);

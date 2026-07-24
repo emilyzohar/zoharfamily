@@ -1725,3 +1725,493 @@ code {
     white-space: normal;
   }
 }
+
+/* =========================================================
+   PERSONAL MEMORY PHOTO PICKER — THUMBNAIL GRID
+========================================================= */
+
+.memory-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 10px;
+  padding: 8px 0 12px;
+}
+
+.memory-tree-file.memory-photo-tile {
+  position: relative;
+  display: block;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.memory-tree-file.memory-photo-tile:hover {
+  border-color: #93c5fd;
+  background: var(--accent-soft-2);
+}
+
+.memory-tree-file.memory-photo-tile:has(input:checked) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}
+
+.memory-photo-select {
+  position: relative;
+  display: block;
+  aspect-ratio: 1 / 0.82;
+  cursor: pointer;
+}
+
+.memory-photo-select > input[type="checkbox"] {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 3;
+  box-shadow: 0 1px 5px rgba(15, 23, 42, 0.22);
+}
+
+.memory-photo-thumb,
+.memory-photo-thumb img,
+.memory-photo-thumb video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.memory-photo-thumb {
+  overflow: hidden;
+  background: #e9eef5;
+}
+
+.memory-photo-thumb img,
+.memory-photo-thumb video {
+  object-fit: cover;
+}
+
+.memory-photo-open {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 4;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.8);
+  border-radius: 999px;
+  background: rgba(255,255,255,.92);
+  color: #334155;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, .15);
+}
+
+.memory-photo-open:hover,
+.memory-photo-open:focus-visible {
+  background: #fff;
+  color: var(--accent);
+}
+
+/* =========================================================
+   PERSONAL MEMORY ORGANIZATION OPTIONS
+========================================================= */
+
+.memory-grouping-panel {
+  margin: 18px 0 0;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.memory-grouping-panel legend {
+  padding: 0 6px;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 780;
+}
+
+.memory-grouping-options {
+  display: grid;
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.memory-grouping-options input[type="radio"],
+.memory-cover-choice input[type="radio"] {
+  accent-color: var(--accent);
+}
+
+.memory-grouping-one,
+.memory-multiple-groups {
+  margin-top: 14px;
+}
+
+.memory-multiple-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.memory-group-assignment {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+/* =========================================================
+   PERSONAL MEMORY PREVIEW CAROUSEL
+========================================================= */
+
+.personal-memory-carousel {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+}
+
+.personal-memory-carousel-stage {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #0f172a;
+}
+
+.personal-memory-carousel-stage img,
+.personal-memory-carousel-stage video {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  max-height: 68vh;
+  object-fit: contain;
+}
+
+.personal-memory-carousel-arrow {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--text);
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.personal-memory-carousel-counter {
+  text-align: center;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+/* =========================================================
+   MEMORY ALBUM COVER CHOOSER
+========================================================= */
+
+.memory-cover-prompt {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #bfdbfe;
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.memory-cover-toggle {
+  font-weight: 700;
+}
+
+.memory-cover-choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.memory-cover-choice {
+  position: relative;
+  display: grid;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.memory-cover-choice:has(input:checked) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, .12);
+}
+
+.memory-cover-choice input {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+}
+
+.memory-cover-choice img {
+  width: 100%;
+  aspect-ratio: 1 / .8;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.memory-cover-choice span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+@media (max-width: 650px) {
+  .memory-photo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .personal-memory-carousel {
+    grid-template-columns: 36px minmax(0, 1fr) 36px;
+    gap: 7px;
+  }
+
+  .personal-memory-carousel-stage {
+    min-height: 280px;
+  }
+
+  .personal-memory-carousel-arrow {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+
+/* =========================================================
+   ADMIN REORGANIZATION CONTROLS
+========================================================= */
+
+.folder-file-section {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.folder-file-heading {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: .92rem;
+  font-weight: 780;
+}
+
+.folder-file-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.folder-file-card {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.folder-file-card:hover,
+.folder-file-card:focus-visible {
+  border-color: var(--accent);
+  background: var(--accent-soft-2);
+}
+
+.folder-file-card strong,
+.folder-file-card small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-file-card small {
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.file-reorganize-panel > strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.current-memory-organizer {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.current-memory-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(190px, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.current-memory-main {
+  min-width: 0;
+  align-self: center;
+}
+
+.current-memory-main strong,
+.current-memory-main small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-memory-main small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .78rem;
+}
+
+.current-memory-folder-field {
+  margin: 0;
+}
+
+.current-memory-remove {
+  align-self: center;
+  white-space: nowrap;
+}
+
+@media (max-width: 850px) {
+  .current-memory-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .current-memory-folder-field {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+/* =========================================================
+   COLLAPSIBLE PERSONAL MEMORY REORGANIZER
+========================================================= */
+
+.personal-memory-existing-details {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.personal-memory-existing-details > summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 750;
+  color: var(--text);
+  user-select: none;
+}
+
+.personal-memory-existing-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.personal-memory-existing-details > summary::after {
+  content: "▾";
+  margin-left: auto;
+  color: var(--muted);
+  transition: transform 150ms ease;
+}
+
+.personal-memory-existing-details[open] > summary::after {
+  transform: rotate(180deg);
+}
+
+.personal-memory-existing-count {
+  flex: 0 0 auto;
+  min-width: 28px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 750;
+}
+
+.personal-memory-existing-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.personal-memory-existing-body > .subtle {
+  margin-top: 12px;
+}
+
+/* =========================================================
+   EDITABLE TEXT FILES INSIDE MEMORY ALBUMS
+========================================================= */
+
+.memory-asset-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.memory-text-edit-button {
+  min-height: 34px;
+  padding: 7px 11px;
+}
+
+.memory-text-editor {
+  grid-column: 1 / -1;
+  padding-top: 4px;
+}
+
+.memory-text-editor .field {
+  margin: 0;
+}
+
+.memory-text-editor textarea {
+  min-height: 150px;
+}
+
+@media (max-width: 700px) {
+  .memory-asset-row {
+    grid-template-columns: 1fr;
+  }
+
+  .memory-asset-actions {
+    justify-content: flex-start;
+  }
+}

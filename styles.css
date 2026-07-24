@@ -162,7 +162,7 @@ body {
 }
 
 .top-nav-link {
-  color: #fbf6e9;
+  color: #5e0b11;
   text-decoration: none;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.5rem;
@@ -287,8 +287,6 @@ body {
 .merch-header {
   max-height: 70px;
   background-image: none !important;
-
-  background: var(--ink);
 
   position: relative;
 }
@@ -1108,7 +1106,6 @@ body.modal-open {
     height: 65px;
     min-height: 65px;
 
-    background: var(--ink);
     background-image: none !important;
   }
 
@@ -1254,5 +1251,65 @@ body.person-peek-mode .site-admin-footer {
     right: 10px;
     bottom: 9px;
     font-size: 0.84rem;
+  }
+}
+
+/* =========================================================
+   MERCH QUICK-VIEW ITEM NAVIGATION
+========================================================= */
+
+.quick-view-item-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(94, 11, 17, 0.22);
+  border-radius: 999px;
+  background: rgba(245, 240, 231, 0.96);
+  color: #5e0b11;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 31px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+  box-shadow: 0 5px 18px rgba(0,0,0,.12);
+}
+
+.quick-view-item-arrow:hover,
+.quick-view-item-arrow:focus-visible {
+  background: #fffefa;
+}
+
+.quick-view-item-arrow-left {
+  left: 14px;
+}
+
+.quick-view-item-arrow-right {
+  right: 14px;
+}
+
+.quick-view-item-arrow[hidden] {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .quick-view-item-arrow {
+    top: auto;
+    bottom: 14px;
+    width: 42px;
+    height: 42px;
+    transform: none;
+  }
+
+  .quick-view-item-arrow-left {
+    left: 18px;
+  }
+
+  .quick-view-item-arrow-right {
+    right: 18px;
   }
 }

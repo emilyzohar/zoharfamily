@@ -928,7 +928,10 @@ async function performTripContentLoad(
           file:
             makeDropboxFileUrl(
               entry.path
-            )
+            ),
+
+          path:
+            entry.path
 
         })
 
@@ -1018,7 +1021,9 @@ async function performTripContentLoad(
             file:
               makeDropboxFileUrl(
                 path
-              )
+              ),
+
+            path
 
           };
 
@@ -4043,6 +4048,26 @@ function renderTravelLinks() {
         "travel-pdf-link";
 
 
+      if (
+        linkData.path
+        &&
+        /\.pdf$/i.test(
+          linkData.path
+        )
+      ) {
+        link.addEventListener(
+          "click",
+          event => {
+            event.preventDefault();
+
+            openTravelDocumentPreview(
+              linkData.path
+            );
+          }
+        );
+      }
+
+
       travelPdfLinks.appendChild(
         link
       );
@@ -4437,6 +4462,113 @@ function makeDropboxFileUrl(
 
   );
 
+}
+
+
+async function getTravelDropboxPreviewUrl(
+  path
+) {
+  const response =
+    await fetch(
+      `${PHOTO_API}/shared-link?path=${
+        encodeURIComponent(
+          path
+        )
+      }`
+    );
+
+  if (
+    !response.ok
+  ) {
+    throw new Error(
+      await response.text()
+        .catch(
+          () =>
+            `Could not preview ${path}`
+        )
+    );
+  }
+
+  const data =
+    await response.json();
+
+  if (
+    !data?.url
+  ) {
+    throw new Error(
+      "Dropbox did not return a preview link."
+    );
+  }
+
+  const previewUrl =
+    new URL(
+      data.url
+    );
+
+  previewUrl.searchParams.delete(
+    "raw"
+  );
+
+  previewUrl.searchParams.set(
+    "dl",
+    "0"
+  );
+
+  return previewUrl.toString();
+}
+
+
+async function openTravelDocumentPreview(
+  path
+) {
+  const previewWindow =
+    window.open(
+      "",
+      "_blank"
+    );
+
+  if (
+    !previewWindow
+  ) {
+    alert(
+      "Please allow pop-ups for this website to preview the document."
+    );
+
+    return;
+  }
+
+  previewWindow.opener =
+    null;
+
+  previewWindow.document.title =
+    "Opening preview…";
+
+  previewWindow.document.body.innerHTML = `
+    <p style="font-family:Georgia,serif;padding:32px;color:#681116">
+      Opening preview…
+    </p>
+  `;
+
+  try {
+    previewWindow.location.replace(
+      await getTravelDropboxPreviewUrl(
+        path
+      )
+    );
+
+  } catch (
+    error
+  ) {
+    previewWindow.document.title =
+      "Preview unavailable";
+
+    previewWindow.document.body.innerHTML = `
+      <div style="font-family:Georgia,serif;padding:32px;color:#681116">
+        <h1>Preview unavailable</h1>
+        <p>The document could not be previewed.</p>
+      </div>
+    `;
+  }
 }
 
 
