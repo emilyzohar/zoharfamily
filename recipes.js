@@ -184,6 +184,18 @@ const recipeModalSecretsSection =
     "recipe-modal-secrets-section"
   );
 
+const recipeModalSecretsHeading =
+  recipeModalSecretsSection?.querySelector(
+    "h2"
+  );
+
+if (recipeModalSecretsHeading) {
+  recipeModalSecretsHeading.textContent =
+    recipePageContext.person
+      ? "Notes"
+      : "Safta’s Secrets";
+}
+
 const recipeModalImageWrap =
   document.getElementById(
     "recipe-modal-image-wrap"
