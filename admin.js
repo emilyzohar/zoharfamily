@@ -3545,7 +3545,11 @@ async function availableFolder(root, preferred) {
 }
 
 async function publishTravel() {
-  const edit = Boolean(state.selectedData?.root);
+  /*
+   * The selected admin mode is authoritative. In edit mode, never fall back
+   * to the add-new path merely because selectedData is missing or incomplete.
+   */
+  const edit = state.mode === "edit";
 
   let root;
 
@@ -3555,9 +3559,13 @@ async function publishTravel() {
      * has to still exist; otherwise stop instead of silently creating a new
      * empty folder containing only trip.txt.
      */
-    root = normalizePath(state.selectedData.root);
+    root = normalizePath(
+      state.selectedData?.root ||
+      entryPath(state.selectedItem)
+    );
 
     if (
+      !state.selectedData?.root ||
       !root ||
       pathKey(root) === pathKey(state.rootPath)
     ) {
