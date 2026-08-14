@@ -395,7 +395,7 @@ function parseKeyValueText(text) {
 }
 
 function parseTrip(text) {
-  const result = { title: "", year: "", travelers: "", filterName: "", blurb: "", x: "", y: "", links: [] };
+  const result = { title: "", year: "", travelers: "", filterName: "", generation: "", blurb: "", x: "", y: "", links: [] };
   String(text ?? "").split(/\r?\n/).forEach(raw => {
     const line = raw.trim();
     if (!line) return;
@@ -412,7 +412,8 @@ function parseTrip(text) {
     if (key === "title") result.title = value;
     else if (key === "year") result.year = value;
     else if (key === "travelers") result.travelers = value;
-    else if (["filter", "filtername", "generation"].includes(key)) result.filterName = value;
+    else if (["filter", "filtername"].includes(key)) result.filterName = value;
+    else if (key === "generation") result.generation = value;
     else if (key === "blurb") result.blurb = value;
     else if (key === "x") result.x = value;
     else if (key === "y") result.y = value;
@@ -884,124 +885,143 @@ async function beginSectionWorkflow() {
 }
 
 
+function normalizeTravelPersonName(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function parseTravelPeople(value) {
+  const names = [];
+  const seen = new Set();
+  let isFamily = false;
+
+  normalizeTravelPersonName(value)
+    .split(/\s*(?:&|,|;|\+|\band\b)\s*/i)
+    .map(normalizeTravelPersonName)
+    .filter(Boolean)
+    .forEach(name => {
+      const key = name.toLocaleLowerCase();
+      if (key === "zohar family") {
+        isFamily = true;
+        return;
+      }
+      if (seen.has(key)) return;
+      seen.add(key);
+      names.push(name);
+    });
+
+  return { names, isFamily };
+}
+
+function tripBelongsToPerson(trip, person) {
+  const parsed = parseTravelPeople(trip?.travelers || "");
+  if (parsed.isFamily) return true;
+  const personKey = normalizeTravelPersonName(person).toLocaleLowerCase();
+  return Boolean(personKey) && parsed.names.some(name => name.toLocaleLowerCase() === personKey);
+}
+
 async function showPersonalTravelEditor(workflow) {
   els.stepEditor.hidden = false;
   els.editorStepNumber.textContent = "5";
-  els.editorStepLabel.textContent = "Select trips";
-  els.formArea.innerHTML = `<div class="notice small">Loading trips…</div>`;
+  els.editorStepLabel.textContent = "Travel on Works page";
+  els.formArea.innerHTML = `<div class="notice small">Loading ${escapeHtml(state.person)}'s trips…</div>`;
   setPublishStatus();
 
   try {
-    const sharedEntries = await fetchFolder("/Zohar Family/Travel", false, true);
-    const tripFolders = sharedEntries
-      .filter(entry => String(entry.type).toLowerCase() === "folder");
+    const [parentEntries, sharedEntries] = await Promise.all([
+      fetchFolder(parentPath(workflow.root), false, true),
+      fetchFolder("/Zohar Family/Travel", false, true)
+    ]);
 
-    const currentManifest = await fetchText(
-      joinDropboxPath(workflow.root, "trips.txt"),
-      true
-    ).catch(() => "");
+    const enabled = parentEntries.some(entry =>
+      String(entry.type).toLowerCase() === "folder"
+      &&
+      pathKey(entryPath(entry)) === pathKey(workflow.root)
+    );
 
-    const currentNames = parseManifestLines(currentManifest);
-    const currentKeys = new Set(currentNames.map(name => name.toLowerCase()));
+    const tripFolders = sharedEntries.filter(entry =>
+      String(entry.type).toLowerCase() === "folder"
+    );
 
-    const trips = (
+    const matchingTrips = (
       await Promise.all(
         tripFolders.map(async folder => {
-          const root = entryPath(folder);
           try {
             const data = parseTrip(
-              await fetchText(joinDropboxPath(root, "trip.txt"))
+              await fetchText(joinDropboxPath(entryPath(folder), "trip.txt"))
             );
+
+            if (!tripBelongsToPerson(data, state.person)) return null;
+
             return {
               folderName: folder.name,
               title: data.title || folder.name,
               year: data.year || "",
-              selected: currentKeys.has(String(folder.name).toLowerCase())
+              travelers: data.travelers || "",
+              family: parseTravelPeople(data.travelers || "").isFamily
             };
-          } catch {
-            return {
-              folderName: folder.name,
-              title: folder.name,
-              year: "",
-              selected: currentKeys.has(String(folder.name).toLowerCase())
-            };
+          } catch (error) {
+            console.warn(`Could not inspect trip for ${state.person}: ${folder.name}`, error);
+            return null;
           }
         })
       )
-    ).sort((a, b) =>
-      String(a.title).localeCompare(String(b.title), undefined, {
-        numeric: true,
-        sensitivity: "base"
-      })
-    );
+    )
+      .filter(Boolean)
+      .sort((a, b) => {
+        const yearA = Number.parseInt(a.year, 10);
+        const yearB = Number.parseInt(b.year, 10);
+        if (Number.isFinite(yearA) && Number.isFinite(yearB) && yearA !== yearB) {
+          return yearA - yearB;
+        }
+        return String(a.title).localeCompare(String(b.title), undefined, {
+          numeric: true,
+          sensitivity: "base"
+        });
+      });
 
     state.selectedData = {
       root: workflow.root,
-      currentTripNames: currentNames,
-      trips
+      enabled,
+      matchingTrips
     };
-
-    const existing = trips.filter(trip => trip.selected);
-    const available = trips.filter(trip => !trip.selected);
 
     els.formArea.innerHTML = `
       <form class="editor-form personal-selector personal-travel-selector" data-kind="personalTravel">
         <div class="form-heading"><h2>${escapeHtml(state.person)}'s Travel</h2></div>
 
-        ${existing.length ? `
-          <div class="field">
-            <span>Currently shown</span>
-            <div class="choice-grid">
-              ${existing.map(trip => `
-                <label class="choice-item">
-                  <input
-                    type="checkbox"
-                    data-remove-personal-trip="${escapeHtml(trip.folderName)}"
-                  >
-                  <span>
-                    ${escapeHtml(trip.title)}
-                    ${trip.year ? ` — ${escapeHtml(trip.year)}` : ""}
-                    <small class="warn">Remove</small>
-                  </span>
-                </label>
-              `).join("")}
-            </div>
-          </div>
-        ` : ""}
+        
 
         <div class="field">
-          <span>Add trips</span>
-          <label class="field">
-            <input id="personalTripSearch" type="search" placeholder="Search trips">
-          </label>
-          <div id="personalTripChoices" class="choice-grid">
-            ${available.length ? available.map(trip => `
-              <label
-                class="choice-item"
-                data-personal-trip-search="${escapeHtml(`${trip.title} ${trip.year}`.toLowerCase())}"
-              >
-                <input
-                  type="checkbox"
-                  data-add-personal-trip="${escapeHtml(trip.folderName)}"
-                >
-                <span>
-                  ${escapeHtml(trip.title)}
-                  ${trip.year ? ` — ${escapeHtml(trip.year)}` : ""}
-                </span>
-              </label>
-            `).join("") : `<div class="browser-empty">All shared trips are already on this page.</div>`}
+          <span>Trips associated automatically</span>
+          <div class="choice-grid">
+            ${matchingTrips.length
+              ? matchingTrips.map(trip => `
+                <div class="choice-item">
+                  <span>
+                    <strong>${escapeHtml(trip.title)}</strong>
+                    ${trip.year ? ` — ${escapeHtml(trip.year)}` : ""}
+                    <small class="subtle">${trip.family ? "Family trip" : escapeHtml(trip.travelers)}</small>
+                  </span>
+                </div>
+              `).join("")
+              : `<div class="browser-empty">No trips currently list ${escapeHtml(state.person)} as a traveler.</div>`}
           </div>
         </div>
+
+        <label class="choice-item">
+          <input
+            name="showPersonalTravel"
+            type="checkbox"
+            ${enabled ? "checked" : ""}
+          >
+          <span>Show Travel on ${escapeHtml(state.person)}'s Works page</span>
+        </label>
+
+        <small class="subtle">You do not add or remove trips here. Change a trip's Travelers field and this list updates automatically.</small>
       </form>
     `;
-
-    const search = document.getElementById("personalTripSearch");
-    search?.addEventListener("input", () => {
-      const term = search.value.trim().toLowerCase();
-      document.querySelectorAll("[data-personal-trip-search]").forEach(row => {
-        row.hidden = Boolean(term) && !row.dataset.personalTripSearch.includes(term);
-      });
-    });
 
     updateDestinationPreview();
     els.stepEditor.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2430,8 +2450,9 @@ function renderTravelForm(data) {
         <label class="field"><span>Trip title *</span><input name="title" required value="${escapeHtml(data?.title || "")}"></label>
         <label class="field"><span>Year</span><input name="year" value="${escapeHtml(data?.year || "")}"></label>
       </div>
-      <label class="field"><span>Travelers</span><input name="travelers" value="${escapeHtml(data?.travelers || "")}"></label>
-      <label class="field"><span>Filter Name</span><input name="filterName" value="${escapeHtml(data?.filterName || "")}" placeholder="Family"><small>This is the label used in the Travel filter.</small></label>
+      <label class="field"><span>Travelers *</span><input name="travelers" required value="${escapeHtml(data?.travelers || "")}"><small>Separate people with &amp;, commas, or “and”. Use “Zohar Family” for a trip that belongs to everyone. The Travel filter and personal Travel pages are built from this field.</small></label>
+      <input name="legacyFilterName" type="hidden" value="${escapeHtml(data?.filterName || "")}">
+      <input name="legacyGeneration" type="hidden" value="${escapeHtml(data?.generation || "")}">
       <label class="field"><span>Short description (optional)</span><textarea name="blurb" rows="4">${escapeHtml(data?.blurb || "")}</textarea></label>
       <fieldset class="map-panel">
         <div class="map-top-row"><div><legend>Map location *</legend><div class="small subtle">Click to place the pin. Zoom and pan, then drag the pin for precision.</div></div><div class="row compact-row"><button id="mapZoomOut" class="btn btn-icon" type="button">−</button><span id="mapZoomLabel" class="pill">100%</span><button id="mapZoomIn" class="btn btn-icon" type="button">+</button><button id="mapZoomReset" class="btn btn-quiet" type="button">Reset</button></div></div>
@@ -3196,19 +3217,23 @@ function renderWorkWebsitePreview() {
 }
 
 function renderPersonalTravelWebsitePreview() {
-  const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-trip]:checked")).map(input => input.dataset.addPersonalTrip);
-  const removals = new Set(Array.from(els.formArea.querySelectorAll("[data-remove-personal-trip]:checked")).map(input => input.dataset.removePersonalTrip));
-  const current = Array.from(els.formArea.querySelectorAll("[data-remove-personal-trip]"))
-    .map(input => input.dataset.removePersonalTrip)
-    .filter(name => !removals.has(name));
-  const names = [...new Set([...current, ...additions])];
+  const enabled =
+    checked("showPersonalTravel");
+
   return `
     <div class="website-preview-shell travel-site-preview personal-selection-preview">
       <div class="website-preview-context">${escapeHtml(state.person || "Personal")} Travel page</div>
       <div class="travel-site-map personal-map-preview"><img src="assets/travel/world.svg" alt="World map"></div>
-      <div class="personal-preview-strip">${names.length ? names.map(name => `<span>${escapeHtml(name)}</span>`).join("") : `<em>No trips selected.</em>`}</div>
+      <div class="personal-preview-strip">
+        <span>${enabled
+          ? `Travel is associated with ${escapeHtml(state.person || "this person")}'s Works page.`
+          : `Travel will not be associated with ${escapeHtml(state.person || "this person")}'s Works page.`
+        }</span>
+      </div>
+      <p class="small subtle">Trip membership itself is automatic from each trip's Travelers field.</p>
     </div>`;
 }
+
 
 function renderPersonalMemoryWebsitePreview() {
   const additions = Array.from(els.formArea.querySelectorAll("[data-add-personal-memory]:checked")).map(input => input.dataset.addPersonalMemory);
@@ -3444,41 +3469,68 @@ async function publishPersonalMemory(workflow) {
 }
 
 async function publishPersonalTravel(workflow) {
-  await ensureFolder(workflow.root);
+  const enabled =
+    checked("showPersonalTravel");
 
-  const manifestPath = joinDropboxPath(workflow.root, "trips.txt");
-  const currentText = await fetchText(manifestPath, true);
-  const current = parseManifestLines(currentText);
+  const parentEntries =
+    await fetchFolder(
+      parentPath(workflow.root),
+      false,
+      true
+    );
 
-  const additions = Array.from(
-    els.formArea.querySelectorAll("[data-add-personal-trip]:checked")
-  ).map(input => input.dataset.addPersonalTrip);
+  const existingFolder =
+    parentEntries.find(entry =>
+      String(entry.type).toLowerCase() === "folder"
+      &&
+      pathKey(entryPath(entry)) === pathKey(workflow.root)
+    );
 
-  const removals = new Set(
-    Array.from(
-      els.formArea.querySelectorAll("[data-remove-personal-trip]:checked")
-    ).map(input => String(input.dataset.removePersonalTrip).toLowerCase())
-  );
+  if (
+    enabled
+  ) {
+    await ensureFolder(
+      workflow.root
+    );
 
-  const next = [];
-  const seen = new Set();
+    const markerPath =
+      joinDropboxPath(
+        workflow.root,
+        "trips.txt"
+      );
 
-  [...current, ...additions].forEach(name => {
-    const clean = String(name || "").trim();
-    const key = clean.toLowerCase();
-    if (!clean || removals.has(key) || seen.has(key)) return;
-    seen.add(key);
-    next.push(clean);
-  });
+    const matchingTripNames =
+      Array.isArray(state.selectedData?.matchingTrips)
+        ? state.selectedData.matchingTrips
+            .map(trip => String(trip?.folderName || "").trim())
+            .filter(Boolean)
+        : [];
 
-  await uploadText(
-    manifestPath,
-    next.length ? `${next.join("\n")}\n` : "",
-    true
-  );
+    const manifestText = [
+      "# Trip membership is automatic from each shared trip's Travelers field.",
+      ...matchingTripNames
+    ].join("\n") + "\n";
 
-  return manifestPath;
+    await uploadText(
+      markerPath,
+      manifestText,
+      true
+    );
+
+    return markerPath;
+  }
+
+  if (
+    existingFolder
+  ) {
+    await deletePath(
+      entryPath(existingFolder)
+    );
+  }
+
+  return workflow.root;
 }
+
 
 async function publishRecipe() {
   const edit = Boolean(state.selectedData);
@@ -3501,25 +3553,33 @@ async function publishRecipe() {
 }
 
 function tripTextFromForm() {
-  const filterName = value("filterName");
-  const normalizedFilterName = filterName
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-
   const lines = [
     `Title: ${value("title")}`,
     `Year: ${value("year")}`,
-    `Travelers: ${value("travelers")}`,
-    `Filter: ${filterName}`
+    `Travelers: ${value("travelers")}`
   ];
 
-  if (
-    normalizedFilterName === "sabba & safta"
-    ||
-    normalizedFilterName === "sabba and safta"
-  ) {
-    lines.push("Generation: first");
+  /*
+    Preserve old Filter / Generation metadata when editing an existing
+    trip so legacy pin styling can remain intact. These fields no longer
+    control filtering or personal-page membership.
+  */
+  const legacyFilterName =
+    value("legacyFilterName");
+
+  const legacyGeneration =
+    value("legacyGeneration");
+
+  if (legacyFilterName) {
+    lines.push(
+      `Filter: ${legacyFilterName}`
+    );
+  }
+
+  if (legacyGeneration) {
+    lines.push(
+      `Generation: ${legacyGeneration}`
+    );
   }
 
   lines.push(
@@ -3527,12 +3587,15 @@ function tripTextFromForm() {
     `X: ${value("x")}`,
     `Y: ${value("y")}`
   );
+
   value("links").split(/\r?\n/).map(line => line.trim()).filter(Boolean).forEach(line => {
     const index = line.indexOf("|");
     if (index > 0) lines.push(`Link: ${line.slice(0,index).trim()} | ${line.slice(index+1).trim()}`);
   });
+
   return `${lines.join("\n")}\n`;
 }
+
 
 async function availableFolder(root, preferred) {
   const direct = await fetchFolder(root, false, true);

@@ -50,27 +50,13 @@ const travelPageContext =
 /*
   All actual trip folders live in one shared Dropbox location.
 
-  Person-specific Travel pages do NOT duplicate those folders.
-  Instead they read a small manifest at:
-
-  /Zohar Family/Works/{Person}/Travel/trips.txt
-
-  Each non-empty line in trips.txt is the name of a folder inside
-  /Zohar Family/Travel.
+  Person-specific Travel pages are derived automatically from each
+  trip's Travelers: field. A named traveler sees any trip that names
+  them, and Travelers: Zohar Family belongs to every person.
 */
 
 const TRAVEL_ROOT =
   "/Zohar Family/Travel";
-
-const PERSON_TRAVEL_ROOT =
-  travelPageContext.person
-    ? `/Zohar Family/Works/${travelPageContext.person}/${travelPageContext.section}`
-    : "";
-
-const PERSON_TRAVEL_MANIFEST =
-  PERSON_TRAVEL_ROOT
-    ? `${PERSON_TRAVEL_ROOT}/trips.txt`
-    : "";
 
 if (travelPageContext.person) {
   document.title =
@@ -205,50 +191,233 @@ let currentImageIndex =
 
 
 /* ============================================
-   FILTER STATE
+   TRAVELER FILTER STATE
 
-   first + next = Sabba & Safta
-   family = Family
-
-   Only these two grouped categories are
-   selected and visible by default.
-
-   Any future Generation value is:
-   - automatically added to the menu
-   - unchecked by default
-   - hidden on initial load
-   - styled like generation-next
+   The filter is derived only from Travelers:.
+   A trip may belong to multiple people, so it
+   remains visible when ANY selected traveler
+   matches. "Zohar Family" is represented by
+   its own Family filter on the shared page.
 ============================================ */
 
-const TRAVEL_GENERATION_GROUPS = {
-
-  first:
-    "Sabba & Safta",
-
-  next:
-    "Sabba & Safta",
-
-  family:
-    "Family"
-
-};
-
-
-const DEFAULT_SELECTED_TRAVEL_CATEGORIES =
-  new Set([
-    "Sabba & Safta",
-    "Family"
-  ]);
-
+const FAMILY_TRAVEL_FILTER_KEY =
+  "__family__";
 
 const selectedTravelCategories =
-  new Set(
-    DEFAULT_SELECTED_TRAVEL_CATEGORIES
-  );
-
+  new Set();
 
 const availableTravelCategories =
-  new Set();
+  new Map();
+
+
+function normalizeTravelerName(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .trim()
+    .replace(
+      /\s+/g,
+      " "
+    );
+}
+
+
+function travelerKey(
+  value
+) {
+
+  return normalizeTravelerName(
+    value
+  ).toLocaleLowerCase();
+}
+
+
+function parseTravelers(
+  value
+) {
+
+  const raw =
+    normalizeTravelerName(
+      value
+    );
+
+  if (
+    !raw
+  ) {
+
+    return {
+      names: [],
+      isFamily: false
+    };
+  }
+
+  const pieces =
+    raw
+      .split(
+        /\s*(?:&|,|;|\+|\band\b)\s*/i
+      )
+      .map(
+        normalizeTravelerName
+      )
+      .filter(
+        Boolean
+      );
+
+  const names =
+    [];
+
+  const seen =
+    new Set();
+
+  let isFamily =
+    false;
+
+  pieces.forEach(
+    name => {
+
+      const key =
+        travelerKey(
+          name
+        );
+
+      if (
+        key === "zohar family"
+      ) {
+
+        isFamily =
+          true;
+
+        return;
+      }
+
+      if (
+        !key
+        ||
+        seen.has(
+          key
+        )
+      ) {
+
+        return;
+      }
+
+      seen.add(
+        key
+      );
+
+      names.push(
+        name
+      );
+    }
+  );
+
+  return {
+    names,
+    isFamily
+  };
+}
+
+
+function travelMatchesPerson(
+  travel,
+  person
+) {
+
+  if (
+    travel?.familyTrip
+  ) {
+
+    return true;
+  }
+
+  const personKey =
+    travelerKey(
+      person
+    );
+
+  if (
+    !personKey
+  ) {
+
+    return true;
+  }
+
+  return Array.isArray(
+    travel?.travelerNames
+  )
+    &&
+    travel.travelerNames.some(
+      name =>
+        travelerKey(
+          name
+        ) === personKey
+    );
+}
+
+
+function travelMatchesSelectedTravelers(
+  travel
+) {
+
+  /*
+    If there are no named traveler options at all, keep legacy or
+    family-only data visible rather than producing an empty map.
+  */
+  if (
+    availableTravelCategories.size === 0
+  ) {
+
+    return true;
+  }
+
+  if (
+    selectedTravelCategories.size === 0
+  ) {
+
+    return false;
+  }
+
+  if (
+    travel?.familyTrip
+  ) {
+
+    return travelPageContext.person
+      ? true
+      : selectedTravelCategories.has(
+          FAMILY_TRAVEL_FILTER_KEY
+        );
+  }
+
+  const names =
+    Array.isArray(
+      travel?.travelerNames
+    )
+      ? travel.travelerNames
+      : [];
+
+  if (
+    names.length === 0
+  ) {
+
+    return (
+      selectedTravelCategories.size
+      ===
+      availableTravelCategories.size
+    );
+  }
+
+  return names.some(
+    name =>
+      selectedTravelCategories.has(
+        travelerKey(
+          name
+        )
+      )
+  );
+}
 
 
 /* ============================================
@@ -269,160 +438,6 @@ let travelTripsButton =
 
 let travelTripsMenu =
   null;
-
-
-/* ============================================
-   PERSON TRAVEL MANIFEST
-
-   /Works/{Person}/Travel/trips.txt contains
-   one shared Travel folder name per line.
-
-   Blank lines and # comments are ignored.
-   Duplicate names are removed case-insensitively.
-============================================ */
-
-function parsePersonTravelManifest(
-  text
-) {
-
-  const seen =
-    new Set();
-
-
-  return String(
-    text ?? ""
-  )
-
-    .split(
-      /\r?\n/
-    )
-
-    .map(
-      line =>
-        line.trim()
-    )
-
-    .filter(
-      line =>
-        line &&
-        !line.startsWith("#")
-    )
-
-    .filter(
-      line => {
-
-        const key =
-          line.toLocaleLowerCase();
-
-
-        if (
-          seen.has(
-            key
-          )
-        ) {
-
-          return false;
-
-        }
-
-
-        seen.add(
-          key
-        );
-
-
-        return true;
-
-      }
-    );
-
-}
-
-
-async function getPersonTravelFolders(
-  allTripFolders
-) {
-
-  let manifestText;
-
-
-  try {
-
-    manifestText =
-      await getDropboxText(
-        PERSON_TRAVEL_MANIFEST
-      );
-
-  } catch (
-    error
-  ) {
-
-    console.error(
-      `Could not load person Travel manifest: ${PERSON_TRAVEL_MANIFEST}`,
-      error
-    );
-
-
-    return [];
-
-  }
-
-
-  const requestedFolderNames =
-    parsePersonTravelManifest(
-      manifestText
-    );
-
-
-  const foldersByName =
-    new Map(
-      allTripFolders.map(
-        folder => [
-          String(
-            folder.name ?? ""
-          ).toLocaleLowerCase(),
-          folder
-        ]
-      )
-    );
-
-
-  const matchedFolders =
-    [];
-
-
-  requestedFolderNames.forEach(
-    folderName => {
-
-      const folder =
-        foldersByName.get(
-          folderName.toLocaleLowerCase()
-        );
-
-
-      if (
-        folder
-      ) {
-
-        matchedFolders.push(
-          folder
-        );
-
-      } else {
-
-        console.warn(
-          `Trip listed in ${PERSON_TRAVEL_MANIFEST} was not found in ${TRAVEL_ROOT}: ${folderName}`
-        );
-
-      }
-
-    }
-  );
-
-
-  return matchedFolders;
-
-}
 
 
 /* ============================================
@@ -453,24 +468,12 @@ async function loadTravelData() {
 
 
     /*
-      On a person-specific page, /Works/{Person}/Travel/trips.txt
-      contains only the names of shared trip folders to include.
-
-      Example:
-
-      Italy 1984
-      France 1992
-      Israel 2001
-
-      The actual data still loads from /Zohar Family/Travel/....
+      Always inspect the shared trips. Person-specific pages decide
+      membership after reading each trip's Travelers: metadata.
     */
 
     const tripFolders =
-      travelPageContext.person
-        ? await getPersonTravelFolders(
-            allTripFolders
-          )
-        : allTripFolders;
+      allTripFolders;
 
 
     TRAVELS =
@@ -481,25 +484,6 @@ async function loadTravelData() {
 
 
     selectedTravelCategories.clear();
-
-
-    if (
-      !travelPageContext.person
-    ) {
-
-      DEFAULT_SELECTED_TRAVEL_CATEGORIES.forEach(
-
-        category => {
-
-          selectedTravelCategories.add(
-            category
-          );
-
-        }
-
-      );
-
-    }
 
 
     if (
@@ -552,6 +536,20 @@ async function loadTravelData() {
             }
 
 
+            if (
+              travelPageContext.person
+              &&
+              !travelMatchesPerson(
+                travel,
+                travelPageContext.person
+              )
+            ) {
+
+              return null;
+
+            }
+
+
             const travelIndex =
 
               TRAVELS.push(
@@ -559,7 +557,7 @@ async function loadTravelData() {
               ) - 1;
 
 
-            registerTravelCategory(
+            registerTravelers(
               travel
             );
 
@@ -609,6 +607,8 @@ async function loadTravelData() {
       .then(
         () => {
 
+          renderTravelFilterOptions();
+          updateTravelPinVisibility();
           renderTravelTripOptions();
 
           scheduleTravelContentPrefetch();
@@ -722,6 +722,12 @@ async function loadTripMetadata(
   }
 
 
+  const parsedTravelers =
+    parseTravelers(
+      metadata.travelers
+    );
+
+
   return {
 
     id:
@@ -738,6 +744,12 @@ async function loadTripMetadata(
 
     travelers:
       metadata.travelers,
+
+    travelerNames:
+      parsedTravelers.names,
+
+    familyTrip:
+      parsedTravelers.isFamily,
 
     generation:
       getEffectiveTravelGeneration({
@@ -1563,74 +1575,48 @@ function getEffectiveTravelGeneration(
 }
 
 
-/* ============================================
-   GET FILTER CATEGORY
-
-   first + next = Sabba & Safta
-   family = Family
-   new categories = own name
-============================================ */
-
-function getTravelCategory(
-  generation
+function getTravelVisualGroup(
+  travel
 ) {
 
-  const normalized =
-
-    normalizeTravelGeneration(
-      generation
-    );
-
-
   if (
-    !normalized
+    travel?.familyTrip
   ) {
 
-    return "Other";
+    return "family";
 
   }
 
 
-  if (
-    TRAVEL_GENERATION_GROUPS[
-      normalized
-    ]
-  ) {
-
-    return TRAVEL_GENERATION_GROUPS[
-      normalized
-    ];
-
-  }
-
-
-  return normalized
-
-    .replace(
-      /[_-]+/g,
-      " "
+  const travelerKeys =
+    Array.isArray(
+      travel?.travelerNames
     )
+      ? travel.travelerNames.map(
+          travelerKey
+        )
+      : [];
 
-    .replace(
 
-      /\b\w/g,
+  if (
+    travelerKeys.includes(
+      "sabba"
+    )
+    ||
+    travelerKeys.includes(
+      "safta"
+    )
+  ) {
 
-      character =>
-        character.toUpperCase()
+    return "first";
 
-    );
+  }
+
+
+  return "next";
 
 }
 
-
-/* ============================================
-   CREATE CONTROL ROW
-
-   Contains:
-
-   Generations ▼
-   Trips ▼
-============================================ */
 
 function createTravelControls() {
 
@@ -1947,77 +1933,121 @@ function closeTravelDropdowns() {
 }
 
 
+
+
 /* ============================================
-   REGISTER CATEGORY
+   REGISTER TRAVELERS
 ============================================ */
 
-function registerTravelCategory(
+function registerTravelers(
   travel
 ) {
 
-  const category =
+  const names =
+    Array.isArray(
+      travel?.travelerNames
+    )
+      ? travel.travelerNames
+      : [];
 
-    getTravelCategory(
-      travel.filterName
-      ||
-      travel.generation
-    );
-
-
-  travel.filterCategory =
-    category;
-
-
-  const alreadyExists =
-
-    availableTravelCategories.has(
-      category
-    );
-
-
-  availableTravelCategories.add(
-    category
-  );
-
+  let changed =
+    false;
 
   /*
-    A person-specific Travel page should show
-    every category belonging to that person by
-    default. Categories are discovered
-    asynchronously from each trip.txt, so select
-    each category as soon as it is registered.
-
-    The main Travel page keeps its existing
-    Sabba & Safta + Family defaults.
+    Full-family trips get one explicit Family filter on the shared
+    Travel page rather than being treated as if they belong to every
+    individual traveler filter. Family starts selected on the shared
+    page and remains included on every personal Travel page.
   */
-
   if (
-    travelPageContext.person
+    travel?.familyTrip
+    &&
+    !availableTravelCategories.has(
+      FAMILY_TRAVEL_FILTER_KEY
+    )
   ) {
 
-    selectedTravelCategories.add(
-      category
+    availableTravelCategories.set(
+      FAMILY_TRAVEL_FILTER_KEY,
+      "Family"
     );
 
+    selectedTravelCategories.add(
+      FAMILY_TRAVEL_FILTER_KEY
+    );
+
+    changed =
+      true;
   }
 
+  names.forEach(
+    name => {
+
+      const key =
+        travelerKey(
+          name
+        );
+
+      if (
+        !key
+        ||
+        availableTravelCategories.has(
+          key
+        )
+      ) {
+
+        return;
+      }
+
+      availableTravelCategories.set(
+        key,
+        name
+      );
+
+      /*
+        Initial selection:
+        - shared Travel page: Sabba, Safta, and Family
+        - person-specific Travel page: that person + Family
+
+        Other discovered travelers remain available in the filter
+        but start unchecked.
+      */
+      const shouldSelectInitially =
+        travelPageContext.person
+          ? key === travelerKey(
+              travelPageContext.person
+            )
+          : key === "sabba" || key === "safta";
+
+      if (
+        shouldSelectInitially
+      ) {
+
+        selectedTravelCategories.add(
+          key
+        );
+
+      }
+
+      changed =
+        true;
+    }
+  );
 
   if (
-    !alreadyExists
+    changed
   ) {
 
     renderTravelFilterOptions();
-
+    updateTravelPinVisibility();
   }
 
-
   renderTravelTripOptions();
-
 }
 
 
 /* ============================================
-   GENERATION MULTISELECT
+   TRAVELER MULTISELECT
 ============================================ */
 
 function renderTravelFilterOptions() {
@@ -2027,7 +2057,6 @@ function renderTravelFilterOptions() {
   ) {
 
     return;
-
   }
 
 
@@ -2036,166 +2065,127 @@ function renderTravelFilterOptions() {
 
 
   const categories =
-
     Array
       .from(
-        availableTravelCategories
+        availableTravelCategories.entries()
       )
-
+      .map(
+        ([key, label]) => ({
+          key,
+          label
+        })
+      )
       .sort(
-
-        (
-          a,
-          b
-        ) => {
-
-
-          const priority = {
-
-            "Sabba & Safta":
-              1,
-
-            "Family":
-              2
-
-          };
-
-
-          const aPriority =
-
-            priority[a]
-            ||
-            100;
-
-
-          const bPriority =
-
-            priority[b]
-            ||
-            100;
-
-
-          if (
-            aPriority !==
-            bPriority
-          ) {
-
-            return (
-              aPriority
-              -
-              bPriority
-            );
-
-          }
-
-
-          return a.localeCompare(
-            b
-          );
-
-        }
-
+        (a, b) =>
+          a.label.localeCompare(
+            b.label,
+            undefined,
+            {
+              numeric: true,
+              sensitivity: "base"
+            }
+          )
       );
 
 
-  categories.forEach(
+  if (
+    categories.length === 0
+  ) {
 
+    const empty =
+      document.createElement(
+        "div"
+      );
+
+    empty.className =
+      "travel-generation-option";
+
+    empty.textContent =
+      "No travelers listed";
+
+    travelFilterMenu.appendChild(
+      empty
+    );
+
+    return;
+  }
+
+
+  categories.forEach(
     category => {
 
-
       const label =
-
         document.createElement(
           "label"
         );
-
 
       label.className =
         "travel-generation-option";
 
 
       const checkbox =
-
         document.createElement(
           "input"
         );
 
-
       checkbox.type =
         "checkbox";
 
-
       checkbox.value =
-        category;
-
+        category.key;
 
       checkbox.checked =
-
         selectedTravelCategories.has(
-          category
+          category.key
         );
 
-
       checkbox.addEventListener(
-
         "change",
-
         () => {
-
 
           if (
             checkbox.checked
           ) {
 
             selectedTravelCategories.add(
-              category
+              category.key
             );
 
           } else {
 
             selectedTravelCategories.delete(
-              category
+              category.key
             );
 
           }
 
-
           updateTravelPinVisibility();
-
+          renderTravelTripOptions();
         }
-
       );
 
 
       const text =
-
         document.createElement(
           "span"
         );
 
-
       text.textContent =
-        category;
-
+        category.label;
 
       label.appendChild(
         checkbox
       );
 
-
       label.appendChild(
         text
       );
 
-
       travelFilterMenu.appendChild(
         label
       );
-
     }
-
   );
-
 }
 
 
@@ -2212,15 +2202,14 @@ function getTravelTripSortPriority(
   travel
 ) {
 
-  const generation =
-
-    getEffectiveTravelGeneration(
+  const visualGroup =
+    getTravelVisualGroup(
       travel
     );
 
 
   switch (
-    generation
+    visualGroup
   ) {
 
     case "first":
@@ -2233,14 +2222,9 @@ function getTravelTripSortPriority(
       return 2;
 
 
-    case "next":
-
-      return 3;
-
-
     default:
 
-      return 4;
+      return 3;
 
   }
 
@@ -2282,6 +2266,13 @@ function renderTravelTripOptions() {
 
         })
 
+      )
+
+      .filter(
+        item =>
+          travelMatchesSelectedTravelers(
+            item.travel
+          )
       )
 
       .sort(
@@ -2374,9 +2365,9 @@ function renderTravelTripOptions() {
         item.index;
 
 
-      const generation =
+      const visualGroup =
 
-        getEffectiveTravelGeneration(
+        getTravelVisualGroup(
           travel
         );
 
@@ -2397,16 +2388,15 @@ function renderTravelTripOptions() {
 
 
       /*
-        Menu stripe colors:
+        Menu stripe colors are derived from Travelers:
 
-        first = red
-        family = white
-        next = blue
-        new categories = blue
+        Sabba or Safta = red
+        Zohar Family = white
+        everyone else = blue
       */
 
       if (
-        generation === "first"
+        visualGroup === "first"
       ) {
 
         option.classList.add(
@@ -2414,7 +2404,7 @@ function renderTravelTripOptions() {
         );
 
       } else if (
-        generation === "family"
+        visualGroup === "family"
       ) {
 
         option.classList.add(
@@ -2556,42 +2546,36 @@ function updateTravelPinVisibility() {
   ) {
 
     return;
-
   }
 
 
   const pins =
-
     travelPins.querySelectorAll(
       ".travel-pin"
     );
 
 
   pins.forEach(
-
     pin => {
 
+      const travelIndex =
+        Number(
+          pin.dataset.travelIndex
+        );
 
-      const category =
-
-        pin.dataset
-          .travelCategory;
-
+      const travel =
+        TRAVELS[
+          travelIndex
+        ];
 
       pin.style.display =
-
-        selectedTravelCategories.has(
-          category
+        travelMatchesSelectedTravelers(
+          travel
         )
-
           ? ""
-
           : "none";
-
     }
-
   );
-
 }
 
 
@@ -2669,88 +2653,27 @@ function renderTravelPin(
     "travel-pin";
 
 
-  const generation =
+  const visualGroup =
 
-    getEffectiveTravelGeneration(
+    getTravelVisualGroup(
       travel
     );
 
 
   /*
-    Keep original first / next / family
-    generation classes.
+    Pin styling follows Travelers rather than legacy Filter/Generation:
+    Sabba/Safta = first, Zohar Family = family, everyone else = next.
   */
 
-  if (
-    generation
-  ) {
-
-    const generationClass =
-      generation
-        .replace(
-          /[^a-z0-9_-]+/g,
-          "-"
-        )
-        .replace(
-          /^-+|-+$/g,
-          ""
-        );
-
-    if (
-      generationClass
-    ) {
-
-      pin.classList.add(
-        `generation-${generationClass}`
-      );
-
-    }
-
-  }
+  pin.classList.add(
+    `generation-${visualGroup}`
+  );
 
 
-  /*
-    Any new generation also receives
-    generation-new, which is styled exactly
-    like generation-next in CSS.
-  */
-
-  if (
-
-    generation !== "first"
-
-    &&
-
-    generation !== "next"
-
-    &&
-
-    generation !== "family"
-
-  ) {
-
-    pin.classList.add(
-      "generation-new"
+  pin.dataset.travelIndex =
+    String(
+      index
     );
-
-  }
-
-
-  const category =
-
-    travel.filterCategory
-
-    ||
-
-    getTravelCategory(
-      travel.filterName
-      ||
-      travel.generation
-    );
-
-
-  pin.dataset.travelCategory =
-    category;
 
 
   pin.style.left =
@@ -2788,22 +2711,15 @@ function renderTravelPin(
 
 
   /*
-    Only selected categories are visible.
-
-    Sabba & Safta and Family are selected
-    by default.
-
-    New generations are hidden by default.
+    A multi-person trip is visible when any selected traveler matches.
+    Zohar Family trips use the separate Family filter on the shared page.
   */
 
   pin.style.display =
-
-    selectedTravelCategories.has(
-      category
+    travelMatchesSelectedTravelers(
+      travel
     )
-
       ? ""
-
       : "none";
 
 
