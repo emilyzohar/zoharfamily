@@ -1602,7 +1602,7 @@ function getTravelVisualGroup(
     travelerKeys.includes(
       "sabba"
     )
-    ||
+    &
     travelerKeys.includes(
       "safta"
     )
