@@ -1223,7 +1223,7 @@ function preloadFirstTravelImage(
 
 
       const firstUrl =
-        travel.images[0];
+        await resolveTravelPhotoUrl(travel.images[0]);
 
 
       if (
@@ -3030,6 +3030,62 @@ function renderTravelModal() {
    CAROUSEL MEDIA HELPERS
 ============================================ */
 
+// HEIC photos are decoded only when displayed or prefetched.
+const travelHeicCache = new Map();
+let travelHeicDecoderPromise;
+let travelHeicQueue = Promise.resolve();
+
+function isTravelHeicUrl(value) {
+  let path = String(value || "");
+  try {
+    const parsed = new URL(path, document.baseURI);
+    path = parsed.searchParams.get("path") || parsed.pathname;
+  } catch (_) {}
+  return /\.(heic|heif)$/i.test(path);
+}
+
+function loadTravelHeicDecoder() {
+  if (typeof window.heic2any === "function") return Promise.resolve(window.heic2any);
+  if (!travelHeicDecoderPromise) {
+    travelHeicDecoderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js";
+      script.onload = () => typeof window.heic2any === "function"
+        ? resolve(window.heic2any) : reject(new Error("HEIC decoder unavailable"));
+      script.onerror = () => reject(new Error("Could not load HEIC decoder"));
+      document.head.appendChild(script);
+    }).catch(error => { travelHeicDecoderPromise = undefined; throw error; });
+  }
+  return travelHeicDecoderPromise;
+}
+
+function resolveTravelPhotoUrl(url) {
+  if (!isTravelHeicUrl(url)) return Promise.resolve(url);
+  if (travelHeicCache.has(url)) return travelHeicCache.get(url);
+  const result = travelHeicQueue.then(async () => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Photo download failed (${response.status})`);
+    const blob = await response.blob();
+    const nativeUrl = URL.createObjectURL(blob);
+    // Prefer native decoding when supported; otherwise convert to JPEG.
+    const probe = new Image();
+    try {
+      probe.src = nativeUrl;
+      await probe.decode();
+      return nativeUrl;
+    } catch (_) {
+      URL.revokeObjectURL(nativeUrl);
+    }
+    const convert = await loadTravelHeicDecoder();
+    const converted = await convert({ blob, toType: "image/jpeg", quality: 0.9 });
+    return URL.createObjectURL(Array.isArray(converted) ? converted[0] : converted);
+  });
+  travelHeicQueue = result.catch(() => {});
+  travelHeicCache.set(url, result);
+  result.catch(() => travelHeicCache.delete(url));
+  return result;
+}
+
 function isVideoFile(
   value
 ) {
@@ -3199,12 +3255,17 @@ function setTravelMediaSource(
 
   } else {
 
-    element.src =
-      url;
-
-
-    element.alt =
-      label;
+    element.alt = label;
+    element.dataset.travelSource = url;
+    element.removeAttribute("src");
+    resolveTravelPhotoUrl(url).then(source => {
+      if (element.dataset.travelSource === url) element.src = source;
+    }).catch(error => {
+      if (element.dataset.travelSource === url) {
+        element.alt = `${label} — photo could not be loaded`;
+      }
+      console.error("Could not load travel photo:", error);
+    });
 
   }
 
@@ -3637,8 +3698,9 @@ function preloadAdjacentTravelImages(
       }
 
 
-      image.src =
-        url;
+      resolveTravelPhotoUrl(url).then(source => {
+        image.src = source;
+      }).catch(error => console.warn("Could not preload travel photo:", error));
 
     }
 
@@ -4864,7 +4926,7 @@ function isImageFile(
   filename
 ) {
 
-  return /\.(jpg|jpeg|png|webp|gif|avif)$/i
+  return /\.(jpg|jpeg|png|webp|gif|avif|heic|heif)$/i
     .test(
       filename
     );
